@@ -1,0 +1,6 @@
+<Project Name="TestProject" SequencingCenter="SnqSeq - Uppsala"
+	Platform="Illumina" UppmaxProjectId="b2010028">
+	<RunFolder Report="src/test/resources/testdata/smallTestFastqDataFolder/report.xml">
+		<SampleFolder Name="1" Path="src/test/resources/testdata/smallTestFastqDataFolder/Sample_1" Reference="src/test/resources/testdata/exampleFASTA.fasta"></SampleFolder>
+	</RunFolder>
+</Project>

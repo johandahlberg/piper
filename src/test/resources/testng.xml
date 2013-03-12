@@ -1,0 +1,18 @@
+<suite name="PiperTests" verbose="10">
+    <listeners>
+        <listener class-name="org.testng.reporters.FailedReporter"/>
+        <listener class-name="org.testng.reporters.JUnitXMLReporter"/>
+    </listeners>
+    <test name="UnitTests">
+        <packages>
+            <package name="se.uu.medsci.queue.setup"/>
+        </packages>
+    </test>
+    <test name="PipelineTests">
+        <parameter name="pipeline.run" value="run"/>
+        <packages>
+            <package name="org.broadinstitute.sting.queue.pipeline"/>
+        </packages>
+    </test>
+</suite>
+
