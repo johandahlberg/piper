@@ -11,7 +11,7 @@
     <test name="PipelineTests">
         <parameter name="pipeline.run" value="run"/>
         <packages>
-            <package name="org.broadinstitute.sting.queue.pipeline"/>
+            <package name="molmed.qscripts"/>
         </packages>
     </test>
 </suite>

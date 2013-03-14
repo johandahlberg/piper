@@ -1,4 +1,4 @@
-package org.broadinstitute.sting.queue.pipeline
+package molmed.qscripts
 
 /*
  * Copyright (c) 2011, The Broad Institute
@@ -26,6 +26,7 @@ package org.broadinstitute.sting.queue.pipeline
 
 import org.testng.annotations.Test
 import se.uu.medsci.queue.SnpSeqBaseTest
+import org.broadinstitute.sting.queue.pipeline._
 
 /**
  * TODO

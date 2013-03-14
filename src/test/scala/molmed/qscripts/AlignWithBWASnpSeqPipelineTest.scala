@@ -1,7 +1,8 @@
-package org.broadinstitute.sting.queue.pipeline
+package molmed.qscripts
 
 import org.testng.annotations._
 import se.uu.medsci.queue.SnpSeqBaseTest
+import org.broadinstitute.sting.queue.pipeline._
 
 /**
  * Test class for the AlignWithBwa qscript.
