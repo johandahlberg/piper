@@ -12,3 +12,4 @@ rm -rf gatk-protected
 
 # Uncomment this to run tests after setup
 # sbt test
+sbt package
