@@ -52,9 +52,10 @@ class DataProcessingSnpSeqPipelineTest {
       " -i " + snpSeqBaseTest.publicTestDir + "exampleBAM.bam",
       " -D " + snpSeqBaseTest.publicTestDir + "exampleDBSNP.vcf",
       " -test ",
-      "-startFromScratch ",
+      " -startFromScratch ",
+      " --graphviz testSimpleBAM.dot",
       " -p " + projectName).mkString
-    spec.fileMD5s += testOut -> "bf4f4f79809837f2143efc033ed228c6"
+    spec.fileMD5s += testOut -> "bfdaeb59f1279d5d31a11dc9fbfe5ac0" // Old md5 "bf4f4f79809837f2143efc033ed228c6"
     PipelineTest.executeTest(spec)
   }
 
@@ -75,8 +76,9 @@ class DataProcessingSnpSeqPipelineTest {
       " -bwa /usr/bin/bwa",
       " -bwape ",
       " -startFromScratch ",
+      " --graphviz testBWAPEBAM.dot",
       " -p " + projectName).mkString
-    spec.fileMD5s += testOut -> "13ffa44c798825c70b5d185c6a79df4c"
+    spec.fileMD5s += testOut -> "b12d89dc1def9fd0c54a743cb988a764" // Old md5 "13ffa44c798825c70b5d185c6a79df4c"
     PipelineTest.executeTest(spec)
   }
   
@@ -97,9 +99,10 @@ class DataProcessingSnpSeqPipelineTest {
       " -bwa /usr/bin/bwa",
       " -bwape ",
       " --revert ",
-      "-startFromScratch ",
+      " --graphviz testBWAPEBAMWithRevert.dot",
+      " -startFromScratch ",
       " -p " + projectName).mkString
-    spec.fileMD5s += testOut -> "7f7a0fd29fbaf88a5c82afe16de43c29"
+    spec.fileMD5s += testOut -> "632766ad16be9f99c492ca9c8039223b" // Old md5 "7f7a0fd29fbaf88a5c82afe16de43c29"
     PipelineTest.executeTest(spec)
   }
 

@@ -1,4 +1,4 @@
-package org.broadinstitute.sting.queue.qscripts
+package molmed.qscripts
 
 import java.io.FileNotFoundException
 
@@ -387,6 +387,8 @@ class DataProcessingPipeline extends QScript {
 
         //TODO This should probably be a core job since it does not support parallel exection.  
 
+        this.num_threads = nbrOfThreads
+        
         this.input_file = inBams
         this.targetIntervals = tIntervals
         this.out = outBam
@@ -408,7 +410,7 @@ class DataProcessingPipeline extends QScript {
         this.knownSites ++= qscript.dbSNP
         this.covariate ++= Seq("ReadGroupCovariate", "QualityScoreCovariate", "CycleCovariate", "ContextCovariate")
         this.input_file :+= inBam
-        this.disable_indel_quals = true
+        this.disable_indel_quals = false
         this.out = outRecalFile
         if (!defaultPlatform.isEmpty) this.default_platform = defaultPlatform
         if (!qscript.intervalString.isEmpty) this.intervalsString ++= Seq(qscript.intervalString)
@@ -430,6 +432,7 @@ class DataProcessingPipeline extends QScript {
         if (!qscript.intervalString.isEmpty) this.intervalsString ++= Seq(qscript.intervalString)
         else if (qscript.intervals != null) this.intervals :+= qscript.intervals
         this.scatterCount = nContigs
+        this.num_cpu_threads_per_data_thread  = nbrOfThreads
         this.isIntermediate = false
         this.analysisName = queueLogDir + outBam + ".recalibration"
         this.jobName = queueLogDir + outBam + ".recalibration"
