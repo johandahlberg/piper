@@ -42,6 +42,9 @@ class AlignWithTophat extends QScript {
 
     @Argument(doc = "Number of threads tophat should use", fullName = "tophat_threads", shortName = "tt", required = false)
     var tophatThreads: Int = 1
+    
+    @Argument(doc = "library type. Options: fr-unstranded (default), fr-firststrand, fr-secondstrand", fullName = "library_typ", shortName = "lib", required = false)
+    var libraryType: String = "fr-unstranded"
 
     //TODO Add tophat specific stuff
 
@@ -158,7 +161,7 @@ class AlignWithTophat extends QScript {
         val files1CommaSepString = files1.mkString(",")
         val files2CommaSepString = files2.mkString(",")
 
-        def commandLine = tophatPath + " -p " + tophatThreads +
+        def commandLine = tophatPath + " --library-type " + libraryType + " -p " + tophatThreads +
             " --output-dir " + dir + " " + ref + " " + files1CommaSepString + " " + files2CommaSepString +
             " 1> " + stdOut
     }
