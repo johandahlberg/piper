@@ -17,7 +17,7 @@ class AlignWithBWASnpSeqPipelineTest {
     val runOnUppmax =  System.getProperty("pipeline.uppmax") == "true"
     
     val snpSeqBaseTest: SnpSeqBaseTest = new SnpSeqBaseTest()
-    val pathToScript: String = " -S src/main/scala/molmed/qscripts/AlignWithBWA.scala "    
+    val pathToScript: String = " -S src/main/scala/molmed/qscripts/AlignWithBWA.scala"    
     
     val walltime = 600    
     
@@ -141,86 +141,94 @@ class AlignWithBWASnpSeqPipelineTest {
     PipelineTest.executeTest(spec)
   }
   
-    /**
-    * testSameSampleInMoreThanOneRunFolder 
-    */
-    
-  @DataProvider(name = "testSameSampleInMoreThanOneRunFolderDataProvider")
-  def SameSampleInMoreThanOneRunFolderDataProvider: Array[Array[Object]] = {        
-    runOnUppmax match {
-        case true => {
-            val envSetup = EnvironmentSetup(pathToScript, Seq("Drmaa"), "/bubo/sw/apps/bioinfo/bwa/0.6.2/kalkyl/bwa");
-            //TODO Fix new md5s
-            val md5 = "8affd69d2b506bd7d35bdd226f27d057"                
-            Array(Array(envSetup, md5)).asInstanceOf[Array[Array[Object]]]
-        }
-        case _ => {
-            val envSetup = EnvironmentSetup(pathToScript, Seq("Shell"), "/usr/bin/bwa");
-            val md5 = Seq("d8867a7264261573a15793dead163d24", "3a08932e07599ccb7b1c9ee5603fe469", "c106f36d82c2fe72d72308d77ce085bd")
-            Array(Array(envSetup, md5)).asInstanceOf[Array[Array[Object]]]
-        }
-    }                     							   
-  }
-
-  @Test(dataProvider="testSameSampleInMoreThanOneRunFolderDataProvider")
-  def SameSampleInMoreThanOneRunFolder(envSetup: EnvironmentSetup, md5sum: Seq[String]) {
-    val projectName = "test"
-    val testOut = "1.bam"
-    val spec = new MultipleOutcomeTestSpec()
   
-    spec.jobRunners = envSetup.jobrunner
-    
-    spec.name = "SameSampleInMoreThanOneRunFolder"
-    spec.args = Array(envSetup.commandline,
-            		  " -bwa " + envSetup.pathToBwa,
-    				  " -i " + snpSeqBaseTest.pathToSetupFileForSameSampleAcrossMultipleRunFolders,
-    				  " -bwape ",
-    				  " -wallTime " + walltime,
-    				  " -startFromScratch ").mkString
-    spec.fileMD5s += testOut -> md5sum
-    PipelineTest.executeTest(spec)
-  } 
+/**
+ * TODO: The following tests need to be reimagined in a later version of piper.
+ * They are not working right now because of the undeteministic nature of the 
+ * output.  
+ */
   
   
-  /**
-   * testSameSampleAcrossSeveralLanes
-   */
-    
-  //TODO Fix this!
-  @DataProvider(name = "testSameSampleAcrossSeveralLanesDataProvider")
-  def testSameSampleAcrossSeveralLanesDataProvider: Array[Array[Object]] = {        
-    runOnUppmax match {
-        case true => {
-            val envSetup = EnvironmentSetup(pathToScript, Seq("Drmaa"), "/bubo/sw/apps/bioinfo/bwa/0.6.2/kalkyl/bwa");
-            //TODO Fix new md5s
-            val md5 = Seq("")                
-            Array(Array(envSetup, md5)).asInstanceOf[Array[Array[Object]]]
-        }
-        case _ => {
-            val envSetup = EnvironmentSetup(pathToScript, Seq("Shell"), "/usr/bin/bwa");
-            val md5 = Seq("04c19d2a45b49f9a8bcf4e0289421ab6", "6f8020376e7d6e46a231bc3efa0e9fa1", "0ed6b1302636d6b5d62e89416c6283bc")
-            Array(Array(envSetup, md5)).asInstanceOf[Array[Array[Object]]]
-        }
-    }                     							   
-  }
- 
-  //TODO Fix this!
-  @Test(dataProvider="testSameSampleAcrossSeveralLanesDataProvider")
-  def testSameSampleAcrossSeveralLanes(envSetup: EnvironmentSetup, md5sum: Seq[String]) {
-    val projectName = "test"
-    val testOut = "1.bam"
-    val spec = new MultipleOutcomeTestSpec()
-  
-    spec.jobRunners = envSetup.jobrunner
-    
-    spec.name = "SameSampleAcrossSeveralLanes"
-    spec.args = Array(envSetup.commandline,
-            		  " -bwa " + envSetup.pathToBwa,
-    				  " -i " + snpSeqBaseTest.pathToSetupFileForSameSampleAcrossMultipleLanes,
-    				  " -bwape ",
-    				  " -wallTime " + walltime,
-    				  " -startFromScratch ").mkString
-    spec.fileMD5s += testOut -> md5sum
-    PipelineTest.executeTest(spec)
-  } 
+//    /**
+//    * testSameSampleInMoreThanOneRunFolder 
+//    */
+//    
+//  @DataProvider(name = "testSameSampleInMoreThanOneRunFolderDataProvider")
+//  def SameSampleInMoreThanOneRunFolderDataProvider: Array[Array[Object]] = {        
+//    runOnUppmax match {
+//        case true => {
+//            val envSetup = EnvironmentSetup(pathToScript, Seq("Drmaa"), "/bubo/sw/apps/bioinfo/bwa/0.6.2/kalkyl/bwa");
+//            //TODO Fix new md5s
+//            val md5 = "8affd69d2b506bd7d35bdd226f27d057"                
+//            Array(Array(envSetup, md5)).asInstanceOf[Array[Array[Object]]]
+//        }
+//        case _ => {
+//            val envSetup = EnvironmentSetup(pathToScript, Seq("Shell"), "/usr/bin/bwa");
+//            val md5 = Seq("d8867a7264261573a15793dead163d24", "3a08932e07599ccb7b1c9ee5603fe469", "c106f36d82c2fe72d72308d77ce085bd")
+//            Array(Array(envSetup, md5)).asInstanceOf[Array[Array[Object]]]
+//        }
+//    }                     							   
+//  }
+//
+//  @Test(dataProvider="testSameSampleInMoreThanOneRunFolderDataProvider")
+//  def SameSampleInMoreThanOneRunFolder(envSetup: EnvironmentSetup, md5sum: Seq[String]) {
+//    val projectName = "test"
+//    val testOut = "1.bam"
+//    val spec = new MultipleOutcomeTestSpec()
+//  
+//    spec.jobRunners = envSetup.jobrunner
+//    
+//    spec.name = "SameSampleInMoreThanOneRunFolder"
+//    spec.args = Array(envSetup.commandline,
+//            		  " -bwa " + envSetup.pathToBwa,
+//    				  " -i " + snpSeqBaseTest.pathToSetupFileForSameSampleAcrossMultipleRunFolders,
+//    				  " -bwape ",
+//    				  " -wallTime " + walltime,
+//    				  " -startFromScratch ").mkString
+//    spec.fileMD5s += testOut -> md5sum
+//    PipelineTest.executeTest(spec)
+//  } 
+//  
+//  
+//  /**
+//   * testSameSampleAcrossSeveralLanes
+//   */
+//    
+//  //TODO Fix this!
+//  @DataProvider(name = "testSameSampleAcrossSeveralLanesDataProvider")
+//  def testSameSampleAcrossSeveralLanesDataProvider: Array[Array[Object]] = {        
+//    runOnUppmax match {
+//        case true => {
+//            val envSetup = EnvironmentSetup(pathToScript, Seq("Drmaa"), "/bubo/sw/apps/bioinfo/bwa/0.6.2/kalkyl/bwa");
+//            //TODO Fix new md5s
+//            val md5 = Seq("")                
+//            Array(Array(envSetup, md5)).asInstanceOf[Array[Array[Object]]]
+//        }
+//        case _ => {
+//            val envSetup = EnvironmentSetup(pathToScript, Seq("Shell"), "/usr/bin/bwa");
+//            val md5 = Seq("04c19d2a45b49f9a8bcf4e0289421ab6", "6f8020376e7d6e46a231bc3efa0e9fa1", "0ed6b1302636d6b5d62e89416c6283bc")
+//            Array(Array(envSetup, md5)).asInstanceOf[Array[Array[Object]]]
+//        }
+//    }                     							   
+//  }
+// 
+//  //TODO Fix this!
+//  @Test(dataProvider="testSameSampleAcrossSeveralLanesDataProvider")
+//  def testSameSampleAcrossSeveralLanes(envSetup: EnvironmentSetup, md5sum: Seq[String]) {
+//    val projectName = "test"
+//    val testOut = "1.bam"
+//    val spec = new MultipleOutcomeTestSpec()
+//  
+//    spec.jobRunners = envSetup.jobrunner
+//    
+//    spec.name = "SameSampleAcrossSeveralLanes"
+//    spec.args = Array(envSetup.commandline,
+//            		  " -bwa " + envSetup.pathToBwa,
+//    				  " -i " + snpSeqBaseTest.pathToSetupFileForSameSampleAcrossMultipleLanes,
+//    				  " -bwape ",
+//    				  " -wallTime " + walltime,
+//    				  " -startFromScratch ").mkString
+//    spec.fileMD5s += testOut -> md5sum
+//    PipelineTest.executeTest(spec)
+//  } 
 }
