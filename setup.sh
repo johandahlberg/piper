@@ -1,0 +1,10 @@
+git clone https://github.com/broadgsa/gatk-protected.git gatk-protected
+cd gatk-protected
+# Validated gatk-version
+git checkout 5e89f01e106cc916e088d1ab43e66321f133b34c
+ant
+cp dist/* ../lib/
+cd ..
+rm -r gatk-protected
+
+sbt test
