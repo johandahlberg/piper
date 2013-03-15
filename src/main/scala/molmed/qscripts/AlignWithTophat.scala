@@ -1,11 +1,11 @@
-package qscript.org.broadinstitute.sting.queue.qscripts
+package molmed.qscripts
 
 import org.broadinstitute.sting.queue.QScript
 import scala.xml._
 import collection.JavaConversions._
 import org.broadinstitute.sting.queue.extensions.picard._
 import org.broadinstitute.sting.queue.function.ListWriterFunction
-import se.uu.medsci.queue.setup._
+import molmed.queue.setup._
 import java.io.File
 import java.io.PrintWriter
 

@@ -1,4 +1,4 @@
-package org.broadinstitute.sting.queue.qscripts
+package molmed.qscripts
 import collection.JavaConversions._
 
 import org.broadinstitute.sting.queue.QScript

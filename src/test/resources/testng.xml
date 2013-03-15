@@ -1,11 +1,11 @@
-<suite name="PiperTests" verbose="10">
+<suite name="PiperTests" verbose="2">
     <listeners>
         <listener class-name="org.testng.reporters.FailedReporter"/>
         <listener class-name="org.testng.reporters.JUnitXMLReporter"/>
     </listeners>
     <test name="UnitTests">
         <packages>
-            <package name="se.uu.medsci.queue.setup"/>
+            <package name="molmed.queue.setup"/>
         </packages>
     </test>
     <test name="PipelineTests">

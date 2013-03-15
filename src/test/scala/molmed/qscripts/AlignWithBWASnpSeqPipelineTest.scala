@@ -1,7 +1,7 @@
 package molmed.qscripts
 
 import org.testng.annotations._
-import se.uu.medsci.queue.SnpSeqBaseTest
+import molmed.queue.SnpSeqBaseTest
 import org.broadinstitute.sting.queue.pipeline._
 
 /**

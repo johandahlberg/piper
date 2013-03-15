@@ -20,4 +20,4 @@ testNGSuites := Seq("src/test/resources/testng.xml")
 
 fork in test := true
 
-javaOptions in test += "-Dpipeline.run=run"
+//javaOptions in test += "-Dpipeline.run=run"

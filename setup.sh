@@ -5,6 +5,6 @@ git checkout 5e89f01e106cc916e088d1ab43e66321f133b34c
 ant
 cp dist/* ../lib/
 cd ..
-rm -r gatk-protected
+rm -rf gatk-protected
 
 sbt test

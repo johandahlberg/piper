@@ -1,4 +1,4 @@
-package qscript.org.broadinstitute.sting.queue.qscripts
+package molmed.qscripts
 
 import org.broadinstitute.sting.queue.QScript
 import scala.xml._
@@ -9,7 +9,7 @@ import org.broadinstitute.sting.queue.extensions.picard._
 import org.broadinstitute.sting.queue.util.QScriptUtils
 import org.broadinstitute.sting.queue.function.ListWriterFunction
 import org.broadinstitute.sting.commandline.Hidden
-import se.uu.medsci.queue.setup._
+import molmed.queue.setup._
 import org.broadinstitute.sting.queue.function.InProcessFunction
 import org.broadinstitute.sting.utils.io.IOUtils
 
