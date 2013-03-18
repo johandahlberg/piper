@@ -47,7 +47,7 @@ class AlignWithTophat extends QScript {
     var libraryType: String = "fr-unstranded"
 
     @Argument(doc = "Annotations of known transcripts in GTF 2.2 or GFF 3 format.", fullName = "annotations", shortName = "a", required = false)
-    var annotations: File = _
+    var annotations: Option[File] = _
     
         
     //TODO Add tophat specific stuff
@@ -166,7 +166,7 @@ class AlignWithTophat extends QScript {
         val files2CommaSepString = files2.mkString(",")
 
         // Only add --GTF option if this has been defined as an option on the command line
-        def annotationString = if (annotations.isFile()) " --GTF " + annotations.getAbsolutePath() + " " else ""
+        def annotationString = if(annotations.isDefined) " --GTF " + annotations.get.getAbsolutePath() + " " else ""
         
         def commandLine = tophatPath + " --library-type " + libraryType + annotationString + " -p " + tophatThreads +
             " --output-dir " + dir + " " + ref + " " + files1CommaSepString + " " + files2CommaSepString +
