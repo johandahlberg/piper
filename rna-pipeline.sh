@@ -28,13 +28,15 @@ PIPELINE_SETUP_XML="smallPipelineSetup.xml"
 PROJECT_NAME="TestRNA"
 PROJECT_ID="a2009002"
 # Note that it's important that the last / is included in the root dir path
-PROJECT_ROOT_DIR="/proj/b2011214/private/raw/illumina/"
+PROJECT_ROOT_DIR="/proj/a2009002/private/nobackup/testingRNASeqPipeline/SnpSeqPipeline/fastqs_with_adaptors_trimmed/"
 GATK_BUNDLE="/proj/a2009002/SnpSeqPipeline/gatk_bundle/2.2/b37/"
 GENOME_REFERENCE=${GATK_BUNDLE}"/human_g1k_v37.fasta"
 DB_SNP=${GATK_BUNDLE}"/dbsnp_137.b37.vcf"
 MILLS=${GATK_BUNDLE}"/Mills_and_1000G_gold_standard.indels.b37.vcf"
 ONE_K_G=${GATK_BUNDLE}"/1000G_phase1.indels.b37.vcf"
 INTERVALS=""
+ANNOTATIONS="/proj/a2009002/SnpSeqPipeline/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf"
+LIBRARY_TYPE="fr-secondstrand"
 
 #---------------------------------------------
 # Check if we are running on uppmax or locally, and set the jobrunners and path accordingly
@@ -123,6 +125,8 @@ fi
 #------------------------------------------------------------------------------------------
 source piper -S ${SCRIPTS_DIR}/AlignWithTophat.scala \
 	-i ${PIPELINE_SETUP_XML} \
+	--annotations ${ANNOTATIONS} \
+	--library_type ${LIBRARY_TYPE} \
 	-tophat ${PATH_TO_TOPHAT} \
 	-outputDir ${RAW_BAM_OUTPUT}/ \
 	-samtools ${PATH_TO_SAMTOOLS} \
