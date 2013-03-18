@@ -47,7 +47,7 @@ class AlignWithTophat extends QScript {
     var libraryType: String = "fr-unstranded"
 
     @Argument(doc = "Annotations of known transcripts in GTF 2.2 or GFF 3 format.", fullName = "annotations", shortName = "a", required = false)
-    var annotations: Option[File] = _
+    var annotations: Option[File] = None
     
         
     //TODO Add tophat specific stuff
