@@ -77,7 +77,7 @@ class AlignWithTophat extends QScript {
         val fastq1stMate = fastqs.map(container => container.mate1)         
         val fastq2ndMate = fastqs.map(container => container.mate2)
         
-        add(tophat(fastq1stMate, fastq2ndMate, sampleDir, reference, placeHolderFile))
+        add(tophat(fastq1stMate, fastq2ndMate, sampleDir, reference, placeHolderFile, readGroupInfo))
 
         return (alignedBamFile, placeHolderFile)
     }
@@ -95,8 +95,9 @@ class AlignWithTophat extends QScript {
         else
             throw new Exception("AlignWithTophat requires all instances of the same sample is aligned to the same reference.")
 
-        // TODO Add read reag group info here
-        val readGroupString = "Fake read group string"
+        // TODO Currently exact read groups are unsupported by the tophat workflow. When this is fixed
+        // uncomment the below to generate a read group containing info on library, platform unit, etc.        
+        val readGroupString = samples(0).getTophatStyleReadGroupInformationString()
         
         // Run the alignment
         performAlignment(sampleName, fastqs, reference, readGroupString)
@@ -154,7 +155,7 @@ class AlignWithTophat extends QScript {
         this.jobName = "bamList"
     }
 
-    case class tophat(fastqs1: Seq[File], fastqs2: Seq[File], sampleOutputDir: File, reference: File, outputFile: File) extends CommandLineFunction with ExternalCommonArgs {
+    case class tophat(fastqs1: Seq[File], fastqs2: Seq[File], sampleOutputDir: File, reference: File, outputFile: File, readGroupInfo: String) extends CommandLineFunction with ExternalCommonArgs {
 
         // Sometime this should be kept, sometimes it shouldn't
         this.isIntermediate = false
@@ -174,7 +175,7 @@ class AlignWithTophat extends QScript {
         def annotationString = if(annotations.isDefined) " --GTF " + annotations.get.getAbsolutePath() + " " else ""
         
         def commandLine = tophatPath + " --library-type " + libraryType + annotationString + " -p " + tophatThreads +
-            " --output-dir " + dir + " " + ref + " " + files1CommaSepString + " " + files2CommaSepString +
+            " --output-dir " + dir + " " + readGroupInfo + " " + ref + " " + files1CommaSepString + " " + files2CommaSepString +
             " 1> " + stdOut
     }
 }
