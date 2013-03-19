@@ -7,13 +7,16 @@ import java.io.File
 class SampleStub(sampleName: String) extends SampleAPI{
     
     var readPairContainer: ReadPairContainer = null
-    var readGroupInfo: String = ""
+    var bwaReadGroupInfo: String = ""
+    var tophatReadgroupInfo: String = ""
     var reference: File = null    
     
     def getSampleName(): String = sampleName
     def getFastqs(): ReadPairContainer = readPairContainer   
-    def getReadGroupInformation: String = readGroupInfo
+    def getBwaStyleReadGroupInformationString: String = bwaReadGroupInfo
+    def getTophatStyleReadGroupInformationString(): String = tophatReadgroupInfo
     def getReference: File = reference
+    
     
     override
     def hashCode(): Int = {

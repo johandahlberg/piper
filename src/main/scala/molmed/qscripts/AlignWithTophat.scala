@@ -64,7 +64,7 @@ class AlignWithTophat extends QScript {
      * Help methods
      */
 
-    def performAlignment(sampleName: String, fastqs: Seq[ReadPairContainer], reference: File): (File, File) = {
+    def performAlignment(sampleName: String, fastqs: Seq[ReadPairContainer], reference: File, readGroupInfo: String): (File, File) = {
 
         // All fastqs input to this function should be from the same sample
         // and should all be aligned to the same reference.
@@ -84,6 +84,8 @@ class AlignWithTophat extends QScript {
 
     private def alignSample(sampleName: String, samples: Seq[SampleAPI]): (File, File) = {
         val fastqs = samples.map(_.getFastqs())
+        
+        // Require that all instances of the same sample are mapped to the same reference.
         val reference = if (samples.filterNot(p => {
             val pathToFirstReference = samples(0).getReference().getAbsolutePath()
             val currentReference = p.getReference.getAbsolutePath()
@@ -93,8 +95,11 @@ class AlignWithTophat extends QScript {
         else
             throw new Exception("AlignWithTophat requires all instances of the same sample is aligned to the same reference.")
 
+        // TODO Add read reag group info here
+        val readGroupString = "Fake read group string"
+        
         // Run the alignment
-        performAlignment(sampleName, fastqs, reference)
+        performAlignment(sampleName, fastqs, reference, readGroupString)
     }
 
     /**

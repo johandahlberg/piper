@@ -122,7 +122,7 @@ class AlignWithBWA extends QScript {
 
     private def alignSingleSample(sample: SampleAPI): File = {
         val fastqs = sample.getFastqs()
-        val readGroupInfo = sample.getReadGroupInformation()
+        val readGroupInfo = sample.getBwaStyleReadGroupInformationString()
         val reference = sample.getReference()
 
         // Check that the reference is indexed
@@ -142,7 +142,7 @@ class AlignWithBWA extends QScript {
 
         for (sample <- sampleList) {
             val fastqs = sample.getFastqs()
-            val readGroupInfo = sample.getReadGroupInformation()
+            val readGroupInfo = sample.getBwaStyleReadGroupInformationString()
             val reference = sample.getReference()
 
             // Add temporary run name
