@@ -175,7 +175,7 @@ class AlignWithTophat extends QScript {
         def annotationString = if(annotations.isDefined) " --GTF " + annotations.get.getAbsolutePath() + " " else ""
         
         def commandLine = tophatPath + " --library-type " + libraryType + annotationString + " -p " + tophatThreads +
-            " --output-dir " + dir + " " + readGroupInfo + " " + ref + " " + files1CommaSepString + " " + files2CommaSepString +
+            " --output-dir " + dir + " " + readGroupInfo + " --keep-fasta-order " + ref + " " + files1CommaSepString + " " + files2CommaSepString +
             " 1> " + stdOut
     }
 }
