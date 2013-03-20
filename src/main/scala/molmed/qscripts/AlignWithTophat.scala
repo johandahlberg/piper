@@ -42,14 +42,16 @@ class AlignWithTophat extends QScript {
 
     @Argument(doc = "Number of threads tophat should use", fullName = "tophat_threads", shortName = "tt", required = false)
     var tophatThreads: Int = 1
-    
+
     @Argument(doc = "library type. Options: fr-unstranded (default), fr-firststrand, fr-secondstrand", fullName = "library_type", shortName = "lib", required = false)
     var libraryType: String = "fr-unstranded"
 
     @Argument(doc = "Annotations of known transcripts in GTF 2.2 or GFF 3 format.", fullName = "annotations", shortName = "a", required = false)
     var annotations: Option[File] = None
     
-        
+    @Argument(doc = "Do fussion search using tophat", fullName = "fusionSearch", shortName = "fs", required = false)
+    var fusionSearch: Boolean = false 
+
     //TODO Add tophat specific stuff
 
     /**
@@ -74,9 +76,9 @@ class AlignWithTophat extends QScript {
 
         val placeHolderFile = new File(sampleDir + "/qscript_tophap.stdout.log")
 
-        val fastq1stMate = fastqs.map(container => container.mate1)         
+        val fastq1stMate = fastqs.map(container => container.mate1)
         val fastq2ndMate = fastqs.map(container => container.mate2)
-        
+
         add(tophat(fastq1stMate, fastq2ndMate, sampleDir, reference, placeHolderFile, readGroupInfo))
 
         return (alignedBamFile, placeHolderFile)
@@ -84,13 +86,13 @@ class AlignWithTophat extends QScript {
 
     private def alignSample(sampleName: String, samples: Seq[SampleAPI]): (File, File) = {
         val fastqs = samples.map(_.getFastqs())
-        
+
         // Require that all instances of the same sample are mapped to the same reference.
         val reference = if (samples.filterNot(p => {
             val pathToFirstReference = samples(0).getReference().getAbsolutePath()
             val currentReference = p.getReference.getAbsolutePath()
             currentReference.equals(pathToFirstReference)
-            }).size == 0)
+        }).size == 0)
             samples(0).getReference()
         else
             throw new Exception("AlignWithTophat requires all instances of the same sample is aligned to the same reference.")
@@ -98,7 +100,7 @@ class AlignWithTophat extends QScript {
         // TODO Currently exact read groups are unsupported by the tophat workflow. When this is fixed
         // uncomment the below to generate a read group containing info on library, platform unit, etc.        
         val readGroupString = samples(0).getTophatStyleReadGroupInformationString()
-        
+
         // Run the alignment
         performAlignment(sampleName, fastqs, reference, readGroupString)
     }
@@ -145,10 +147,10 @@ class AlignWithTophat extends QScript {
     }
 
     case class writeList(inBams: Seq[File], outBamList: File, placeHolder: Seq[File]) extends ListWriterFunction {
-        
+
         @Input
         val ph = placeHolder
-        
+
         this.inputFiles = inBams
         this.listFile = outBamList
         this.analysisName = "bamList"
@@ -172,10 +174,20 @@ class AlignWithTophat extends QScript {
         val files2CommaSepString = files2.mkString(",")
 
         // Only add --GTF option if this has been defined as an option on the command line
-        def annotationString = if(annotations.isDefined) " --GTF " + annotations.get.getAbsolutePath() + " " else ""
-        
-        def commandLine = tophatPath + " --library-type " + libraryType + annotationString + " -p " + tophatThreads +
-            " --output-dir " + dir + " " + readGroupInfo + " --keep-fasta-order " + ref + " " + files1CommaSepString + " " + files2CommaSepString +
+        def annotationString = if (annotations.isDefined) " --GTF " + annotations.get.getAbsolutePath() + " " else ""
+
+        // Only do fussion search if it has been defined on the command line.    
+        def fusionSearchString = if (fusionSearch) " --fusion-search " else ""    
+            
+        def commandLine = tophatPath +
+            " --library-type " + libraryType +
+            annotationString +
+            " -p " + tophatThreads +
+            " --output-dir " + dir +
+            " " + readGroupInfo + 
+            " --keep-fasta-order " +
+            fusionSearchString +
+            ref + " " + files1CommaSepString + " " + files2CommaSepString +
             " 1> " + stdOut
     }
 }
