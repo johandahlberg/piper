@@ -105,17 +105,10 @@ class Sample(sampleName: String, setupXMLReader: SetupXMLReaderAPI, illuminaXMLR
          * --rg-platform                  <string>    (Sequencing platform descriptor)
          *
          */
-        
-        // TODO Currently exact read groups are unsupported by the tophat workflow. When this is fixed
-        // uncomment the below to generate a read group containing info on library, platform unit, etc.
-        
-//        " --rg-id " + readGroupInfo.readGroupId + " --rg-sample " + sampleName + " --rg-library " +
-//        readGroupInfo.readLibrary + " --rg-platform-unit " + readGroupInfo.platformUnitId + 
-//        " --rg-center " + readGroupInfo.sequencingCenter + " --rg-platform " + readGroupInfo.platform
-        
-        " --rg-id " + readGroupInfo.readGroupId + " --rg-sample " + sampleName + " --rg-library unsupported" +
-        " --rg-platform-unit unsupported" + 
-        " --rg-center " + readGroupInfo.sequencingCenter.replaceAll("\\s*", "") + " --rg-platform " + readGroupInfo.platform
+                
+        " --rg-id " + readGroupInfo.readGroupId + " --rg-sample " + sampleName + " --rg-library " +
+        readGroupInfo.readLibrary + " --rg-platform-unit " + readGroupInfo.platformUnitId + 
+        " --rg-center " + readGroupInfo.sequencingCenter.replaceAll("\\s*", "") + " --rg-platform " + readGroupInfo.platform        
     }
     
     private def parseToBwaApprovedString(readGroupInfo: ReadGroupInformation): String = {

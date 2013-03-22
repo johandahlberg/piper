@@ -48,9 +48,9 @@ class AlignWithTophat extends QScript {
 
     @Argument(doc = "Annotations of known transcripts in GTF 2.2 or GFF 3 format.", fullName = "annotations", shortName = "a", required = false)
     var annotations: Option[File] = None
-    
+
     @Argument(doc = "Do fussion search using tophat", fullName = "fusionSearch", shortName = "fs", required = false)
-    var fusionSearch: Boolean = false 
+    var fusionSearch: Boolean = false
 
     //TODO Add tophat specific stuff
 
@@ -66,43 +66,47 @@ class AlignWithTophat extends QScript {
      * Help methods
      */
 
-    def performAlignment(sampleName: String, fastqs: Seq[ReadPairContainer], reference: File, readGroupInfo: String): (File, File) = {
+    def performAlignment(sampleName: String, fastqs: ReadPairContainer, reference: File, readGroupInfo: String): (File, File) = {
 
         // All fastqs input to this function should be from the same sample
         // and should all be aligned to the same reference.
-        val sampleDir = new File(outputDir + fastqs(0).sampleName)
+        val sampleDir = new File(outputDir + sampleName)
         sampleDir.mkdirs()
         var alignedBamFile: File = new File(sampleDir + "/" + "accepted_hits.bam")
 
         val placeHolderFile = new File(sampleDir + "/qscript_tophap.stdout.log")
 
-        val fastq1stMate = fastqs.map(container => container.mate1)
-        val fastq2ndMate = fastqs.map(container => container.mate2)
-
-        add(tophat(fastq1stMate, fastq2ndMate, sampleDir, reference, placeHolderFile, readGroupInfo))
+        add(tophat(fastqs.mate1, fastqs.mate2, sampleDir, reference, placeHolderFile, readGroupInfo))
 
         return (alignedBamFile, placeHolderFile)
     }
 
-    private def alignSample(sampleName: String, samples: Seq[SampleAPI]): (File, File) = {
-        val fastqs = samples.map(_.getFastqs())
+    private def alignSamples(sampleMap: Map[String, Seq[SampleAPI]]): (Seq[File], Seq[File]) = {
 
-        // Require that all instances of the same sample are mapped to the same reference.
-        val reference = if (samples.filterNot(p => {
-            val pathToFirstReference = samples(0).getReference().getAbsolutePath()
-            val currentReference = p.getReference.getAbsolutePath()
-            currentReference.equals(pathToFirstReference)
-        }).size == 0)
-            samples(0).getReference()
-        else
-            throw new Exception("AlignWithTophat requires all instances of the same sample is aligned to the same reference.")
+        var cohortSeq: Seq[File] = Seq()
+        var placeHolderSeq: Seq[File] = Seq()
 
-        // TODO Currently exact read groups are unsupported by the tophat workflow. When this is fixed
-        // uncomment the below to generate a read group containing info on library, platform unit, etc.        
-        val readGroupString = samples(0).getTophatStyleReadGroupInformationString()
-
-        // Run the alignment
-        performAlignment(sampleName, fastqs, reference, readGroupString)
+        /**
+         * Make sure that if there are several instances of a sample
+         * they are aligned separately with folder names: 
+         * <original sample name>_<int>
+         */
+        for ((sampleName, samples) <- sampleMap) {
+            if (samples.size == 1) {
+                val (file, placeholder) = performAlignment(sampleName, samples(0).getFastqs, samples(0).getReference, samples(0).getTophatStyleReadGroupInformationString)
+                cohortSeq :+= file
+                placeHolderSeq :+= placeholder
+            } else {
+                var counter = 1
+                for (sample <- samples) {
+                    val (file, placeholder) = performAlignment(sampleName + "_" + counter, sample.getFastqs, sample.getReference, sample.getTophatStyleReadGroupInformationString)
+                    counter += 1
+                    cohortSeq :+= file
+                    placeHolderSeq :+= placeholder
+                }
+            }
+        }
+        return (cohortSeq, placeHolderSeq)
     }
 
     /**
@@ -110,23 +114,11 @@ class AlignWithTophat extends QScript {
      */
     def script {
 
-        // final output list of bam files
-        var cohortList: Seq[File] = Seq()
-        var placeHolderList: Seq[File] = Seq()
-
         val setupReader: SetupXMLReader = new SetupXMLReader(input)
-
         val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
         projId = setupReader.getUppmaxProjectId()
 
-        for ((sampleName, sampleList) <- samples) {
-
-            val (bam: File, placeHolder: File) = alignSample(sampleName, sampleList)
-
-            placeHolderList :+= placeHolder
-            // Add the resulting file of the alignment to the output list
-            cohortList :+= bam
-        }
+        val (cohortList: Seq[File], placeHolderList: Seq[File]) = alignSamples(samples)
 
         // output a BAM list with all the processed files
         val cohortFile = new File(qscript.outputDir + setupReader.getProjectName() + ".cohort.list")
@@ -157,7 +149,7 @@ class AlignWithTophat extends QScript {
         this.jobName = "bamList"
     }
 
-    case class tophat(fastqs1: Seq[File], fastqs2: Seq[File], sampleOutputDir: File, reference: File, outputFile: File, readGroupInfo: String) extends CommandLineFunction with ExternalCommonArgs {
+    case class tophat(fastqs1: File, fastqs2: File, sampleOutputDir: File, reference: File, outputFile: File, readGroupInfo: String) extends CommandLineFunction with ExternalCommonArgs {
 
         // Sometime this should be kept, sometimes it shouldn't
         this.isIntermediate = false
@@ -169,25 +161,21 @@ class AlignWithTophat extends QScript {
 
         @Output var stdOut = outputFile
 
-        // This handles if there are multiple files holding each mate.
-        val files1CommaSepString = files1.mkString(",")
-        val files2CommaSepString = files2.mkString(",")
-
         // Only add --GTF option if this has been defined as an option on the command line
         def annotationString = if (annotations.isDefined) " --GTF " + annotations.get.getAbsolutePath() + " " else ""
 
         // Only do fussion search if it has been defined on the command line.    
-        def fusionSearchString = if (fusionSearch) " --fusion-search " else ""    
-            
+        def fusionSearchString = if (fusionSearch) " --fusion-search " else ""
+
         def commandLine = tophatPath +
             " --library-type " + libraryType +
             annotationString +
             " -p " + tophatThreads +
             " --output-dir " + dir +
-            " " + readGroupInfo + 
+            " " + readGroupInfo +
             " --keep-fasta-order " +
             fusionSearchString +
-            ref + " " + files1CommaSepString + " " + files2CommaSepString +
+            ref + " " + fastqs1.getAbsolutePath() + " " + fastqs2.getAbsolutePath() +
             " 1> " + stdOut
     }
 }

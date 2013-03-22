@@ -91,16 +91,9 @@ class SampleSnpSeqUnitTest {
         setupXMLReader.platform = "Platform"
         illuminaXMLReportReader.platformUnitId = "1"
 
-        // TODO Currently exact read groups are unsupported by the tophat workflow. When this is fixed
-        // uncomment the below to generate a read group containing info on library, platform unit, etc.
-
-        //        val expected: String = " --rg-id " + illuminaXMLReportReader.readGroupId + " --rg-sample " + sampleName + 
-        //        " --rg-library " + illuminaXMLReportReader.readLibrary + " --rg-platform-unit " + illuminaXMLReportReader.platformUnitId + 
-        //        " --rg-center " + setupXMLReader.sequencingCenter + " --rg-platform " + setupXMLReader.platform
-
-        val expected: String = " --rg-id " + illuminaXMLReportReader.readGroupId + " --rg-sample " + sampleName + 
-        " --rg-library unsupported --rg-platform-unit unsupported" + 
-        " --rg-center " + setupXMLReader.sequencingCenter + " --rg-platform " + setupXMLReader.platform     
+        val expected: String = " --rg-id " + illuminaXMLReportReader.readGroupId + " --rg-sample " + sampleName +
+            " --rg-library " + illuminaXMLReportReader.readLibrary + " --rg-platform-unit " + illuminaXMLReportReader.platformUnitId +
+            " --rg-center " + setupXMLReader.sequencingCenter + " --rg-platform " + setupXMLReader.platform
 
         // Class under test
         val sample = new Sample(sampleName, setupXMLReader, illuminaXMLReportReader, 1, runFolderName)
