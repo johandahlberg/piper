@@ -20,7 +20,7 @@ module load samtools/0.1.18
 # Run template - setup which files to run etc
 #---------------------------------------------
 
-PIPELINE_SETUP_XML="src/test/resources/testdata/pipelineSetup.xml"
+PIPELINE_SETUP_XML="pipelineSetup.xml"
 PROJECT_NAME="TestProject"
 PROJECT_ID="a2009002"
 # Note that it's important that the last / is included in the root dir path
