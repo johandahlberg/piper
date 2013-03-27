@@ -426,8 +426,13 @@ class DataProcessingPipeline extends QScript {
         //TODO This should probably be a core job since it does not support parallel exection.   
 
         this.input_file :+= inBam
+        
+        // TODO According to this thread: 
+        // http://gatkforums.broadinstitute.org/discussion/2267/baq-tag-error#latest
+        // There is a bug in the GATK which means that the baq calculations should not
+        // be done in this step, but rather in the unified genotyper.
         this.BQSR = inRecalFile
-        this.baq = CalculationMode.CALCULATE_AS_NECESSARY
+        //this.baq = CalculationMode.CALCULATE_AS_NECESSARY
         this.out = outBam
         if (!qscript.intervalString.isEmpty) this.intervalsString ++= Seq(qscript.intervalString)
         else if (qscript.intervals != null) this.intervals :+= qscript.intervals
