@@ -21,10 +21,10 @@ module load samtools/0.1.18
 #---------------------------------------------
 
 PIPELINE_SETUP_XML="pipelineSetup.xml"
-PROJECT_NAME="TestProject"
+PROJECT_NAME="LC-0045"
 PROJECT_ID="a2009002"
 # Note that it's important that the last / is included in the root dir path
-PROJECT_ROOT_DIR="/local/data/SnpSeqPipelineIntegrationTestData/"
+PROJECT_ROOT_DIR="/proj/a2009002/private/nobackup/OUTBOX/LC-0045/analysis/piper/"
 INTERVALS=""
 
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
@@ -42,7 +42,8 @@ source piper -S ${SCRIPTS_DIR}/AlignWithBWA.scala \
 			-samtools ${PATH_TO_SAMTOOLS} \
 			-bwape \
 			--bwa_threads ${NBR_OF_THREADS} \
-			-jobRunner ${JOB_RUNNER} \
+		        -jobRunner ${JOB_RUNNER} \
+      			-jobNative "${JOB_NATIVE_ARGS}" \
 			--job_walltime 345600 \
 			-run \
 			${DEBUG}
@@ -69,13 +70,18 @@ source piper -S ${SCRIPTS_DIR}/DataProcessingPipeline.scala \
 			  -i ${RAW_BAM_OUTPUT}/${PROJECT_NAME}.cohort.list \
 			  -outputDir ${PROCESSED_BAM_OUTPUT}/ \
 			  --dbsnp ${DB_SNP} \
-              --extra_indels ${MILLS} \
-              --extra_indels ${ONE_K_G} \
+	                  --extra_indels ${MILLS} \
+             		  --extra_indels ${ONE_K_G} \
+			  -bwa ${PATH_TO_BWA} \
+			   --use_bwa_pair_ended \
+                          --realign \
+                          --fixMatePairInformation \
 			  -intervals ${INTERVALS} \
 			  -cm USE_SW \
 			  -run \
-			  -jobRunner ${JOB_RUNNER} \
-			  --job_walltime 86400 \
+		          -jobRunner ${JOB_RUNNER} \
+     			  -jobNative "${JOB_NATIVE_ARGS}" \
+			  --job_walltime 864000 \
 			  -nt ${NBR_OF_THREADS} \
 			  ${DEBUG}
 
@@ -97,7 +103,8 @@ source piper -S ${SCRIPTS_DIR}/VariantCalling.scala \
 			  -intervals ${INTERVALS} \
 			  -outputDir ${VCF_OUTPUT}/ \
 			  -run \
-			  -jobRunner ${JOB_RUNNER} \
+		          -jobRunner ${JOB_RUNNER} \
+         		  -jobNative "${JOB_NATIVE_ARGS}" \
 			  --job_walltime 3600 \
 			  -nt  ${NBR_OF_THREADS} \
 			  -retry 2 \
