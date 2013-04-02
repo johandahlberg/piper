@@ -46,7 +46,7 @@ fi
 
 # Note that the tmp folder needs to be placed in a location that can be reached from all nodes.
 # Note that $SNIC_TMP cannot be used since that will lose necessary data as the nodes/core switch.
-TMP=tmp/$(( $RANDOM ))/
+TMP=tmp/${PROJECT_NAME}
 
 # Comment and uncomment DEBUG to enable/disable the debugging mode of the pipeline.
 DEBUG="-l DEBUG" # -startFromScratch"
