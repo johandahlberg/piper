@@ -73,10 +73,10 @@ LIBRARY_TYPE="fr-secondstrand"
 # in a different way.
 #---------------------------------------------
 
-ALIGN_OUTPUT=$(alignWithTophat ${PIPELINE_SETUP_XML})
-
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
 source globalConfig.sh
+
+ALIGN_OUTPUT=$(alignWithTophat ${PIPELINE_SETUP_XML})
 
 # Perform final clean up
 final_clean_up
