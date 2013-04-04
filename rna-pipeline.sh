@@ -8,6 +8,46 @@
 #SBATCH -e pipeline-%j.error
 #SBATCH --qos=seqver
 
+# NOTE
+# LOOK AT THE BOTTOM OF THE SCRIPT TO SEE SETUP ETC.
+
+#------------------------------------------------------------------------------------------
+# Functions below run the different qscripts and return end by echoing a path to the
+# output cohort file (or something similar). This can then be feed to the next part of
+# the pipeline  to chain the scripts together, provided that they have compatiable
+# output types.
+#------------------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------------------
+# Align fastq files using tophat.
+#------------------------------------------------------------------------------------------
+
+function alignWithTophat {
+    source piper -S ${SCRIPTS_DIR}/AlignWithTophat.scala \
+	    -i ${PIPELINE_SETUP_XML} \
+	    --annotations ${ANNOTATIONS} \
+	    --library_type ${LIBRARY_TYPE} \
+	    -tophat ${PATH_TO_TOPHAT} \
+	    -outputDir ${RAW_BAM_OUTPUT}/ \
+	    -samtools ${PATH_TO_SAMTOOLS} \
+	    --tophat_threads ${NBR_OF_THREADS} \
+	    -jobRunner ${JOB_RUNNER} \
+	    -jobNative "${JOB_NATIVE_ARGS}" \
+	    --job_walltime 518400 \
+	    -run \
+	    ${DEBUG} >> ${LOGS}/alignWithTophat.log  2>&1
+
+
+    # Check the script exit status, and if it did not finish, clean up and exit
+    if [ $? -ne 0 ]; then 
+	    echo "Caught non-zero exit status from AlignWithBwa. Cleaning up and exiting..."
+	    clean_up
+	    exit 1
+    fi
+    
+    echo "${RAW_BAM_OUTPUT}/${PROJECT_NAME}.cohort.list"
+}
+
 # We also need the correct java engine and R version
 module load java/sun_jdk1.6.0_18
 module load R/2.15.0
@@ -27,33 +67,16 @@ PROJECT_ROOT_DIR="/proj/a2009002/private/nobackup/testingRNASeqPipeline/SnpSeqPi
 ANNOTATIONS="/proj/a2009002/SnpSeqPipeline/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf"
 LIBRARY_TYPE="fr-secondstrand"
 
+#---------------------------------------------
+# The actual running of the script
+# Modify this if you want to chain the parts
+# in a different way.
+#---------------------------------------------
+
+ALIGN_OUTPUT=$(alignWithTophat ${PIPELINE_SETUP_XML})
+
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
 source globalConfig.sh
-
-#------------------------------------------------------------------------------------------
-# Align fastq files using tophat.
-#------------------------------------------------------------------------------------------
-source piper -S ${SCRIPTS_DIR}/AlignWithTophat.scala \
-	-i ${PIPELINE_SETUP_XML} \
-	--annotations ${ANNOTATIONS} \
-	--library_type ${LIBRARY_TYPE} \
-	-tophat ${PATH_TO_TOPHAT} \
-	-outputDir ${RAW_BAM_OUTPUT}/ \
-	-samtools ${PATH_TO_SAMTOOLS} \
-	--tophat_threads ${NBR_OF_THREADS} \
-	-jobRunner ${JOB_RUNNER} \
-	-jobNative "${JOB_NATIVE_ARGS}" \
-	--job_walltime 518400 \
-	-run \
-	${DEBUG}
-
-
-# Check the script exit status, and if it did not finish, clean up and exit
-if [ $? -ne 0 ]; then 
-	echo "Caught non-zero exit status from AlignWithBwa. Cleaning up and exiting..."
-	clean_up
-	exit 1
-fi
 
 # Perform final clean up
 final_clean_up
