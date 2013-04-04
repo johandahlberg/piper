@@ -69,6 +69,11 @@ PIPELINE_OUTPUT="pipeline_output"
 RAW_BAM_OUTPUT=$PIPELINE_OUTPUT"/bam_files_raw"
 PROCESSED_BAM_OUTPUT=$PIPELINE_OUTPUT"/bam_files_processed"
 VCF_OUTPUT=$PIPELINE_OUTPUT"/vcf_files"
+LOGS=$PIPELINE_OUTPUT"/logs"
+
+if [ ! -d "${LOGS}" ]; then
+   mkdir -p ${LOGS}
+fi
 
 if [ ! -d "${RAW_BAM_OUTPUT}" ]; then
    mkdir -p ${RAW_BAM_OUTPUT}
