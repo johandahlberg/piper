@@ -12,12 +12,6 @@ scalaVersion := "2.9.2"
 // ********************************************
 // Tests
 // ********************************************
-seq(testNGSettings:_*)
+Seq(testNGSettings:_*)
 
 testNGSuites := Seq("src/test/resources/testng.xml")
-
-// The jvm needs to fork at testing for gatk pipelinetest to work.
-
-fork in test := true
-
-//javaOptions in test += "-Dpipeline.run=run"

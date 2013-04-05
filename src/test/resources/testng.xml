@@ -9,7 +9,7 @@
         </packages>
     </test>
     <test name="PipelineTests">
-        <parameter name="pipeline.run" value="run"/>
+        <parameter name="runpipeline" value="true"/>
         <packages>
             <package name="molmed.qscripts"/>
         </packages>

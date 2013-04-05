@@ -44,7 +44,7 @@ object PipelineTest extends BaseTest with Logging {
     private val validationReportsDataLocation = "/humgen/gsa-hpprojects/GATK/validationreports/submitted/"
     private val md5DB = new MD5DB()
 
-    final val run = System.getProperty("pipeline.run") == "run"
+    //final val run = System.getProperty("pipeline.run") == "run"
 
     final val allJobRunners = {
         val commandLinePluginManager = new CommandLinePluginManager
@@ -81,11 +81,11 @@ object PipelineTest extends BaseTest with Logging {
      * Runs the pipelineTest.
      * @param pipelineTest test to run.
      */
-    def executeTest(pipelineTest: GeneralPipelineTestSpec) {
+    def executeTest(pipelineTest: GeneralPipelineTestSpec, run: Boolean) {
         var jobRunners = pipelineTest.jobRunners
         if (jobRunners == null)
             jobRunners = defaultJobRunners;
-        jobRunners.foreach(executeTest(pipelineTest, _))
+        jobRunners.foreach(executeTest(pipelineTest, _, run))
     }
 
     /**
@@ -93,12 +93,12 @@ object PipelineTest extends BaseTest with Logging {
      * @param pipelineTest test to run.
      * @param jobRunner The name of the job manager to run the jobs.
      */
-    def executeTest(pipelineTest: GeneralPipelineTestSpec, jobRunner: String) {
+    def executeTest(pipelineTest: GeneralPipelineTestSpec, jobRunner: String, run: Boolean) {
         val name = pipelineTest.name
         if (name == null)
             Assert.fail("PipelineTestSpec.name is null")
         println(Utils.dupString('-', 80));
-        executeTest(name, pipelineTest.args, pipelineTest.jobQueue, pipelineTest.expectedException, jobRunner)
+        executeTest(name, pipelineTest.args, pipelineTest.jobQueue, pipelineTest.expectedException, jobRunner, run)
         if (run) {
             pipelineTest match {
                 case spec: PipelineTestSpec => {
@@ -193,7 +193,7 @@ object PipelineTest extends BaseTest with Logging {
      * @param expectedException the expected exception or null if no exception is expected.
      * @param jobRunner The name of the job manager to run the jobs.
      */
-    private def executeTest(name: String, args: String, jobQueue: String, expectedException: Class[_], jobRunner: String) {
+    private def executeTest(name: String, args: String, jobQueue: String, expectedException: Class[_], jobRunner: String, run: Boolean) {
         var command = Utils.escapeExpressions(args)
 
         // add the logging level to each of the integration test commands
