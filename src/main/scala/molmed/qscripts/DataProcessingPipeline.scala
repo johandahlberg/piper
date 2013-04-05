@@ -385,9 +385,7 @@ class DataProcessingPipeline extends QScript {
 
     case class clean(inBams: Seq[File], tIntervals: File, outBam: File) extends IndelRealigner with CommandLineGATKArgs {
 
-        //TODO This should probably be a core job since it does not support parallel exection.  
-
-        this.num_cpu_threads_per_data_thread =  nbrOfThreads
+        //TODO This should probably be a core job since it does not support parallel exection.         
         
         this.input_file = inBams
         this.targetIntervals = tIntervals
