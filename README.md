@@ -1,8 +1,10 @@
+<pre>
   ___ _               
  | _ (_)_ __  ___ _ _ 
  |  _/ | '_ \/ -_) '_|
  |_| |_| .__/\___|_|  
        |_|  
+</pre>
 -----
 
 A pipeline project for the SNP&SEQ platform built on top of GATK Queue.
