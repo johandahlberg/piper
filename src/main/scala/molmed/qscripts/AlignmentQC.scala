@@ -27,7 +27,7 @@ class AlignmentQC extends QScript {
      * Optional Parameters
      * **************************************************************************
      */
-    
+
     @Argument(doc = "UPPMAX project id", fullName = "project_id", shortName = "pid", required = false)
     var projId: String = _
 
@@ -36,6 +36,9 @@ class AlignmentQC extends QScript {
 
     @Argument(doc = "Output path for the processed BAM files.", fullName = "output_directory", shortName = "outputDir", required = false)
     var outputDir: String = ""
+
+    @Argument(doc = "Number of threads to use", fullName = "nbr_of_threads", shortName = "nt", required = false)
+    var nbrOfThreads: Int = 1
 
     /**
      * **************************************************************************
@@ -51,7 +54,7 @@ class AlignmentQC extends QScript {
         // Run QC for each of them and output to a separate dir for each sample.
         for (bam <- bams) {
             val outDir = createOutputDir(bam)
-            add(depthOfCoverage(bam, outDir))
+            add(DepthOfCoverage(bam, outDir))
         }
     }
 
@@ -70,7 +73,6 @@ class AlignmentQC extends QScript {
      * **************************************************************************
      */
 
-    //java -jar gatk/dist/GenomeAnalysisTK.jar -T DepthOfCoverage
 
     // General arguments to non-GATK tools
     trait ExternalCommonArgs extends CommandLineFunction {
@@ -84,9 +86,10 @@ class AlignmentQC extends QScript {
         this.reference_sequence = qscript.reference
     }
 
-    case class depthOfCoverage(inBam: File, outputDir: File) extends DepthOfCoverage with CommandLineGATKArgs {
+    case class DepthOfCoverage(inBam: File, outputDir: File) extends org.broadinstitute.sting.queue.extensions.gatk.DepthOfCoverage with CommandLineGATKArgs {
         this.input_file = Seq(inBam)
         this.out = outputDir
+        if (qscript.intervals != null) this.intervals :+= qscript.intervals
         this.isIntermediate = false
         this.analysisName = "DepthOfCoverage"
         this.jobName = "DepthOfCoverage"

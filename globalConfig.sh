@@ -25,8 +25,6 @@ fi
 # Paths to general resources
 #---------------------------------------------
 
-
-GENOME_REFERENCE=${GATK_BUNDLE}"/human_g1k_v37.fasta"
 DB_SNP=${GATK_BUNDLE}"/dbsnp_137.b37.vcf"
 MILLS=${GATK_BUNDLE}"/Mills_and_1000G_gold_standard.indels.b37.vcf"
 ONE_K_G=${GATK_BUNDLE}"/1000G_phase1.indels.b37.vcf"
@@ -67,6 +65,7 @@ NBR_OF_THREADS=8
 # Setup directory structure
 PIPELINE_OUTPUT="pipeline_output"
 RAW_BAM_OUTPUT=$PIPELINE_OUTPUT"/bam_files_raw"
+ALIGNMENT_QC_OUTPUT=$PIPELINE_OUTPUT"/alignment_qc"
 PROCESSED_BAM_OUTPUT=$PIPELINE_OUTPUT"/bam_files_processed"
 VCF_OUTPUT=$PIPELINE_OUTPUT"/vcf_files"
 LOGS=$PIPELINE_OUTPUT"/logs"
@@ -78,6 +77,11 @@ fi
 if [ ! -d "${RAW_BAM_OUTPUT}" ]; then
    mkdir -p ${RAW_BAM_OUTPUT}
 fi
+
+if [ ! -d "${ALIGNMENT_QC_OUTPUT}" ]; then
+   mkdir -p ${ALIGNMENT_QC_OUTPUT}
+fi
+
 
 if [ ! -d "${PROCESSED_BAM_OUTPUT}" ]; then
    mkdir -p ${PROCESSED_BAM_OUTPUT}

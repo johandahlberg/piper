@@ -51,6 +51,35 @@ function alignWithBwa {
 #       Running them will require manually setting up path etc.
 #------------------------------------------------------------------------------------------
 
+
+#------------------------------------------------------------------------------------------
+# CalculateCoverage of bam-files
+#------------------------------------------------------------------------------------------
+function alignmentQC {
+    source piper -S ${SCRIPTS_DIR}/AlignmentQC.scala \
+			    -i $1 \
+    			-R ${GENOME_REFERENCE} \
+ 			    -intervals ${INTERVALS} \
+			    -outputDir ${ALIGNMENT_QC_OUTPUT}/ \
+			    -nt ${NBR_OF_THREADS} \
+	            -jobRunner ${JOB_RUNNER} \
+        		-jobNative "${JOB_NATIVE_ARGS}" \
+			    --job_walltime 345600 \
+			    -run \
+			    ${DEBUG} >> ${LOGS}/alignmentQC.log  2>&1
+
+
+    # Check the script exit status, and if it did not finish, clean up and exit
+    if [ $? -ne 0 ]; then 
+	    echo "Caught non-zero exit status from alignmentQC. Cleaning up and exiting..."
+	    clean_up
+	    exit 1
+    fi
+
+    echo "${RAW_BAM_OUTPUT}/${PROJECT_NAME}.cohort.list"
+}
+
+
 #------------------------------------------------------------------------------------------
 # Data preprocessing
 #------------------------------------------------------------------------------------------
@@ -126,12 +155,13 @@ module load samtools/0.1.18
 # Run template - setup which files to run etc
 #---------------------------------------------
 
-PIPELINE_SETUP_XML="pipelineSetup.xml"
+PIPELINE_SETUP_XML="src/test/resources/testdata/pipelineSetup.xml"
 PROJECT_NAME="TestProject"
 PROJECT_ID="a2009002"
 # Note that it's important that the last / is included in the root dir path
 PROJECT_ROOT_DIR="/local/data/SnpSeqPipelineIntegrationTestData/"
 INTERVALS=""
+GENOME_REFERENCE=${GATK_BUNDLE}"/human_g1k_v37.fasta"
 
 #---------------------------------------------
 # The actual running of the script
@@ -143,11 +173,9 @@ INTERVALS=""
 source globalConfig.sh
 
 ALIGN_OUTPUT=$(alignWithBwa ${PIPELINE_SETUP_XML})
-echo "ALIGN_OUTPUT: " ${ALIGN_OUTPUT}
+ALIGN_QC_OUTPUT=$(alignmentQC ${ALIGN_OUTPUT})
 DATAPROCESSING_OUTPUT=$(dataPreprocessing ${ALIGN_OUTPUT})
-echo "DATAPROCESSING_OUTPUT: " ${DATAPROCESSING_OUTPUT}
 VARIANTCALLING_OUTPUT=$(variantCalling ${DATAPROCESSING_OUTPUT})
-echo "VARIANTCALLING_OUTPUT: " ${VARIANTCALLING_OUTPUT}
 
 # Perform final clean up
 final_clean_up
