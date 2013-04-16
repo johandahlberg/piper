@@ -1,8 +1,8 @@
-package org.broadinstitute.sting.queue.extensions.picard
+package molmed.queue.extensions.picard
 
 import org.broadinstitute.sting.commandline._
-
 import java.io.File
+import org.broadinstitute.sting.queue.extensions.picard.PicardBamFunction
 
 class FixMateInformation extends org.broadinstitute.sting.queue.function.JavaCommandLineFunction with PicardBamFunction {
 
