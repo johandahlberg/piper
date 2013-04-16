@@ -38,7 +38,7 @@ class RNAQC extends QScript {
     @Argument(doc = "Output path for the QC results", fullName = "output_directory", shortName = "outputDir", required = false)
     var outputDir: String = ""
 
-    @Argument(doc = "intervalFIle for rRNA loci (must end in .list). This is an alternative flag to the -BWArRNA flag.", shortName = "rRNA", fullName = "rRNA_targets", required = false)
+    @Argument(doc = "intervalFile for rRNA loci (must end in .list). This is an alternative flag to the -BWArRNA flag.", shortName = "rRNA", fullName = "rRNA_targets", required = false)
     var rRNATargets: File = _
 
     /**
