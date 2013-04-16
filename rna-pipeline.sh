@@ -62,6 +62,7 @@ module load tophat/2.0.4
 PIPELINE_SETUP_XML="src/test/resources/testdata/pipelineSetup.xml"
 PROJECT_NAME="TestRNA"
 PROJECT_ID="a2009002"
+GENOME_REFERENCE=${GATK_BUNDLE}"/human_g1k_v37.fasta"
 # Note that it's important that the last / is included in the root dir path
 PROJECT_ROOT_DIR="/proj/a2009002/private/nobackup/testingRNASeqPipeline/SnpSeqPipeline/fastqs_with_adaptors_trimmed/"
 ANNOTATIONS="/proj/a2009002/SnpSeqPipeline/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf"
