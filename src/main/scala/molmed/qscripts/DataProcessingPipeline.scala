@@ -9,7 +9,7 @@ import org.broadinstitute.sting.gatk.walkers.indels.IndelRealigner.ConsensusDete
 import org.broadinstitute.sting.queue.QScript
 import org.broadinstitute.sting.queue.extensions.gatk._
 import org.broadinstitute.sting.queue.extensions.picard._
-import org.broadinstitute.sting.queue.extensions.picard.FixMateInformation
+import molmed.queue.extensions.picard.FixMateInformation
 import org.broadinstitute.sting.queue.function.ListWriterFunction
 import org.broadinstitute.sting.queue.util.QScriptUtils
 import org.broadinstitute.sting.utils.baq.BAQ.CalculationMode
