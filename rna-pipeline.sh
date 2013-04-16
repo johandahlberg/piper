@@ -60,7 +60,7 @@ function RNA_QC {
 		-R ${GENOME_REFERENCE} \
 	    --transcripts ${ANNOTATIONS} \
 	    --rRNA_targets ${RNA_RNA_TARGETS} \
-	    -outputDir ${RAW_BAM_OUTPUT}/ \
+	    -outputDir ${RNA_QC_OUTPUT}/ \
 	    -jobRunner ${JOB_RUNNER} \
 	    -jobNative "${JOB_NATIVE_ARGS}" \
 	    --job_walltime 259200 \

@@ -69,6 +69,7 @@ ALIGNMENT_QC_OUTPUT=$PIPELINE_OUTPUT"/alignment_qc"
 PROCESSED_BAM_OUTPUT=$PIPELINE_OUTPUT"/bam_files_processed"
 VCF_OUTPUT=$PIPELINE_OUTPUT"/vcf_files"
 LOGS=$PIPELINE_OUTPUT"/logs"
+RNA_QC_OUTPUT=$PIPELINE_OUTPUT"/RNA_QC"
 
 if [ ! -d "${LOGS}" ]; then
    mkdir -p ${LOGS}
@@ -82,6 +83,9 @@ if [ ! -d "${ALIGNMENT_QC_OUTPUT}" ]; then
    mkdir -p ${ALIGNMENT_QC_OUTPUT}
 fi
 
+if [ ! -d "${RNA_QC_OUTPUT}" ]; then
+   mkdir -p ${RNA_QC_OUTPUT}
+fi
 
 if [ ! -d "${PROCESSED_BAM_OUTPUT}" ]; then
    mkdir -p ${PROCESSED_BAM_OUTPUT}
