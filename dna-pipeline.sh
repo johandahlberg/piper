@@ -59,6 +59,7 @@ function alignmentQC {
     source piper -S ${SCRIPTS_DIR}/AlignmentQC.scala \
 			    -i $1 \
     			-R ${GENOME_REFERENCE} \
+    			--project_id ${PROJECT_ID} \
  			    -intervals ${INTERVALS} \
 			    -outputDir ${ALIGNMENT_QC_OUTPUT}/ \
 			    -nt ${NBR_OF_THREADS} \
