@@ -6,6 +6,7 @@ import collection.JavaConversions._
 import java.io.File
 import org.broadinstitute.sting.queue.extensions.gatk._
 import org.broadinstitute.sting.queue.util.QScriptUtils
+import molmed.queue.extensions.RNAQC.RNASeQC
 
 class RNAQC extends QScript {
     qscript =>
@@ -22,6 +23,9 @@ class RNAQC extends QScript {
     @Input(doc = "Reference fasta file", fullName = "reference", shortName = "R", required = true)
     var reference: File = _
 
+    @Input(doc = "GTF File defining the transcripts (must end in .gtf)", shortName = "t", fullName = "transcripts", required = true)
+    var transcripts: File = _
+
     /**
      * **************************************************************************
      * Optional Parameters
@@ -33,6 +37,34 @@ class RNAQC extends QScript {
 
     @Argument(doc = "Output path for the QC results", fullName = "output_directory", shortName = "outputDir", required = false)
     var outputDir: String = ""
+
+    @Argument(doc = "intervalFIle for rRNA loci (must end in .list). This is an alternative flag to the -BWArRNA flag.", shortName = "rRNA", fullName = "rRNA_targets", required = false)
+    var rRNATargets: File = _
+
+    /**
+     * **************************************************************************
+     * Utility methods
+     * **************************************************************************
+     */
+
+    def createRNASeQCInputFile(inputfiles: Seq[File]): File = {
+
+        val qcInputFile = new File(outputDir + "/RNASeQC.input.csv")
+
+        def printToFile(f: java.io.File)(op: java.io.PrintWriter => Unit) {
+            val p = new java.io.PrintWriter(f)
+            try { op(p) } finally { p.close() }
+        }
+
+        printToFile(qcInputFile)(p => {
+            p.println("Sample ID\tBam File\tNotes")
+            inputfiles.foreach(file => {
+                p.println(file.getName() + "\t" + file.getAbsolutePath() + "\t" + "")
+            })
+        })
+
+        qcInputFile
+    }
 
     /**
      * **************************************************************************
@@ -50,8 +82,10 @@ class RNAQC extends QScript {
         outDir.mkdirs()
 
         // TODO Create the input input file in specified format
-        // TODO Run RNA-QC with the input file as specified.
+        val inputFile = createRNASeQCInputFile(bams)
 
+        // TODO Run RNA-QC with the input file as specified.
+        add(RNA_QC(inputFile, reference, outDir, transcripts, rRNATargets))
     }
 
     /**
@@ -62,22 +96,22 @@ class RNAQC extends QScript {
 
     // General arguments to non-GATK tools
     trait ExternalCommonArgs extends CommandLineFunction {
-        this.memoryLimit = 3
+        this.memoryLimit = 24
         this.isIntermediate = true
-        this.jobNativeArgs +:= "-p core -A " + projId
+        this.jobNativeArgs +:= "-p node -A " + projId
     }
 
-    // General arguments to GATK walkers
-    trait CommandLineGATKArgs extends CommandLineGATK with ExternalCommonArgs {
-        this.reference_sequence = qscript.reference
-    }
+    //molmed.queue.extensions.RNAQC.RNASeQC
+    case class RNA_QC(inputFile: File, referenceFile: File, outDir: File, transcriptFile: File, rRNATargetsFile: File) extends RNASeQC with ExternalCommonArgs {
+        this.input = inputFile
+        this.output = outDir
+        this.reference = referenceFile
+        this.transcripts = transcriptFile
+        this.rRNATargets = rRNATargetsFile
 
-    case class RNA_QC(inBam: File, outDir: File) extends org.broadinstitute.cga.rnaseq.RNASeqMetrics with CommandLineGATKArgs {
-        this.input_file = Seq(inBam)
-        this.outputDir = outDir        
         this.isIntermediate = false
         this.analysisName = "RNA_QC"
-        this.jobName = "RNA_QC"        
-    }
+        this.jobName = "RNA_QC"
 
+    }
 }
