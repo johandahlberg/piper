@@ -23,7 +23,7 @@ class RNASeQC extends CommandLineFunction {
     @Argument(doc = "intervalFIle for rRNA loci (must end in .list). This is an alternative flag to the -BWArRNA flag.", shortName = "rRNA", fullName = "rRNA_targets", required = false)
     var rRNATargets: File = _
     
-    val rRNATargetString = if(rRNATargets != null) " -rRNA " + rRNATargets else ""
+    val rRNATargetString = if(rRNATargets != null) " -rRNA " + rRNATargets.getAbsolutePath() else ""
     
     override def commandLine = "java -jar resources/RNA-SeQC_v1.1.7.jar " +
         " -s " + input +
