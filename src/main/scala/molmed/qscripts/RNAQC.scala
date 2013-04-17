@@ -59,7 +59,7 @@ class RNAQC extends QScript {
         printToFile(qcInputFile)(p => {
             p.println("Sample ID\tBam File\tNotes")
             inputfiles.foreach(file => {
-                p.println(file.getName() + "\t" + file.getAbsolutePath() + "\t" + "")
+                p.println(file.getName() + "\t" + file.getAbsolutePath() + "\t" + file.getName())
             })
         })
 
