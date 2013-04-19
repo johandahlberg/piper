@@ -3,16 +3,6 @@ import java.io.File
 import collection.JavaConversions._
 import scala.xml.XML
 
-// Trait, used as interface to be able to stub the class for
-// testing purposes
-trait IlluminaXMLReportReaderAPI {
-    def getReadLibrary(sampleName: String): String
-    def getFlowcellId(): String
-    def getPlatformUnitID(sampleName: String, lane: Int): String
-    def getReadGroupID(sampleName: String, lane: Int): String    
-    def getLanes(sampleName: String): List[Int]  
-}
-
 
 class IlluminaXMLReportReader(report: File) extends IlluminaXMLReportReaderAPI {
     
