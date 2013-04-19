@@ -1,36 +1,60 @@
 package molmed.queue.setup
+
 import java.io.File
+import molmed.xml.illuminareport.SequencingReport
+import java.io.StringReader
+import javax.xml.bind.JAXBContext
+import scala.collection.mutable.Buffer
+import molmed.xml.illuminareport.Read
+import javax.xml.bind.Marshaller
 import collection.JavaConversions._
-import scala.xml.XML
 
+class IlluminaXMLReportReader(file: File) extends IlluminaXMLReportReaderAPI {
 
-class IlluminaXMLReportReader(report: File) extends IlluminaXMLReportReaderAPI {
-    
-    val xml = XML.loadFile(report)
-    
+    /**
+     * XML related fields
+     */
+    val context = JAXBContext.newInstance(classOf[SequencingReport])
+    val illuminaUnmarshaller = context.createUnmarshaller()
+    val illuminaReportreader = new StringReader(scala.io.Source.fromFile(file).mkString)
+    val illuminaProject = illuminaUnmarshaller.unmarshal(illuminaReportreader).asInstanceOf[SequencingReport]
+
+    /**
+     * Keeping the sample list as a field for convenience
+     */
+    val sampleList = illuminaProject.getSampleMetrics().flatMap(sampleMetric => sampleMetric.getSample())
+
+    private def getMatchingSamples(sampleName: String): Buffer[molmed.xml.illuminareport.Sample] =
+        sampleList.filter(p => p.getId().equalsIgnoreCase(sampleName))
+
+    private def getReadForSamples(samples: Buffer[molmed.xml.illuminareport.Sample]): Buffer[Read] = {
+        samples.flatMap(f =>
+            f.getTag().flatMap(p =>
+                p.getLane().flatMap(x =>
+                    x.getRead())))
+    }
+
     def getReadLibrary(sampleName: String): String = {
-         getSampleEntry(sampleName).\\("Read")(0).attribute("LibraryName").get.get(0).text         
-     }
-    def getFlowcellId(): String = {
-        xml.\\("MetaData")(0).attribute("FlowCellId").get.text        
+        val libs = getReadForSamples(getMatchingSamples(sampleName)).map(f => f.getLibraryName())
+        require(libs.distinct.size == 1, "Found more than one library name for sample: " + sampleName + ". Current implementation " +
+            "only supports one library name per sample")
+        libs(0)
     }
-    def getPlatformUnitID(sampleName: String, lane: Int): String = {
-        getFlowcellId() + "." + sampleName + "." + lane
-    }
-    
+
+    def getFlowcellId(): String =
+        illuminaProject.getMetaData().getFlowCellId()
+
+    def getPlatformUnitID(sampleName: String, lane: Int): String =
+        getFlowcellId + "." + sampleName + "." + lane
+
     def getReadGroupID(sampleName: String, lane: Int): String = {
-         getFlowcellId() + "." + sampleName + "." + lane
+        getPlatformUnitID(sampleName, lane)
     }
-    
-    def getLanes(sampleName: String): List[Int] = {
-        val sampleEntry = getSampleEntry(sampleName)
-        val list = sampleEntry.\\("Lane").map(n => (n \ "@Id").text.toInt).toList        
-        return list
-    }
-    
-    private def getSampleEntry(sampleName: String): scala.xml.NodeSeq = {
-        val allSamples = xml.\\("Sample")       
-        val filteredSamples = allSamples.filter(_.\("@Id").text.equalsIgnoreCase(sampleName))
-        filteredSamples       
+
+    def getLanes(sampleName: String): List[Int] = {        
+        getMatchingSamples(sampleName).flatMap(f => 
+            f.getTag().flatMap(p =>
+                p.getLane().map(x =>
+                    x.getId().toInt))).toList
     }
 }
