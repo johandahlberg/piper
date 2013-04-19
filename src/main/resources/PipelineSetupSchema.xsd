@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="setup.xml.molmed" xmlns="setup.xml.molmed" elementFormDefault="qualified">
+
+	<xs:element name="project">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="metadata" maxOccurs="1" />
+				<xs:element ref="inputs" />
+				<xs:element ref="analysis" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="metadata">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="name" type="xs:string" />
+				<xs:element name="sequenceingcenter" type="xs:string" />
+				<xs:element name="platfrom" type="xs:string" />
+				<xs:element name="uppmaxprojectid" type="xs:string" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+
+	<xs:element name="inputs">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="runfolder" maxOccurs="unbounded" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="analysis">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="qscript" maxOccurs="unbounded" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="qscript">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="name" type="xs:string" />
+				<xs:element name="path" type="xs:string" />
+				<xs:element ref="argument" maxOccurs="unbounded" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="argument">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="key" type="xs:string" />
+				<xs:element name="value" type="xs:string" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="runfolder">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="report" type="xs:string" maxOccurs="1" />
+				<xs:element ref="samplefolder" maxOccurs="unbounded" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="samplefolder">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="name" type="xs:string" />
+				<xs:element name="path" type="xs:string" />
+				<xs:element name="reference" type="xs:string" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+</xs:schema>

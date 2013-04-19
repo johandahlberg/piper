@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="illuminareport.xml.molmed" xmlns="illuminareport.xml.molmed"
+	elementFormDefault="qualified">
+
+	<xs:element name="SequencingReport">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="LaneMetrics" maxOccurs="unbounded"/>
+				<xs:element ref="SampleMetrics" maxOccurs="unbounded"/>
+				<xs:element ref="MetaData" maxOccurs="1" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="LaneMetrics">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="Lane" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="SampleMetrics">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="Sample" maxOccurs="unbounded" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="Sample">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="Tag" maxOccurs="unbounded" />
+			</xs:sequence>
+			<xs:attribute name="Id" type="xs:string" />
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="Tag">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="Lane" maxOccurs="unbounded" />
+			</xs:sequence>
+			<xs:attribute name="Id" type="xs:string" />
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="Lane">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="Read" maxOccurs="unbounded" />
+			</xs:sequence>
+			<xs:attribute name="Id" type="xs:int" />
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="Read">
+
+		<xs:complexType>
+			<xs:attribute name="AdapterPlot" type="xs:string" />
+			<xs:attribute name="AdapterPlotThumb" type="xs:string" />
+			<xs:attribute name="AvgQ" type="xs:string" />
+			<xs:attribute name="BaseCompPlot" type="xs:string" />
+			<xs:attribute name="BaseCompPlotThumb" type="xs:string" />
+			<xs:attribute name="Cycles" type="xs:int" />
+			<xs:attribute name="DensityPF" type="xs:double" />
+			<xs:attribute name="DensityRaw" type="xs:double" />
+			<xs:attribute name="DupPlot" type="xs:string" />
+			<xs:attribute name="DupPlotThumb" type="xs:string" />
+			<xs:attribute name="ErrRate" type="xs:double" />
+			<xs:attribute name="ErrRateSD" type="xs:double" />
+			<xs:attribute name="GCPlot" type="xs:string" />
+			<xs:attribute name="GCPlotThumb" type="xs:string" />
+			<xs:attribute name="Id" type="xs:string" />
+			<xs:attribute name="LibraryName" type="xs:string" />
+			<xs:attribute name="PF" type="xs:int" />
+			<xs:attribute name="PctPF" type="xs:double" />
+			<xs:attribute name="PctQ30" type="xs:double" />
+			<xs:attribute name="Q30Fraction" type="xs:double" />
+			<xs:attribute name="Q30LengthMean" type="xs:double" />
+			<xs:attribute name="Q30LengthStdDev" type="xs:double" />
+			<xs:attribute name="Q30Plot" type="xs:string" />
+			<xs:attribute name="Q30PlotThumb" type="xs:string" />
+			<xs:attribute name="QMean" type="xs:double" />
+			<xs:attribute name="QStdDev" type="xs:double" />
+			<xs:attribute name="QscorePlot" type="xs:string" />
+			<xs:attribute name="QscorePlotThumb" type="xs:string" />
+			<xs:attribute name="QscoreSum" type="xs:int" />
+			<xs:attribute name="Raw" type="xs:int" />
+			<xs:attribute name="Tag" type="xs:string" />
+			<xs:attribute name="YieldPF" type="xs:int" />
+			<xs:attribute name="YieldQ30" type="xs:int" />
+
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="MetaData">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="Read" maxOccurs="unbounded" />
+			</xs:sequence>
+			<xs:attribute name="CasavaVersion" type="xs:string" />
+			<xs:attribute name="ClusterKitVersion" type="xs:string" />
+			<xs:attribute name="CsVersion" type="xs:string" />
+			<xs:attribute name="FlowCellId" type="xs:string" />
+			<xs:attribute name="FlowCellVer" type="xs:string" />
+			<xs:attribute name="InstrumentModel" type="xs:string" />
+			<xs:attribute name="Project" type="xs:string" />
+			<xs:attribute name="Qoffset" type="xs:int" />
+			<xs:attribute name="RtaVersion" type="xs:string" />
+			<xs:attribute name="RunFolder" type="xs:string" />
+			<xs:attribute name="SBSversion" type="xs:string" />
+			<xs:attribute name="SisyphusVersion" type="xs:string" />
+		</xs:complexType>
+	</xs:element>
+</xs:schema>
