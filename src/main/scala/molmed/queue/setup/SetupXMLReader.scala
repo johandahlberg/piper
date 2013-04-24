@@ -5,18 +5,6 @@ import scala.xml._
 import collection.JavaConversions._
 import java.io.FileNotFoundException
 
-
-trait SetupXMLReaderAPI {
-    
-    def getSampleFolder(sampleName: String, runFolderName: String): File    
-    def getPlatform(): String
-    def getSequencingCenter(): String   
-    def getProjectName(): String
-    def getSamples(): Map[String, Seq[SampleAPI]]
-    def getReference(sampleName: String): File
-    def getUppmaxProjectId(): String
-}
-
 class SetupXMLReader(setupXML: File) extends SetupXMLReaderAPI{
 
     val xml = XML.loadFile(setupXML)

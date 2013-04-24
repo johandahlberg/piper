@@ -22,7 +22,7 @@ class IlluminaXMLReportReader(file: File) extends IlluminaXMLReportReaderAPI {
     /**
      * Keeping the sample list as a field for convenience
      */
-    val sampleList = illuminaProject.getSampleMetrics().flatMap(sampleMetric => sampleMetric.getSample())
+    private val sampleList = illuminaProject.getSampleMetrics().flatMap(sampleMetric => sampleMetric.getSample())
 
     private def getMatchingSamples(sampleName: String): Buffer[molmed.xml.illuminareport.Sample] =
         sampleList.filter(p => p.getId().equalsIgnoreCase(sampleName))
@@ -36,9 +36,17 @@ class IlluminaXMLReportReader(file: File) extends IlluminaXMLReportReaderAPI {
 
     def getReadLibrary(sampleName: String): String = {
         val libs = getReadForSamples(getMatchingSamples(sampleName)).map(f => f.getLibraryName())
+        
         require(libs.distinct.size == 1, "Found more than one library name for sample: " + sampleName + ". Current implementation " +
             "only supports one library name per sample")
-        libs(0)
+        val libraryName = libs(0)
+
+        // Catch the cases where no library id has been given (for example in MiSeq runs)
+        if (libraryName.isEmpty())
+            sampleName + ".1"
+        else
+            libraryName
+
     }
 
     def getFlowcellId(): String =
@@ -51,8 +59,8 @@ class IlluminaXMLReportReader(file: File) extends IlluminaXMLReportReaderAPI {
         getPlatformUnitID(sampleName, lane)
     }
 
-    def getLanes(sampleName: String): List[Int] = {        
-        getMatchingSamples(sampleName).flatMap(f => 
+    def getLanes(sampleName: String): List[Int] = {
+        getMatchingSamples(sampleName).flatMap(f =>
             f.getTag().flatMap(p =>
                 p.getLane().map(x =>
                     x.getId().toInt))).toList

@@ -3,21 +3,7 @@ import java.io.File
 import collection.JavaConversions._
 import java.io.FileNotFoundException
 
-trait SampleAPI {
-    def getFastqs(): ReadPairContainer
-    def getBwaStyleReadGroupInformationString(): String
-    def getTophatStyleReadGroupInformationString(): String
-    def getReference(): File
-    def getSampleName(): String
-}
-
 class Sample(sampleName: String, setupXMLReader: SetupXMLReaderAPI, illuminaXMLReportReader: IlluminaXMLReportReaderAPI, sampleLane: Int, runFolderName: String) extends SampleAPI {
-
-    /**
-     * Auxilary case class for storing read group information
-     */
-
-    case class ReadGroupInformation(readGroupId: String, sequencingCenter: String, readLibrary: String, platform: String, platformUnitId: String) {}
 
     /**
      * Private variables
@@ -44,7 +30,7 @@ class Sample(sampleName: String, setupXMLReader: SetupXMLReaderAPI, illuminaXMLR
         val platform = setupXMLReader.getPlatform()
         val platformUnitId = illuminaXMLReportReader.getPlatformUnitID(sampleName, sampleLane)
 
-        new ReadGroupInformation(readGroupId, sequencingCenter, readLibrary, platform, platformUnitId)
+        new ReadGroupInformation(sampleName, readGroupId, sequencingCenter, readLibrary, platform, platformUnitId)
     }
 
     private val reference: File = {
