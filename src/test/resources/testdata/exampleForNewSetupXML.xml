@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<project xmlns="setup.xml.molmed">
+    <metadata>
+        <name>Test project</name>
+        <sequenceingcenter>SNP_SEQ_PLATFORM</sequenceingcenter>
+        <platfrom>Illumina</platfrom>
+        <uppmaxprojectid>a2009002</uppmaxprojectid>
+    </metadata>
+    <inputs>
+        <runfolder>
+            <report>src/test/resources/testdata/smallTestFastqDataFolder/report.xml</report>
+            <samplefolder>
+                <name>1</name>
+                <path>src/test/resources/testdata/smallTestFastqDataFolder/Sample_1</path>
+                <reference>src/test/resources/testdata/exampleFASTA.fasta</reference>
+            </samplefolder>
+            <samplefolder>
+                <name>2</name>
+                <path>src/test/resources/testdata/smallTestFastqDataFolder/Sample_2</path>
+                <reference>src/test/resources/testdata/exampleFASTA.fasta</reference>
+            </samplefolder>
+        </runfolder>
+    </inputs>
+    <analysis>
+        <qscript>
+            <name>HelloWorld</name>
+            <path>examplePath/helloWorld.scala</path>
+            <argument>
+                <key>MyFirstKey</key>
+                <value>MyFirstValue</value>
+            </argument>
+            <argument>
+                <key>MySecondKey</key>
+                <value>MySecondValue</value>
+            </argument>
+        </qscript>
+    </analysis>
+</project>
