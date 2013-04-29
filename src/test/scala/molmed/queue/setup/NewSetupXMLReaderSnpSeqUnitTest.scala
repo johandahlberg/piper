@@ -7,6 +7,7 @@ import java.io.File
 import molmed.queue.SnpSeqBaseTest
 import scala.collection.Seq
 import molmed.queue.setup.stubs.IlluminaXMLReportReaderStub
+import java.io.PrintWriter
 
 class NewSetupXMLReaderSnpSeqUnitTest {
 
@@ -35,13 +36,6 @@ class NewSetupXMLReaderSnpSeqUnitTest {
         val sampleName = null
     }
 
-    //	@Test
-    //	def TestGetSampleFolder() = {        
-    //        val expected: File = new File("src/test/resources/testdata/smallTestFastqDataFolder/Sample_1").getAbsoluteFile()
-    //        val actual: File = setupXMLReader.getSampleFolder(sampleName, runFolderName)
-    //    	assert(actual == expected, "Failed TestGetSampleFolder() expected: " + expected + " actual: " + actual)    	
-    //	}    
-
     @Test
     def TestGetPlatform() = {
         val expected: String = "Illumina"
@@ -68,79 +62,76 @@ class NewSetupXMLReaderSnpSeqUnitTest {
 
         val illuminaXMLReportReader: IlluminaXMLReportReaderAPI = new IlluminaXMLReportReaderStub()
 
-        val actual: Map[String, Seq[SampleAPI]] = setupXMLReader.getSamples()
+        val actual = setupXMLReader.getSamples()
 
         val expected = Map(
-            1 -> List(
+            "1" -> List(
                 NewSample("1", new File("src/test/resources/testdata/exampleFASTA.fasta"),
                     ReadGroupInformation("1", "C0HNDACXX.1.1", "SNP_SEQ_PLATFORM", "CEP_C13-NA11992", "Illumina", "C0HNDACXX.1.1"),
-                    ReadPairContainer(new File("/home/MOLMED/dahljo/workspace/piper/src/test/resources/testdata/smallTestFastqDataFolder/Sample_1/exampleFASTQ_L001_R1_file.fastq"),
-                        new File("/home/MOLMED/dahljo/workspace/piper/src/test/resources/testdata/smallTestFastqDataFolder/Sample_1/exampleFASTQ_L001_R2_file.fastq", "1")))),
-            2 -> List(
+                    ReadPairContainer(new File("src/test/resources/testdata/smallTestFastqDataFolder/Sample_1/exampleFASTQ_L001_R1_file.fastq").getAbsoluteFile(),
+                        new File("src/test/resources/testdata/smallTestFastqDataFolder/Sample_1/exampleFASTQ_L001_R2_file.fastq").getAbsoluteFile(), "1"))),
+            "2" -> List(
                 NewSample("1", new File("src/test/resources/testdata/exampleFASTA.fasta"),
                     ReadGroupInformation("1", "C0HNDACXX.1.1", "SNP_SEQ_PLATFORM", "CEP_C13-NA11992", "Illumina", "C0HNDACXX.1.1"),
-                    ReadPairContainer(new File("/home/MOLMED/dahljo/workspace/piper/src/test/resources/testdata/smallTestFastqDataFolder/Sample_1/exampleFASTQ_L001_R1_file.fastq"),
-                        new File("/home/MOLMED/dahljo/workspace/piper/src/test/resources/testdata/smallTestFastqDataFolder/Sample_1/exampleFASTQ_L001_R2_file.fastq", "1")))))
+                    ReadPairContainer(new File("src/test/resources/testdata/smallTestFastqDataFolder/Sample_1/exampleFASTQ_L001_R1_file.fastq").getAbsoluteFile(),
+                        new File("src/test/resources/testdata/smallTestFastqDataFolder/Sample_1/exampleFASTQ_L001_R2_file.fastq").getAbsoluteFile(), "1"))))
 
-        actual.keys.foreach(println _)                
-        actual.values.foreach(println _)                
-                        
-                        
-        //        assert(expected.sameElements(expected))
-        //        println(expected.keys + "     " + actual.keys)
-        //        assert(expected.keySet.sameElements(actual.keySet), "KeySets didn't equal.")
-
-        //assert(actual.sameElements(expected))
-
-        assert(actual.contains("1"))
-        assert(actual("1").size == 1)
-        //assert(actual("1").isInstanceOf[Seq[SampleAPI]])
-        assert(actual.contains("2"))
-        assert(actual("2").size == 1)
+        assert(expected.sameElements(expected))
+        assert(expected.keys.equals(actual.keys))
     }
 
-    //	@Test
-    //	def TestGetSameSampleFromSeveralRunFolders() = {	   
-    //	    
-    //	    // Reset some of the shared resources
-    //	    val setupFile: File = new File(baseTest.pathToSetupFileForSameSampleAcrossMultipleRunFolders)
-    //	    val setupXMLReader = new NewSetupXMLReader(setupFile)
-    //	    val sampleName = "1"
-    //	    val runFolderName1  = "src/test/resources/testdata/runFoldersForMultipleSample/runfolder1/report.xml"
-    //	    val runFolderName2  = "src/test/resources/testdata/runFoldersForMultipleSample/runfolder2/report.xml"
-    //	        
-    //	    // Setup the expected result - the same sample twice.    
-    //	    val illuminaXMLReportReader: IlluminaXMLReportReaderAPI = new IlluminaXMLReportReaderStub()
-    //	    val expected:  scala.collection.mutable.Map[String, Seq[SampleAPI]] = scala.collection.mutable.Map.empty[String, Seq[SampleAPI]]
-    //	    expected("1") = Seq(new Sample("1", setupXMLReader, illuminaXMLReportReader, 1, runFolderName1))
-    //	    expected("1") :+= new Sample("1", setupXMLReader, illuminaXMLReportReader, 1, runFolderName2)
-    //	    
-    //	    // Run the test and evaluate the result
-    //	    val actual:  Map[String, Seq[SampleAPI]] = setupXMLReader.getSamples()	    	 	    	    
-    //	    assert(expected.sameElements(actual))
-    //	}
-    //		
-    //	@Test
-    //	def TestGetSameSampleFromSeveralLanesInSameRunFolder() = {	   
-    //	    
-    //	    // Reset some of the shared resources
-    //	    val setupFile: File = new File(baseTest.pathToSetupFileForSameSampleAcrossMultipleLanes)
-    //	    val setupXMLReader = new NewSetupXMLReader(setupFile)
-    //	    val sampleName = "1"    
-    //	    val runFolderName1  = "src/test/resources/testdata/runFolderWithSameSampleInMultipleLanes/report.xml"
-    //	        
-    //	        
-    //	    // Setup the expected result - the same sample twice.    
-    //	    val illuminaXMLReportReader: IlluminaXMLReportReaderAPI = new IlluminaXMLReportReaderStub()
-    //	    val expected:  scala.collection.mutable.Map[String, Seq[SampleAPI]] = scala.collection.mutable.Map.empty[String, Seq[SampleAPI]]
-    //	    expected("1") = Seq(new Sample("1", setupXMLReader, illuminaXMLReportReader, 1, runFolderName1))
-    //	    expected("1") :+= new Sample("1", setupXMLReader, illuminaXMLReportReader, 1, runFolderName1)
-    //	    
-    //	    // Run the test and evaluate the result
-    //	    val actual:  Map[String, Seq[SampleAPI]] = setupXMLReader.getSamples()
-    //	    
-    //	    assert(expected.sameElements(actual))
-    //	}
+    @Test
+    def TestGetSameSampleFromSeveralLanesInSameRunFolder() = {
+
+        // Reset some of the shared resources
+        val setupFile: File = new File("src/test/resources/testdata/newPipelineSetupSameSampleAcrossMultipleLanes.xml")
+        val setupXMLReader = new NewSetupXMLReader(setupFile)
+
+        val expected: Map[String, Seq[molmed.queue.setup.SampleAPI]] = Map(
+            "1" -> List(
+                NewSample("1", new File("src/test/resources/testdata/exampleFASTA.fasta"),
+                    ReadGroupInformation("1", "C0HNDACXX.1.1", "SNP_SEQ_PLATFORM", "CEP_C13-NA11992", "Illumina", "C0HNDACXX.1.1"),
+                    ReadPairContainer(new File("src/test/resources/testdata/runFolderWithSameSampleInMultipleLanes/Sample_1/exampleFASTQ_L001_R1_file.fastq").getAbsoluteFile(),
+                        new File("src/test/resources/testdata/runFolderWithSameSampleInMultipleLanes/Sample_1/exampleFASTQ_L001_R2_file.fastq").getAbsoluteFile(),
+                        "1")),
+                NewSample("1", new File("src/test/resources/testdata/exampleFASTA.fasta"),
+                    ReadGroupInformation("1", "C0HNDACXX.1.2", "SNP_SEQ_PLATFORM", "CEP_C13-NA11992", "Illumina", "C0HNDACXX.1.2"),
+                    ReadPairContainer(new File("src/test/resources/testdata/runFolderWithSameSampleInMultipleLanes/Sample_1/exampleFASTQ_L002_R1_file.fastq").getAbsoluteFile(),
+                        new File("src/test/resources/testdata/runFolderWithSameSampleInMultipleLanes/Sample_1/exampleFASTQ_L002_R2_file.fastq").getAbsoluteFile(),
+                        "1"))))
+
+        // Run the test and evaluate the result
+        val actual: Map[String, Seq[SampleAPI]] = setupXMLReader.getSamples()
+        assert(expected.sameElements(actual))
+        assert(expected.keys.equals(actual.keys))
+    }
+
+    @Test
+    def TestGetSameSampleFromSeveralRunFolders() = {
+
+        // Reset some of the shared resources
+        val setupFile: File = new File("src/test/resources/testdata/newPipelineSetupSameSampleAcrossMultipleRunFolders.xml")
+        val setupXMLReader = new NewSetupXMLReader(setupFile)
+
+        val expected: Map[String, Seq[molmed.queue.setup.SampleAPI]] = Map(
+            "1" -> List(
+                NewSample("1", new File("src/test/resources/testdata/exampleFASTA.fasta"),
+                    ReadGroupInformation("1", "C0HNDACXX.1.1", "SNP_SEQ_PLATFORM", "CEP_C13-NA11992", "Illumina", "C0HNDACXX.1.1"),
+                    ReadPairContainer(new File("src/test/resources/testdata/runFoldersForMultipleSample/runfolder1/Sample_1/exampleFASTQ_L001_R1_file.fastq").getAbsoluteFile(),
+                        new File("src/test/resources/testdata/runFoldersForMultipleSample/runfolder1/Sample_1/exampleFASTQ_L001_R2_file.fastq").getAbsoluteFile(),
+                        "1")),
+                NewSample("1", new File("src/test/resources/testdata/exampleFASTA.fasta"),
+                    ReadGroupInformation("1", "AAAAAAAAA.1.1", "SNP_SEQ_PLATFORM", "SomeOtherLibraryName", "Illumina", "AAAAAAAAA.1.1"),
+                    ReadPairContainer(new File("src/test/resources/testdata/runFoldersForMultipleSample/runfolder2/Sample_1/exampleFASTQ_L001_R1_file.fastq").getAbsoluteFile(),
+                        new File("src/test/resources/testdata/runFoldersForMultipleSample/runfolder2/Sample_1/exampleFASTQ_L001_R2_file.fastq").getAbsoluteFile(),
+                        "1"))))
+
+        // Run the test and evaluate the result
+        val actual: Map[String, Seq[SampleAPI]] = setupXMLReader.getSamples()
+
+        assert(expected.sameElements(actual))
+        assert(expected.keys.equals(actual.keys))        
+    }
 
     @Test
     def TestGetReference() = {

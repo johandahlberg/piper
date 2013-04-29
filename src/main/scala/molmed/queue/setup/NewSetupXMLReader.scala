@@ -11,6 +11,7 @@ import collection.JavaConversions._
 import molmed.xml.setup.Project
 import molmed.xml.setup.Samplefolder
 import java.io.FileNotFoundException
+import org.apache.commons.lang.NotImplementedException
 
 /**
  * A Setup reader class which reads a setup xml, used for configuring the piper pipeline, based on the xml schema specified in src/main/resources/PipelineSetupSchema.xsd.
@@ -45,7 +46,7 @@ class NewSetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
     // ----------------------------------
 
     // TODO Possibly remove this from API!
-    def getSampleFolder(sampleName: String, runFolderName: String): File = new File("Mock file")
+    def getSampleFolder(sampleName: String, runFolderName: String): File = throw new NotImplementedException
 
     def getPlatform(): String = {
         project.getMetadata().getPlatfrom()
