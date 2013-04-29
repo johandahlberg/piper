@@ -120,7 +120,7 @@ class NewSetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
         val matchingSamples = sampleList.filter(p => p.getName().equals(sampleName))
         val referenceForSample = matchingSamples.map(sample => sample.getReference()).distinct
         require(referenceForSample.size == 1, "Found more than reference for the same sample. Sample name: " + sampleName)
-        new File(referenceForSample(0))
+        new File(referenceForSample(0)).getAbsoluteFile()
     }
 
     def getUppmaxProjectId(): String = {

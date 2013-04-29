@@ -52,6 +52,25 @@ class AlignWithBWASnpSeqPipelineTest {
     }
 
     @Test(dataProvider = "testPairEndAlignmentDataProvider")
+    def testPairedEndAlignmentWithLegacySetup(envSetup: EnvironmentSetup, md5sum: String) = {
+        val projectName = "test"
+        val testOut = "1.bam"
+        val spec = new PipelineTestSpec()
+
+        spec.jobRunners = envSetup.jobrunner
+
+        spec.name = "AlignPairedEndWithBwa"
+        spec.args = Array(envSetup.commandline,
+            " -bwa " + envSetup.pathToBwa,
+            " -i " + snpSeqBaseTest.pathLegacySetupFile,
+            " -bwape ",
+            " -wallTime " + walltime,
+            " -startFromScratch ").mkString
+        spec.fileMD5s += testOut -> md5sum
+        PipelineTest.executeTest(spec, run)
+    }
+
+    @Test(dataProvider = "testPairEndAlignmentDataProvider")
     def testPairedEndAlignment(envSetup: EnvironmentSetup, md5sum: String) = {
         val projectName = "test"
         val testOut = "1.bam"
@@ -66,7 +85,7 @@ class AlignWithBWASnpSeqPipelineTest {
             " -bwape ",
             " -wallTime " + walltime,
             " -startFromScratch ").mkString
-        spec.fileMD5s += testOut -> md5sum
+        spec.fileMD5s += testOut -> "562c1bd0541264fa7fee1f5864c8c452"
         PipelineTest.executeTest(spec, run)
     }
 
@@ -102,7 +121,7 @@ class AlignWithBWASnpSeqPipelineTest {
         spec.name = "AlignSingleEndWithBwa"
         spec.args = Array(envSetup.commandline,
             " -bwa " + envSetup.pathToBwa,
-            " -i " + snpSeqBaseTest.pathSetupFile,
+            " -i " + snpSeqBaseTest.pathLegacySetupFile,
             " -bwase ",
             " -wallTime " + walltime,
             " -startFromScratch ").mkString
@@ -141,7 +160,7 @@ class AlignWithBWASnpSeqPipelineTest {
         spec.name = "AlignSWWithBwa"
         spec.args = Array(envSetup.commandline,
             " -bwa " + envSetup.pathToBwa,
-            " -i " + snpSeqBaseTest.pathSetupFile,
+            " -i " + snpSeqBaseTest.pathLegacySetupFile,
             " -bwasw ",
             " -wallTime " + walltime,
             " -startFromScratch ").mkString

@@ -18,7 +18,9 @@ class SnpSeqBaseTest {
     
     val pathToReference: String = pathToBaseDir + "exampleFASTA.fasta"
     
-    val pathSetupFile: String = pathToBaseDir + "pipelineSetup.xml"    
+    val pathSetupFile: String = pathToBaseDir + "exampleForNewSetupXML.xml"
+    val pathLegacySetupFile: String = pathToBaseDir + "pipelineSetup.xml"
+    //val pathSetupFile: String = pathToBaseDir + "pipelineSetup.xml"
     val pathToSetupFileForSameSampleAcrossMultipleRunFolders = pathToBaseDir + "pipelineSetupSameSampleAcrossMultipleRunFolders.xml"
     val pathToSetupFileForSameSampleAcrossMultipleLanes = pathToBaseDir + "pipelineSetupSameSampleAcrossMultipleLanes.xml"
     
