@@ -10,9 +10,11 @@
     </test>
     <test name="PipelineTests">
         <parameter name="runpipeline" value="false"/>
-        <packages>
-            <package name="molmed.qscripts"/>
-        </packages>
+        
+        <classes>
+        	<class name="molmed.qscripts.AlignWithBWASnpSeqPipelineTest" />
+        	<class name="molmed.qscripts.DataProcessingSnpSeqPipelineTest" />
+        </classes>
     </test>
 </suite>
 
