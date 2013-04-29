@@ -78,7 +78,7 @@ class AlignmentQC extends QScript {
     trait ExternalCommonArgs extends CommandLineFunction {
         this.memoryLimit = 3
         this.isIntermediate = true
-        this.jobNativeArgs +:= "-p core -A " + projId
+        this.jobNativeArgs +:= "-p core -n 3 -A " + projId
     }
 
     // General arguments to GATK walkers
