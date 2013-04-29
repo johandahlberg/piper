@@ -129,7 +129,7 @@ class AlignWithBWA extends QScript {
         checkReferenceIsBwaIndexed(reference)
 
         // Run the alignment
-        performAlignment(fastqs, readGroupInfo, reference)        
+        performAlignment(fastqs, readGroupInfo, reference)
     }
 
     private def alignMultipleSamples(sampleName: String, sampleList: Seq[SampleAPI]): File = {
@@ -173,7 +173,15 @@ class AlignWithBWA extends QScript {
         // final output list of bam files
         var cohortList: Seq[File] = Seq()
 
-        val setupReader: SetupXMLReader = new SetupXMLReader(input)
+        // Temporary solution to handle the case where there is a legacy setup file
+        // which does not fulfill the xml-schema.
+        val setupReader: SetupXMLReaderAPI =
+            try {
+                new NewSetupXMLReader(input)
+            } catch {
+                case e: Exception => new SetupXMLReader(input) 
+
+            }
 
         val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
         projId = setupReader.getUppmaxProjectId()
@@ -217,7 +225,7 @@ class AlignWithBWA extends QScript {
         @Input(doc = "Temorary files that need to be removed.") var removeThese: Seq[File] = fileToBeRemoved
         @Input(doc = "Non-used input. Here to make sure clean-up does not happen before bams have been sucessfully sorted.") var sortedBamFiles: File = joinedBam
         @Input(doc = "Non-used input. Here to make sure clean-up does not happen before bams have been sucessfully sorted.") var sortedBamIndex: File = index
-        
+
         def run() {
             removeThese.foreach(file => {
                 // Remove both the bam files and their indexes.
@@ -227,11 +235,11 @@ class AlignWithBWA extends QScript {
         }
     }
 
-    case class joinBams(inBams: Seq[File], outBam: File, index: File) extends MergeSamFiles with ExternalCommonArgs {              
-        this.input = inBams               
+    case class joinBams(inBams: Seq[File], outBam: File, index: File) extends MergeSamFiles with ExternalCommonArgs {
+        this.input = inBams
         this.output = outBam
         this.outputIndex = index
-        
+
         this.analysisName = "joinBams"
         this.jobName = "joinBams"
         this.isIntermediate = false
@@ -252,8 +260,8 @@ class AlignWithBWA extends QScript {
 
     // Help function to create samtools sorting and indexing paths
     def sortAndIndex(alignedBam: File): String = " | " + samtoolsPath + " view -Su - | " + samtoolsPath + " sort - " + alignedBam.getAbsoluteFile().replace(".bam", "") + ";" +
-    samtoolsPath + " index " + alignedBam.getAbsoluteFile() 
-    
+        samtoolsPath + " index " + alignedBam.getAbsoluteFile()
+
     // Perform alignment of single end reads
     case class bwa_sam_se(fastq: File, inSai: File, outBam: File, readGroupInfo: String, reference: File, intermediate: Boolean = false) extends CommandLineFunction with ExternalCommonArgs {
         @Input(doc = "fastq file to be aligned") var mate1 = fastq
@@ -294,12 +302,12 @@ class AlignWithBWA extends QScript {
         @Input(doc = "fastq file to be aligned") var fq = inFastQ
         @Input(doc = "reference") var ref = reference
         @Output(doc = "output bam file") var bam = outBam
-        
+
         // The output from this is a samfile, which can be removed later
         this.isIntermediate = intermediate
-        
+
         def commandLine = bwaPath + " bwasw -t " + bwaThreads + " " + ref + " " + fq +
-             sortAndIndex(bam)
+            sortAndIndex(bam)
         this.analysisName = "bwasw"
         this.jobName = "bwasw"
     }
@@ -317,5 +325,5 @@ class AlignWithBWA extends QScript {
         this.sortOrder = sortOrderP
         this.analysisName = "sortSam"
         this.jobName = "sortSam"
-    }    
+    }
 }
