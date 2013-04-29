@@ -2,7 +2,7 @@ package molmed.queue.setup
 
 import java.io.File
 
-class NewSample(sampleName: String, reference: File, readGroupInformation: ReadGroupInformation, readPairContainer: ReadPairContainer) extends SampleAPI {
+case class NewSample(sampleName: String, reference: File, readGroupInformation: ReadGroupInformation, readPairContainer: ReadPairContainer) extends SampleAPI {
 
     def getFastqs(): ReadPairContainer = readPairContainer
     

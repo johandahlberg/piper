@@ -12,36 +12,41 @@ import molmed.xml.setup.Project
 import molmed.xml.setup.Samplefolder
 import java.io.FileNotFoundException
 
+/**
+ * A Setup reader class which reads a setup xml, used for configuring the piper pipeline, based on the xml schema specified in src/main/resources/PipelineSetupSchema.xsd.
+ *
+ * The underlying classes, such as for example "Project" are located in the molmed.xml.setup namespace and are generated from the xml schema using xjc, which means that changes to the
+ * xml schema requires regeneration of the code, and possibly changes to this reader class.
+ *
+ *  @constructor create a new NewSetupXMLReader specifying the file to read.
+ *  @param setupXML a setup xml file following the PipelineSetupSchema.xsd schema
+ */
 class NewSetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
 
-    /**
-     * XML related fields
-     */
-    val context = JAXBContext.newInstance(classOf[Project])
-    val unmarshaller = context.createUnmarshaller()
-    val setupReader = new StringReader(scala.io.Source.fromFile(setupXML).mkString)
-    val project = unmarshaller.unmarshal(setupReader).asInstanceOf[Project]
+    // XML related fields         
+    private val context = JAXBContext.newInstance(classOf[Project])
+    private val unmarshaller = context.createUnmarshaller()
+    private val setupReader = new StringReader(scala.io.Source.fromFile(setupXML).mkString)
+    private val project = unmarshaller.unmarshal(setupReader).asInstanceOf[Project]
 
-    
-    /**
-     * Fields containing information on the runfolders/samples etc kept in a convenient form.
-     */
+    // Fields containing information on the runfolders/samples etc kept in a convenient form.
+
     private val sampleList = project.getInputs().getRunfolder().flatMap(f => f.getSamplefolder())
-    
+
     private val runFolderList = project.getInputs().getRunfolder().toList
-    
+
     private val runFolderReportToSampleListMap: Map[String, java.util.List[molmed.xml.setup.Samplefolder]] =
         runFolderList.map(runFolder => {
             (runFolder.getReport(), runFolder.getSamplefolder())
         }).toMap
 
+    // ----------------------------------
+    // Implementations of the API methods
+    // ----------------------------------
+
     // TODO Possibly remove this from API!
     def getSampleFolder(sampleName: String, runFolderName: String): File = new File("Mock file")
 
-    /**
-     * Implementations of the API methods
-     */
-    
     def getPlatform(): String = {
         project.getMetadata().getPlatfrom()
     }
@@ -56,11 +61,19 @@ class NewSetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
 
     def getSamples(): Map[String, Seq[NewSample]] = {
 
+        // ------------------------------------------------------------
+        // Helper methods - see below for the actual top function call.
+        // ------------------------------------------------------------
+
         /**
-         * Helper methods
+         * Get's all sample entries related to a single sample name
          */
         def getSampleList(sampleName: String): Seq[NewSample] = {
 
+            /**
+             * Checks a map of run folders and their associated sample folders for
+             * samples and creates a list of Sample instances taking lanes etc into account.
+             */
             def getSamplesFromAllRunFolders(sampleName: String, runFolderToSampleFolderMap: Map[String, java.util.List[molmed.xml.setup.Samplefolder]]): List[NewSample] = {
                 runFolderToSampleFolderMap.flatMap(tupple => {
 
@@ -89,15 +102,14 @@ class NewSetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
             getSamplesFromAllRunFolders(sampleName, runFolderReportToSampleListMap)
         }
 
-        /**
-         * The actual method - For every unique sample in the file, create a sample list
-         */
-        
+        //  ------------------------------------------------------------
+        //  The actual method
+        //  ------------------------------------------------------------
+        //  For every unique sample in the file, create a sample list
+        //  Return a map of sample names -> samples
+
         val distinctSampleNames = sampleList.map(f => f.getName()).distinct.toList
-        
-        //TODO
-        println("Disctinct sample names: "  + distinctSampleNames)
-        
+
         distinctSampleNames.map(sampleName => {
             (sampleName, getSampleList(sampleName))
         }).toMap
@@ -113,9 +125,9 @@ class NewSetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
     def getUppmaxProjectId(): String = {
         project.getMetadata().getUppmaxprojectid()
     }
-    
+
     /**
-     * Private help methods used to construct ReadGroupInformations and ReadPaircontainer objects 
+     * Private help methods used to construct ReadGroupInformations and ReadPaircontainer objects
      */
 
     private def buildReadGroupInformation(sampleName: String, lane: Int, illuminaXMLReportReader: IlluminaXMLReportReader): ReadGroupInformation = {
@@ -140,7 +152,7 @@ class NewSetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
                 else
                     f + rep(n - 1)(f)
             }
-            
+
             rep(totalStringLength - i.toString().length()) { "0" } + i
         }
 
