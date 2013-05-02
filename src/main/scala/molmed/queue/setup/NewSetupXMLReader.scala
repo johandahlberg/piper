@@ -110,16 +110,23 @@ class NewSetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
         //  Return a map of sample names -> samples
 
         val distinctSampleNames = sampleList.map(f => f.getName()).distinct.toList
+        
+        assert(distinctSampleNames.size >= 1, "Did not find any sample names.")
 
-        distinctSampleNames.map(sampleName => {
+        val sampleListMap = distinctSampleNames.map(sampleName => {
             (sampleName, getSampleList(sampleName))
         }).toMap
+        
+        assert(!sampleListMap.isEmpty, "Sample name to list map was empty.")
+        
+        sampleListMap
     }
 
     def getReference(sampleName: String): File = {
         val matchingSamples = sampleList.filter(p => p.getName().equals(sampleName))
         val referenceForSample = matchingSamples.map(sample => sample.getReference()).distinct
-        require(referenceForSample.size == 1, "Found more than reference for the same sample. Sample name: " + sampleName)
+        assert(referenceForSample.size != 0, "Did not find reference for Sample name: " + sampleName)
+        assert(referenceForSample.size == 1, "Found more than reference for the same sample. Sample name: " + sampleName)
         new File(referenceForSample(0)).getAbsoluteFile()
     }
 
