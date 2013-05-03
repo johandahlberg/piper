@@ -177,9 +177,9 @@ class AlignWithBWA extends QScript {
         // which does not fulfill the xml-schema.
         val setupReader: SetupXMLReaderAPI =
             try {
-                new NewSetupXMLReader(input)
+                new SetupXMLReader(input)
             } catch {
-                case e: Exception => new SetupXMLReader(input) 
+                case e: Exception => new LegacySetupXMLReader(input) 
 
             }
 
