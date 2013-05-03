@@ -29,14 +29,6 @@ DB_SNP=${GATK_BUNDLE}"/dbsnp_137.b37.vcf"
 MILLS=${GATK_BUNDLE}"/Mills_and_1000G_gold_standard.indels.b37.vcf"
 ONE_K_G=${GATK_BUNDLE}"/1000G_phase1.indels.b37.vcf"
 
-#---------------------------------------------
-# Unless there exists a pipeline setup file, try to create one
-#---------------------------------------------
-
-if [ ! -f ${PIPELINE_SETUP_XML} ];
-then
-	python fixPipelineSetup.py -p ${PROJECT_NAME} -i ${PROJECT_ID}  -R ${GENOME_REFERENCE} -r ${PROJECT_ROOT_DIR} > ${PIPELINE_SETUP_XML}
-fi
 
 #---------------------------------------------
 # Global variables
