@@ -12,8 +12,10 @@ import java.io.FileOutputStream
 import molmed.xml.setup.Analysis
 import javax.xml.bind.Marshaller
 import scala.io.Source
+import java.io.File
+import collection.JavaConversions._
 
-object InputParser {
+object ConsoleInputParser {
     implicit def packOptionalValue[T](value: T): Option[T] = Some(value)
 
     private def checkInput[T](function: Option[String] => T)(key: Option[String], value: T, checkInputQuestion: Option[String]): T = {
@@ -30,31 +32,28 @@ object InputParser {
 
     def getMultipleInputs(key: Option[String]): List[String] = {
 
-        def continue(value: String, accumulator: List[String]): List[String] = {
+        def continue(accumulator: List[String]): List[String] = {
+
+            val value = readLine("Set " + key.get + ":" + "\n")
+            checkInput[List[String]](getMultipleInputs)(key, List(value), "Value of key: " + key.get + ", was set to: " + value + ". Do you want to keep it? [y/n]")
+
             val cont = readLine("Do you want to add another " + key.get + "? [y/n]" + "\n")
             cont match {
                 case "n" => value :: accumulator
-                case "y" => accumulateInputs(key, value :: accumulator)
+                case "y" => continue(value :: accumulator)
                 case _ => {
                     println("Did not recognize input: " + cont)
-                    continue(value, accumulator)
+                    continue(accumulator)
                 }
             }
         }
 
-        def accumulateInputs(key: Option[String], acc: List[String]): List[String] = {
-            val value = readLine("Set " + key.get + ":" + "\n")
-            checkInput[List[String]](getMultipleInputs)(key, List(value), "Value of key: " + key.get + ", was set to: " + value + ". Do you want to keep it? [y/n]")
-            continue(value, acc)
-        }
-
-        accumulateInputs(key, List())
-
+        continue(List())
     }
 
-    def withDefaultValue(key: Option[String], defaultValue: Option[String])(function: Option[String] => String): String = {
+    def withDefaultValue[T](key: Option[String], defaultValue: T)(function: Option[String] => T): T = {
         if (defaultValue.isDefined)
-            checkInput[String](getSingleInput)(key, defaultValue.get, "The default value of " + key.get + " is " + defaultValue.get + ". Do you want to keep it? [y/n]")
+            checkInput(function)(key, defaultValue.get, "The default value of " + key.get + " is " + defaultValue.get + ". Do you want to keep it? [y/n]")
         else
             function(key)
     }
@@ -67,12 +66,18 @@ object InputParser {
 
 object SetupFileCreator extends App {
 
+    // Simple output file creation
+    val outputFile = try {
+        new File(args(0))
+    } catch {
+        case e: ArrayIndexOutOfBoundsException => throw new IllegalArgumentException("Missing output file. Usage is: java -classpath <classpath> molmed.queue.setup.SetupFileCreator <output xml file>")
+    }
+
     // Contains the get input method and String => Option[String] conversion.
-    import InputParser._
+    import ConsoleInputParser._
 
-    // Create file and write to it       
+    // The xml marshaller is used to create the xml instance
     val context = JAXBContext.newInstance(classOf[Project])
-
     val marshaller = context.createMarshaller()
     marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
 
@@ -85,11 +90,9 @@ object SetupFileCreator extends App {
     val projectMetaData = new Metadata()
 
     val projectName = getSingleInput("Project name")
-    val seqencingPlatform = withDefaultValue("Sequencing platform", defaultValue = Some("Illumina"))(getSingleInput)
-    //val sequencingCenter = getSingleInput("Sequencing center", defaultValue = Some("SNP_SEQ_PLATFORM"))
-    val sequencingCenter = withDefaultValue("Sequencing center", defaultValue = Some("SNP_SEQ_PLATFORM"))(getSingleInput)
-    //val uppmaxProjectId = getSingleInput("Uppmax project Id", defaultValue = Some("a2009002"))
-    val uppmaxProjectId = withDefaultValue("Uppmax project id", defaultValue = Some("a2009002"))(getSingleInput)
+    val seqencingPlatform = withDefaultValue("Sequencing platform", defaultValue = "Illumina")(getSingleInput)
+    val sequencingCenter = withDefaultValue("Sequencing center", defaultValue = "SNP_SEQ_PLATFORM")(getSingleInput)
+    val uppmaxProjectId = withDefaultValue("Uppmax project id", defaultValue = "a2009002")(getSingleInput)
 
     projectMetaData.setName(projectName)
     projectMetaData.setPlatfrom(seqencingPlatform)
@@ -99,75 +102,99 @@ object SetupFileCreator extends App {
 
     project.setInputs(new Inputs)
 
+    def getReference: String = {
+        val reference = new File(getSingleInput("Reference")).getAbsolutePath()
+
+        try {
+            require(new File(reference).exists(), "Cannot find reference: " + reference)
+        } catch {
+            case ie: IllegalArgumentException => {
+                println("Cannot find reference: " + reference + ". Input a correct reference.")
+                getReference
+            }
+
+        }
+        reference
+    }
+
+    val reference = getReference
+
     // -------------------------------------------------
     // Setup run folders
     // -------------------------------------------------
 
     val runFolderList = project.getInputs().getRunfolder()
 
-    //TODO Fix from here!
     val runFolderPathList = getMultipleInputs(Option("Run folders"))
 
-    runFolderPathList.foreach(println _)
+    runFolderList.addAll(runFolderPathList.map(path => {
 
-    val runFolder1 = new Runfolder
-    runFolder1.setReport("src/test/resources/testdata/runFoldersForMultipleSample/runfolder1/report.xml")
+        def lookForReport(p: String): String = {
+            val dir = new File(p)
+            require(dir.isDirectory(), dir + " was not a directory.")
+            val reportFile: File = dir.listFiles().find(report => report.getName() == "report.xml").getOrElse(throw new Error("Could not find report.xml in " + dir.getPath()))
+            reportFile.getAbsolutePath()
+        }
 
-    val runFolder2 = new Runfolder
-    runFolder2.setReport("src/test/resources/testdata/runFoldersForMultipleSample/runfolder2/report.xml")
+        val runFolder = new Runfolder
+        runFolder.setReport(lookForReport(path))
+        runFolder
 
-    runFolderList.add(runFolder1)
-    runFolderList.add(runFolder2)
+    }))
 
-    /**
-     * Sample folder stuff
-     */
+    // -------------------------------------------------
+    // Setup sample folders
+    // -------------------------------------------------
 
-    val sampleFolderList1 = runFolder1.getSamplefolder()
+    runFolderList.map(runFolder => {
+        val sampleFolderList = runFolder.getSamplefolder()
+        val runFolderPath = new File(runFolder.getReport.get).getParentFile()
+        val sampleFolders = runFolderPath.listFiles().filter(s => s.getName().startsWith("Sample_")).toList
 
-    val sampleFolder1 = new Samplefolder()
-    sampleFolder1.setName("1")
-    sampleFolder1.setPath("src/test/resources/testdata/runFoldersForMultipleSample/runfolder1/Sample_1")
-    sampleFolder1.setReference("src/test/resources/testdata/exampleFASTA.fasta")
+        val sampleFolderInstances = sampleFolders.map(sampleFolder => {
+            val sample = new Samplefolder
+            sample.setName(sampleFolder.getName().replace("Sample_", ""))
+            sample.setPath(sampleFolder.getAbsolutePath())
+            sample.setReference(reference)
+            sample
+        })
 
-    sampleFolderList1.add(sampleFolder1)
+        sampleFolderList.addAll(sampleFolderInstances)
+    })
 
-    val sampleFolderList2 = runFolder2.getSamplefolder()
+    // @TODO
+    // Leaving the below here so that it can be used as a template when the qscripts are converted to a xml
+    // based argument setup.
 
-    val sampleFolder2 = new Samplefolder()
-    sampleFolder2.setName("1")
-    sampleFolder2.setPath("src/test/resources/testdata/runFoldersForMultipleSample/runfolder2/Sample_1")
-    sampleFolder2.setReference("src/test/resources/testdata/exampleFASTA.fasta")
+    // -------------------------------------------------
+    // Analysis stuff
+    // -------------------------------------------------
 
-    sampleFolderList2.add(sampleFolder2)
-
-    /**
-     * Analysis stuff
-     */
-
-    project.setAnalysis(new Analysis)
-
-    val analysis = project.getAnalysis()
-    val qscriptList = analysis.getQscript()
-
-    val qscript1 = new Qscript
-    qscript1.setName("HelloWorld")
-    qscript1.setPath("examplePath/helloWorld.scala")
-    val argList = qscript1.getArgument()
-
-    val argument = new Argument
-    argument.setKey("MyFirstKey")
-    argument.setValue("MyFirstValue")
-    argList.add(argument)
-
-    val argument2 = new Argument
-    argument2.setKey("MySecondKey")
-    argument2.setValue("MySecondValue")
-    argList.add(argument2)
-
-    qscriptList.add(qscript1)
+    //    project.setAnalysis(new Analysis)
+    //
+    //    val analysis = project.getAnalysis()
+    //    val qscriptList = analysis.getQscript()
+    //
+    //    val qscript1 = new Qscript
+    //    qscript1.setName("HelloWorld")
+    //    qscript1.setPath("examplePath/helloWorld.scala")
+    //    val argList = qscript1.getArgument()
+    //
+    //    val argument = new Argument
+    //    argument.setKey("MyFirstKey")
+    //    argument.setValue("MyFirstValue")
+    //    argList.add(argument)
+    //
+    //    val argument2 = new Argument
+    //    argument2.setKey("MySecondKey")
+    //    argument2.setValue("MySecondValue")
+    //    argList.add(argument2)
+    //
+    //    qscriptList.add(qscript1)
 
     //marshaller.marshal(project, System.out)
-    //marshaller.marshal(project, new FileOutputStream("src/test/resources/testdata/newPipelineSetupSameSampleAcrossMultipleRunFolders.xml"))
+
+    println("Finished setting up project. Writing project xml to " + outputFile.getAbsolutePath() + " now.")
+    marshaller.marshal(project, new FileOutputStream(outputFile))
 
 }
