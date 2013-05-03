@@ -11,10 +11,76 @@ import molmed.xml.setup.Inputs
 import java.io.FileOutputStream
 import molmed.xml.setup.Analysis
 import javax.xml.bind.Marshaller
+import scala.io.Source
+
+object InputParser {
+    implicit def packOptionalValue[T](value: T): Option[T] = Some(value)
+
+    def getMultipleInputs(key: Option[String]): List[String] = {
+
+        def checkInput(value: List[String], checkInputQuestion: Option[String]): List[String] = {
+            val valid = readLine(checkInputQuestion.get + "\n")
+            valid match {
+                case "y" => value
+                case "n" => getMultipleInputs(key)
+                case _ => {
+                    println("Did not recognize input: " + valid)
+                    checkInput(value, checkInputQuestion)
+                }
+            }
+        }
+
+        def continue(value: String, accumulator: List[String]): List[String] = {
+            val cont = readLine("Do you want to add another " + key.get + "? [y/n]" + "\n")
+            cont match {
+                case "n" => value :: accumulator
+                case "y" => accumulateInputs(key, value :: accumulator)
+                case _ => {
+                    println("Did not recognize input: " + cont)
+                    continue(value, accumulator)
+                }
+            }
+        }
+
+        def accumulateInputs(key: Option[String], acc: List[String]): List[String] = {
+            val value = readLine("Set " + key.get + ":" + "\n")            
+            checkInput(List(value), "Value of key: " + key.get + ", was set to: " + value + ". Do you want to keep it? [y/n]")
+            continue(value, acc)
+        }
+        
+        accumulateInputs(key, List())
+
+    }
+
+    def getSingleInput(key: Option[String], defaultValue: Option[String] = None): String = {
+
+        def checkInput(value: String, checkInputQuestion: Option[String]): String = {
+            val valid = readLine(checkInputQuestion.get + "\n")
+            valid match {
+                case "y" => value
+                case "n" => getSingleInput(key)
+                case _ => {
+                    println("Did not recognize input: " + valid)
+                    checkInput(value, checkInputQuestion)
+                }
+            }
+        }
+
+        if (defaultValue.isDefined) {
+            checkInput(defaultValue.get, "The default value of " + key.get + " is " + defaultValue.get + ". Do you want to keep it? [y/n]")
+        } else {
+            val value = readLine("Set " + key.get + ":" + "\n")
+            checkInput(value, "Value of key: " + key.get + ", was set to: " + value + ". Do you want to keep it? [y/n]")
+        }
+    }
+}
 
 object SetupFileCreator extends App {
-    
-      // Create file and write to it       
+
+    // Contains the get input method and String => Option[String] conversion.
+    import InputParser._
+
+    // Create file and write to it       
     val context = JAXBContext.newInstance(classOf[Project])
 
     val marshaller = context.createMarshaller()
@@ -22,44 +88,66 @@ object SetupFileCreator extends App {
 
     val project = new Project
 
+    // -------------------------------------------------
+    // Create meta data
+    // -------------------------------------------------
+
     val projectMetaData = new Metadata()
-    projectMetaData.setName("Test project")
-    projectMetaData.setPlatfrom("Illumina")
-    projectMetaData.setSequenceingcenter("SNP_SEQ_PLATFORM")
-    projectMetaData.setUppmaxprojectid("a2009002")
+
+    val projectName = getSingleInput("Project name")
+    val seqencingPlatform = getSingleInput("Sequencing platform", defaultValue = Some("Illumina"))
+    val sequencingCenter = getSingleInput("Sequencing center", defaultValue = Some("SNP_SEQ_PLATFORM"))
+    val uppmaxProjectId = getSingleInput("Uppmax project Id", defaultValue = Some("a2009002"))
+
+    projectMetaData.setName(projectName)
+    projectMetaData.setPlatfrom(seqencingPlatform)
+    projectMetaData.setSequenceingcenter(sequencingCenter)
+    projectMetaData.setUppmaxprojectid(uppmaxProjectId)
     project.setMetadata(projectMetaData)
 
     project.setInputs(new Inputs)
 
-    /**
-     * Run folder stuff
-     */
+    // -------------------------------------------------
+    // Setup run folders
+    // -------------------------------------------------
 
     val runFolderList = project.getInputs().getRunfolder()
 
-    val runFolder = new Runfolder
-    runFolder.setReport("src/test/resources/testdata/smallTestFastqDataFolder/report.xml")
+    //TODO Fix from here!
+    val runFolderPathList = getMultipleInputs(Option("Run folders"))
 
-    runFolderList.add(runFolder)
+    runFolderPathList.foreach(println _)
+
+    val runFolder1 = new Runfolder
+    runFolder1.setReport("src/test/resources/testdata/runFoldersForMultipleSample/runfolder1/report.xml")
+
+    val runFolder2 = new Runfolder
+    runFolder2.setReport("src/test/resources/testdata/runFoldersForMultipleSample/runfolder2/report.xml")
+
+    runFolderList.add(runFolder1)
+    runFolderList.add(runFolder2)
 
     /**
      * Sample folder stuff
      */
 
-    val sampleFolderList = runFolder.getSamplefolder()
+    val sampleFolderList1 = runFolder1.getSamplefolder()
 
     val sampleFolder1 = new Samplefolder()
     sampleFolder1.setName("1")
-    sampleFolder1.setPath("src/test/resources/testdata/smallTestFastqDataFolder/Sample_1")
+    sampleFolder1.setPath("src/test/resources/testdata/runFoldersForMultipleSample/runfolder1/Sample_1")
     sampleFolder1.setReference("src/test/resources/testdata/exampleFASTA.fasta")
 
+    sampleFolderList1.add(sampleFolder1)
+
+    val sampleFolderList2 = runFolder2.getSamplefolder()
+
     val sampleFolder2 = new Samplefolder()
-    sampleFolder2.setName("2")
-    sampleFolder2.setPath("src/test/resources/testdata/smallTestFastqDataFolder/Sample_2")
+    sampleFolder2.setName("1")
+    sampleFolder2.setPath("src/test/resources/testdata/runFoldersForMultipleSample/runfolder2/Sample_1")
     sampleFolder2.setReference("src/test/resources/testdata/exampleFASTA.fasta")
 
-    sampleFolderList.add(sampleFolder1)
-    sampleFolderList.add(sampleFolder2)
+    sampleFolderList2.add(sampleFolder2)
 
     /**
      * Analysis stuff
@@ -88,6 +176,6 @@ object SetupFileCreator extends App {
     qscriptList.add(qscript1)
 
     //marshaller.marshal(project, System.out)
-    marshaller.marshal(project, new FileOutputStream("src/test/resources/testdata/exampleForNewSetupXML.xml"))
+    //marshaller.marshal(project, new FileOutputStream("src/test/resources/testdata/newPipelineSetupSameSampleAcrossMultipleRunFolders.xml"))
 
 }
