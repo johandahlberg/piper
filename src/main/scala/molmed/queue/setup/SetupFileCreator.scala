@@ -16,19 +16,19 @@ import scala.io.Source
 object InputParser {
     implicit def packOptionalValue[T](value: T): Option[T] = Some(value)
 
-    def getMultipleInputs(key: Option[String]): List[String] = {
-
-        def checkInput(value: List[String], checkInputQuestion: Option[String]): List[String] = {
-            val valid = readLine(checkInputQuestion.get + "\n")
-            valid match {
-                case "y" => value
-                case "n" => getMultipleInputs(key)
-                case _ => {
-                    println("Did not recognize input: " + valid)
-                    checkInput(value, checkInputQuestion)
-                }
+    private def checkInput[T](function: Option[String] => T)(key: Option[String], value: T, checkInputQuestion: Option[String]): T = {
+        val valid = readLine(checkInputQuestion.get + "\n")
+        valid match {
+            case "y" => value
+            case "n" => function(key)
+            case _ => {
+                println("Did not recognize input: " + valid)
+                checkInput(function)(key, value, checkInputQuestion)
             }
         }
+    }
+
+    def getMultipleInputs(key: Option[String]): List[String] = {
 
         def continue(value: String, accumulator: List[String]): List[String] = {
             val cont = readLine("Do you want to add another " + key.get + "? [y/n]" + "\n")
@@ -43,35 +43,25 @@ object InputParser {
         }
 
         def accumulateInputs(key: Option[String], acc: List[String]): List[String] = {
-            val value = readLine("Set " + key.get + ":" + "\n")            
-            checkInput(List(value), "Value of key: " + key.get + ", was set to: " + value + ". Do you want to keep it? [y/n]")
+            val value = readLine("Set " + key.get + ":" + "\n")
+            checkInput[List[String]](getMultipleInputs)(key, List(value), "Value of key: " + key.get + ", was set to: " + value + ". Do you want to keep it? [y/n]")
             continue(value, acc)
         }
-        
+
         accumulateInputs(key, List())
 
     }
 
-    def getSingleInput(key: Option[String], defaultValue: Option[String] = None): String = {
+    def withDefaultValue(key: Option[String], defaultValue: Option[String])(function: Option[String] => String): String = {
+        if (defaultValue.isDefined)
+            checkInput[String](getSingleInput)(key, defaultValue.get, "The default value of " + key.get + " is " + defaultValue.get + ". Do you want to keep it? [y/n]")
+        else
+            function(key)
+    }
 
-        def checkInput(value: String, checkInputQuestion: Option[String]): String = {
-            val valid = readLine(checkInputQuestion.get + "\n")
-            valid match {
-                case "y" => value
-                case "n" => getSingleInput(key)
-                case _ => {
-                    println("Did not recognize input: " + valid)
-                    checkInput(value, checkInputQuestion)
-                }
-            }
-        }
-
-        if (defaultValue.isDefined) {
-            checkInput(defaultValue.get, "The default value of " + key.get + " is " + defaultValue.get + ". Do you want to keep it? [y/n]")
-        } else {
-            val value = readLine("Set " + key.get + ":" + "\n")
-            checkInput(value, "Value of key: " + key.get + ", was set to: " + value + ". Do you want to keep it? [y/n]")
-        }
+    def getSingleInput(key: Option[String]): String = {
+        val value = readLine("Set " + key.get + ":" + "\n")
+        checkInput[String](getSingleInput)(key, value, "Value of key: " + key.get + ", was set to: " + value + ". Do you want to keep it? [y/n]")
     }
 }
 
@@ -95,9 +85,11 @@ object SetupFileCreator extends App {
     val projectMetaData = new Metadata()
 
     val projectName = getSingleInput("Project name")
-    val seqencingPlatform = getSingleInput("Sequencing platform", defaultValue = Some("Illumina"))
-    val sequencingCenter = getSingleInput("Sequencing center", defaultValue = Some("SNP_SEQ_PLATFORM"))
-    val uppmaxProjectId = getSingleInput("Uppmax project Id", defaultValue = Some("a2009002"))
+    val seqencingPlatform = withDefaultValue("Sequencing platform", defaultValue = Some("Illumina"))(getSingleInput)
+    //val sequencingCenter = getSingleInput("Sequencing center", defaultValue = Some("SNP_SEQ_PLATFORM"))
+    val sequencingCenter = withDefaultValue("Sequencing center", defaultValue = Some("SNP_SEQ_PLATFORM"))(getSingleInput)
+    //val uppmaxProjectId = getSingleInput("Uppmax project Id", defaultValue = Some("a2009002"))
+    val uppmaxProjectId = withDefaultValue("Uppmax project id", defaultValue = Some("a2009002"))(getSingleInput)
 
     projectMetaData.setName(projectName)
     projectMetaData.setPlatfrom(seqencingPlatform)
