@@ -79,22 +79,22 @@ class SetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
                 runFolderToSampleFolderMap.flatMap(tupple => {
 
                     val report = tupple._1
-                    val sampleFolderList = tupple._2
+                    val sampleFolderList = tupple._2.filter(s => s.getName().equalsIgnoreCase(sampleName))                    
 
                     val reportReader = new IlluminaXMLReportReader(new File(report))
 
                     val sampleList: Seq[Sample] = sampleFolderList.flatMap(sampleFolder => {
 
-                        val sampleName = sampleFolder.getName()
+                        val sampleFolderName = sampleFolder.getName()
 
-                        def buildSampleList(sampleName: String): List[Sample] =
-                            reportReader.getLanes(sampleName).map(lane => {
+                        def buildSampleList(sampleFolderName: String): List[Sample] =
+                            reportReader.getLanes(sampleFolderName).map(lane => {
                                 val readPairContainer = buildReadPairContainer(sampleFolder, lane)
-                                val readGroupInfo = buildReadGroupInformation(sampleName, lane, reportReader)
-                                new Sample(sampleName, getReference(sampleName), readGroupInfo, readPairContainer)
+                                val readGroupInfo = buildReadGroupInformation(sampleFolderName, lane, reportReader)
+                                new Sample(sampleFolderName, getReference(sampleFolderName), readGroupInfo, readPairContainer)
                             })
 
-                        buildSampleList(sampleName)
+                        buildSampleList(sampleFolderName)
                     })
                     sampleList
                 }).toList
@@ -115,7 +115,7 @@ class SetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
 
         val sampleListMap = distinctSampleNames.map(sampleName => {
             (sampleName, getSampleList(sampleName))
-        }).toMap
+        }).toMap        
         
         assert(!sampleListMap.isEmpty, "Sample name to list map was empty.")
         
@@ -166,7 +166,7 @@ class SetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
 
         val sampleName = sampleFolder.getName()
         val folder = new File(sampleFolder.getPath())
-        require(folder.isDirectory())
+        require(folder.isDirectory(), folder + " was not a directory.")
 
         val fastq1: List[File] = folder.listFiles().filter(f => f.getName().contains("_L" + getZerroPaddedIntAsString(lane, 3) + "_R1_")).toList
         val fastq2: List[File] = folder.listFiles().filter(f => f.getName().contains("_L" + getZerroPaddedIntAsString(lane, 3) + "_R2_")).toList

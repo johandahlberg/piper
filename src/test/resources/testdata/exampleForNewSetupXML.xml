@@ -14,11 +14,6 @@
                 <path>src/test/resources/testdata/smallTestFastqDataFolder/Sample_1</path>
                 <reference>src/test/resources/testdata/exampleFASTA.fasta</reference>
             </samplefolder>
-            <samplefolder>
-                <name>2</name>
-                <path>src/test/resources/testdata/smallTestFastqDataFolder/Sample_2</path>
-                <reference>src/test/resources/testdata/exampleFASTA.fasta</reference>
-            </samplefolder>
         </runfolder>
     </inputs>
     <analysis>
