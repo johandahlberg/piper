@@ -154,13 +154,16 @@ class AlignWithTophat extends QScript {
         // Sometime this should be kept, sometimes it shouldn't
         this.isIntermediate = false
 
-        @Input var files1 = fastqs1.getAbsolutePath()
-        @Argument var files2 = if(fastqs2 != null) fastqs2.getAbsolutePath() else ""
+        @Input var files1 = fastqs1
+        @Argument var files2 = fastqs2
         @Input var dir = sampleOutputDir
         @Input var ref = reference
 
         @Output var stdOut = outputFile
 
+        val file1String = files1.getAbsolutePath()
+        val file2String = if(files2 != null) files2.getAbsolutePath() else ""
+        
         // Only add --GTF option if this has been defined as an option on the command line
         def annotationString = if (annotations.isDefined) " --GTF " + annotations.get.getAbsolutePath() + " " else ""
 
@@ -175,7 +178,7 @@ class AlignWithTophat extends QScript {
             " " + readGroupInfo +
             " --keep-fasta-order " +
             fusionSearchString +
-            ref + " " + files1 + " " + files2 +
+            ref + " " + file1String + " " + file2String +
             " 1> " + stdOut
     }
 }
