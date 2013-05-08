@@ -155,7 +155,7 @@ class AlignWithTophat extends QScript {
         this.isIntermediate = false
 
         @Input var files1 = fastqs1.getAbsolutePath()
-        @Input var files2 = if(fastqs2 != null) fastqs2.getAbsolutePath() else ""
+        @Argument var files2 = if(fastqs2 != null) fastqs2.getAbsolutePath() else ""
         @Input var dir = sampleOutputDir
         @Input var ref = reference
 
