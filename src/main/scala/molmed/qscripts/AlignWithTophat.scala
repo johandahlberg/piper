@@ -155,7 +155,7 @@ class AlignWithTophat extends QScript {
         this.isIntermediate = false
 
         @Input var files1 = fastqs1
-        @Argument var files2 = fastqs2
+        @Argument(required = false) var files2 = fastqs2
         @Input var dir = sampleOutputDir
         @Input var ref = reference
 
