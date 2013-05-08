@@ -154,8 +154,8 @@ class AlignWithTophat extends QScript {
         // Sometime this should be kept, sometimes it shouldn't
         this.isIntermediate = false
 
-        @Input var files1 = fastqs1
-        @Input var files2 = fastqs2
+        @Input var files1 = fastqs1.getAbsolutePath()
+        @Input var files2 = if(fastqs2 != null) fastqs2.getAbsolutePath() else ""
         @Input var dir = sampleOutputDir
         @Input var ref = reference
 
@@ -175,7 +175,7 @@ class AlignWithTophat extends QScript {
             " " + readGroupInfo +
             " --keep-fasta-order " +
             fusionSearchString +
-            ref + " " + fastqs1.getAbsolutePath() + " " + fastqs2.getAbsolutePath() +
+            ref + " " + files1 + " " + files2 +
             " 1> " + stdOut
     }
 }
