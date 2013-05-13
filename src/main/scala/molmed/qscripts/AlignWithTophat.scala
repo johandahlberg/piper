@@ -88,7 +88,7 @@ class AlignWithTophat extends QScript {
 
         /**
          * Make sure that if there are several instances of a sample
-         * they are aligned separately with folder names: 
+         * they are aligned separately with folder names:
          * <original sample name>_<int>
          */
         for ((sampleName, samples) <- sampleMap) {
@@ -114,7 +114,16 @@ class AlignWithTophat extends QScript {
      */
     def script {
 
-        val setupReader: SetupXMLReader = new SetupXMLReader(input)
+        // Temporary solution to handle the case where there is a legacy setup file
+        // which does not fulfill the xml-schema.
+        val setupReader: SetupXMLReaderAPI =
+            try {
+                new SetupXMLReader(input)
+            } catch {
+                case e: Exception => new LegacySetupXMLReader(input)
+
+            }
+
         val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
         projId = setupReader.getUppmaxProjectId()
 
@@ -162,17 +171,17 @@ class AlignWithTophat extends QScript {
         @Output var stdOut = outputFile
 
         val file1String = files1.getAbsolutePath()
-        val file2String = if(files2 != null) files2.getAbsolutePath() else ""
-        
+        val file2String = if (files2 != null) files2.getAbsolutePath() else ""
+
         // Only add --GTF option if this has been defined as an option on the command line
         def annotationString = if (annotations.isDefined) " --GTF " + annotations.get.getAbsolutePath() + " " else ""
 
         // Only do fussion search if it has been defined on the command line.
         // Since it requires a lot of ram, make sure it requests a fat node.    
         def fusionSearchString = if (fusionSearch) {
-                    this.jobNativeArgs +:= "-p node -C fat -A " + projId
-                    this.memoryLimit = 48
-                    " --fusion-search "
+            this.jobNativeArgs +:= "-p node -C fat -A " + projId
+            this.memoryLimit = 48
+            " --fusion-search "
         }
 
         def commandLine = tophatPath +
