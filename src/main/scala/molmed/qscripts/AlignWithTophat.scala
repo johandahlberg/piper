@@ -167,8 +167,13 @@ class AlignWithTophat extends QScript {
         // Only add --GTF option if this has been defined as an option on the command line
         def annotationString = if (annotations.isDefined) " --GTF " + annotations.get.getAbsolutePath() + " " else ""
 
-        // Only do fussion search if it has been defined on the command line.    
-        def fusionSearchString = if (fusionSearch) " --fusion-search " else ""
+        // Only do fussion search if it has been defined on the command line.
+        // Since it requires a lot of ram, make sure it requests a fat node.    
+        def fusionSearchString = if (fusionSearch) {
+                    this.jobNativeArgs +:= "-p node -C fat -A " + projId
+                    this.memoryLimit = 48
+                    " --fusion-search " else ""
+        }
 
         def commandLine = tophatPath +
             " --library-type " + libraryType +
