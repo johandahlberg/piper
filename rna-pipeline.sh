@@ -26,7 +26,6 @@ function alignWithTophat {
     source piper -S ${SCRIPTS_DIR}/AlignWithTophat.scala \
 	    -i $1 \
 	    --annotations ${ANNOTATIONS} \
-        -R ${GENOME_REFERENCE} \
 	    --library_type ${LIBRARY_TYPE} \
 	    -tophat ${PATH_TO_TOPHAT} \
 	    -outputDir ${RAW_BAM_OUTPUT}/ \
