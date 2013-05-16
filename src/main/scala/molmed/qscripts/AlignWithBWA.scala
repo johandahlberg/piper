@@ -217,6 +217,11 @@ class AlignWithBWA extends QScript {
         this.memoryLimit = 24
         this.isIntermediate = false
     }
+    
+    trait SixGbRamJobs extends ExternalCommonArgs {
+        this.jobNativeArgs +:= "-p core -n 2 -A " + projId
+        this.memoryLimit = 6
+    }
 
     case class joinBams(inBams: Seq[File], outBam: File, index: File) extends MergeSamFiles with ExternalCommonArgs {
         this.input = inBams
@@ -229,16 +234,16 @@ class AlignWithBWA extends QScript {
     }
 
     // Find suffix array coordinates of single end reads
-    case class bwa_aln_se(fastq1: File, outSai: File, reference: File) extends CommandLineFunction with ExternalCommonArgs {
+    case class bwa_aln_se(fastq1: File, outSai: File, reference: File) extends SixGbRamJobs {
         @Input(doc = "fastq file to be aligned") var fastq = fastq1
         @Input(doc = "reference") var ref = reference
         @Output(doc = "output sai file") var sai = outSai
 
-        this.isIntermediate = true
+        this.isIntermediate = true        
 
         def commandLine = bwaPath + " aln -t " + bwaThreads + " -q 5 " + ref + " " + fastq + " > " + sai
-        this.analysisName = "bwa_aln_se"
-        this.jobName = "bwa_aln_se"
+        this.analysisName = projId + "bwa_aln"
+        this.jobName = projId + "bwa_aln"
     }
 
     // Help function to create samtools sorting and indexing paths
@@ -246,7 +251,7 @@ class AlignWithBWA extends QScript {
         samtoolsPath + " index " + alignedBam.getAbsoluteFile()
 
     // Perform alignment of single end reads
-    case class bwa_sam_se(fastq: File, inSai: File, outBam: File, readGroupInfo: String, reference: File, intermediate: Boolean = false) extends CommandLineFunction with ExternalCommonArgs {
+    case class bwa_sam_se(fastq: File, inSai: File, outBam: File, readGroupInfo: String, reference: File, intermediate: Boolean = false) extends ExternalCommonArgs {
         @Input(doc = "fastq file to be aligned") var mate1 = fastq
         @Input(doc = "bwa alignment index file") var sai = inSai
         @Input(doc = "reference") var ref = reference
@@ -262,7 +267,7 @@ class AlignWithBWA extends QScript {
     }
 
     // Perform alignment of paired end reads
-    case class bwa_sam_pe(fastq1: File, fastq2: File, inSai1: File, inSai2: File, outBam: File, readGroupInfo: String, reference: File, intermediate: Boolean = false) extends CommandLineFunction with ExternalCommonArgs {
+    case class bwa_sam_pe(fastq1: File, fastq2: File, inSai1: File, inSai2: File, outBam: File, readGroupInfo: String, reference: File, intermediate: Boolean = false) extends SixGbRamJobs {
         @Input(doc = "fastq file with mate 1 to be aligned") var mate1 = fastq1
         @Input(doc = "fastq file with mate 2 file to be aligned") var mate2 = fastq2
         @Input(doc = "bwa alignment index file for 1st mating pair") var sai1 = inSai1
@@ -271,7 +276,7 @@ class AlignWithBWA extends QScript {
         @Output(doc = "output aligned bam file") var alignedBam = outBam
 
         // The output from this is a samfile, which can be removed later
-        this.isIntermediate = intermediate
+        this.isIntermediate = intermediate        
 
         def commandLine = bwaPath + " sampe " + ref + " " + sai1 + " " + sai2 + " " + mate1 + " " + mate2 +
             " -r " + readGroupInfo +
@@ -281,7 +286,7 @@ class AlignWithBWA extends QScript {
     }
 
     // Perform Smith-Watherman aligment of single end reads
-    case class bwa_sw(inFastQ: File, outBam: File, reference: File, intermediate: Boolean = false) extends CommandLineFunction with ExternalCommonArgs {
+    case class bwa_sw(inFastQ: File, outBam: File, reference: File, intermediate: Boolean = false) extends ExternalCommonArgs {
         @Input(doc = "fastq file to be aligned") var fq = inFastQ
         @Input(doc = "reference") var ref = reference
         @Output(doc = "output bam file") var bam = outBam
