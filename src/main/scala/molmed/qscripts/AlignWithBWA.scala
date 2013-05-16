@@ -218,23 +218,6 @@ class AlignWithBWA extends QScript {
         this.isIntermediate = false
     }
 
-    // Remove the intermediate bam files created before joining them per sample.
-    // Note that this takes sortedBam as a input, because this should not run before the sortedBam function has finished
-    // successfully.
-    case class removeIntermediateBamFiles(fileToBeRemoved: Seq[File], joinedBam: File, index: File) extends InProcessFunction {
-        @Input(doc = "Temorary files that need to be removed.") var removeThese: Seq[File] = fileToBeRemoved
-        @Input(doc = "Non-used input. Here to make sure clean-up does not happen before bams have been sucessfully sorted.") var sortedBamFiles: File = joinedBam
-        @Input(doc = "Non-used input. Here to make sure clean-up does not happen before bams have been sucessfully sorted.") var sortedBamIndex: File = index
-
-        def run() {
-            removeThese.foreach(file => {
-                // Remove both the bam files and their indexes.
-                IOUtils.tryDelete(file)
-                IOUtils.tryDelete(file.replaceAll(".bam", ".bai"))
-            })
-        }
-    }
-
     case class joinBams(inBams: Seq[File], outBam: File, index: File) extends MergeSamFiles with ExternalCommonArgs {
         this.input = inBams
         this.output = outBam
