@@ -181,7 +181,7 @@ class AlignWithTophat extends QScript {
         def fusionSearchString = if (fusionSearch) {
             this.jobNativeArgs +:= "-p node -C fat -A " + projId
             this.memoryLimit = 48
-            " --fusion-search "
+            " --fusion-search --bowtie1 --no-coverage-search "
         }
 
         def commandLine = tophatPath +
