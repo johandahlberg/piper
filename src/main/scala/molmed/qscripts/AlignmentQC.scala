@@ -76,7 +76,7 @@ class AlignmentQC extends QScript {
 
     // General arguments to non-GATK tools
     trait ExternalCommonArgs extends CommandLineFunction {
-        this.memoryLimit = 3
+        this.memoryLimit = 9
         this.isIntermediate = true
         this.jobNativeArgs +:= "-p core -n 3 -A " + projId
     }
