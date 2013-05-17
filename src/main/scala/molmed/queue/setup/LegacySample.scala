@@ -2,6 +2,7 @@ package molmed.queue.setup
 import java.io.File
 import collection.JavaConversions._
 import java.io.FileNotFoundException
+import org.apache.commons.lang.NotImplementedException
 
 class LegacySample(sampleName: String, setupXMLReader: SetupXMLReaderAPI, illuminaXMLReportReader: IlluminaXMLReportReaderAPI, sampleLane: Int, runFolderName: String) extends SampleAPI {
 
@@ -44,6 +45,8 @@ class LegacySample(sampleName: String, setupXMLReader: SetupXMLReaderAPI, illumi
     def getSampleName(): String = {
         sampleName
     }
+    
+    def getReadGroupInformation(): ReadGroupInformation = throw new NotImplementedException
 
     def getFastqs(): ReadPairContainer = {
         readPairContainer

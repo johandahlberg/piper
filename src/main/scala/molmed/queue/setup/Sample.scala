@@ -2,7 +2,7 @@ package molmed.queue.setup
 
 import java.io.File
 
-case class Sample(sampleName: String, reference: File, readGroupInformation: ReadGroupInformation, readPairContainer: ReadPairContainer) extends SampleAPI {
+case class Sample(sampleName: String, val reference: File, val readGroupInformation: ReadGroupInformation, val readPairContainer: ReadPairContainer) extends SampleAPI {
 
     def getFastqs(): ReadPairContainer = readPairContainer
     
@@ -13,6 +13,8 @@ case class Sample(sampleName: String, reference: File, readGroupInformation: Rea
     def getTophatStyleReadGroupInformationString(): String = {
         readGroupInformation.parseToTophatApprovedString()
     }
+    
+    def getReadGroupInformation = readGroupInformation
     
     def getReference(): File = reference
     def getSampleName(): String = sampleName
