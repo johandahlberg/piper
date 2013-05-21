@@ -8,6 +8,7 @@ import org.broadinstitute.sting.queue.function.ListWriterFunction
 import molmed.queue.setup._
 import java.io.File
 import java.io.PrintWriter
+import java.util.regex.Pattern
 
 class AlignWithTophat extends QScript {
 
@@ -129,14 +130,22 @@ class AlignWithTophat extends QScript {
     def cutAndSyncSamples(samples: Seq[SampleAPI]): Seq[SampleAPI] = {
 
       def addSamples(sample: SampleAPI): SampleAPI = {
+
+        def constructTrimmedName(name: String): String = {
+          if(name.matches("fastq.gz"))
+        		name.replace("fastq.gz", "trimmed.fastq.gz")
+          else
+            name.replace("fastq", "trimmed.fastq.gz")
+        }
+
         val readpairContainer = sample.getFastqs
 
-        val mate1SyncedFastq = new File(cutadaptOutputDir + "/" + sample.getSampleName)
+        val mate1SyncedFastq = new File(cutadaptOutputDir + "/" + constructTrimmedName(sample.getFastqs.mate1.getName()))
         add(cutadapt(readpairContainer.mate1, mate1SyncedFastq, adaptor1))
 
         val mate2SyncedFastq =
           if (readpairContainer.isMatePaired) {
-            val mate2SyncedFastq = new File(cutadaptOutputDir + "/" + sample.getSampleName)
+            val mate2SyncedFastq = new File(cutadaptOutputDir + "/" + constructTrimmedName(sample.getFastqs.mate2.getName()))
             add(cutadapt(readpairContainer.mate2, mate2SyncedFastq, adaptor2))
             mate2SyncedFastq
           } else null
@@ -209,13 +218,13 @@ class AlignWithTophat extends QScript {
 
   case class cutadapt(@Input fastq: File, @Output cutFastq: File, @Argument adaptor: String) extends ExternalCommonArgs {
 
-    this.isIntermediate = true
+    this.isIntermediate = false
 
     this.jobNativeArgs +:= "-p core -n 2 -A " + projId
     this.memoryLimit = 6
 
     // Run cutadapt and sync via perl script by adding N's in all empty reads.  
-    def commandLine = cutadaptPath + " -a " + adaptor + " -o " + fastq + " | perl resources/FixEmptyReads.pl -i /dev/stdin -o " + cutFastq
+    def commandLine = cutadaptPath + " -a " + adaptor + " " + fastq + " | perl resources/FixEmptyReads.pl -i /dev/stdin -o " + cutFastq
 
   }
 
@@ -225,7 +234,7 @@ class AlignWithTophat extends QScript {
     this.isIntermediate = false
 
     @Input var files1 = fastqs1
-    @Argument(required = false) var files2 = fastqs2
+    @Input var files2 = fastqs2
     @Input var dir = sampleOutputDir
     @Input var ref = reference
 
@@ -235,7 +244,10 @@ class AlignWithTophat extends QScript {
     val file2String = if (files2 != null) files2.getAbsolutePath() else ""
 
     // Only add --GTF option if this has been defined as an option on the command line
-    def annotationString = if (annotations.isDefined) " --GTF " + annotations.get.getAbsolutePath() + " " else ""
+    def annotationString = if (annotations.isDefined && annotations.get != null)
+      " --GTF " + annotations.get.getAbsolutePath() + " "
+    else
+      ""
 
     // Only do fussion search if it has been defined on the command line.
     // Since it requires a lot of ram, make sure it requests a fat node.    
@@ -243,7 +255,7 @@ class AlignWithTophat extends QScript {
       this.jobNativeArgs +:= "-p node -C fat -A " + projId
       this.memoryLimit = 48
       " --fusion-search --bowtie1 --no-coverage-search "
-    }
+    } else ""
 
     def commandLine = tophatPath +
       " --library-type " + libraryType +

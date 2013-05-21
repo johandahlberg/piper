@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <project xmlns="setup.xml.molmed">
     <metadata>
-        <name>Test project</name>
+        <name>TestProject</name>
         <sequenceingcenter>SNP_SEQ_PLATFORM</sequenceingcenter>
         <platfrom>Illumina</platfrom>
         <uppmaxprojectid>a2009002</uppmaxprojectid>

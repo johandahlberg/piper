@@ -7,25 +7,23 @@ use Getopt::Long;
 use FileHandle;
 
 
-#perl FixEmptyReads.pl -i MyFastqWithEmptyReads.fastq.gz -o MyFastqWithNsInstead.fastq.gz
+#perl FixEmptyReads.pl -o MyFastqWithNsInstead.fastq.gz <file || stdin>
 
 my($input,$output);
-GetOptions("i=s" => \$input,"o=s" => \$output);
+GetOptions("o=s" => \$output);
 
 # define filehandles for printing mates
 open OUTPUT, "| gzip > $output" or die("cannot open file to write to. $!");
 
-open(INPUT, "zcat $input |") or die("cannot read file, not zipped? $!");
-
-while(<INPUT>) {
+while(<>) {
 
     chomp;
     my $name = $_;
-    my $seq = <INPUT>;
+    my $seq = <>;
     chomp($seq);
-    my $name2= <INPUT>;
+    my $name2= <>;
     chomp($name2);
-    my $qual = <INPUT>;
+    my $qual = <>;
     chomp $qual;
     if ($seq eq ""){
 	$seq = "N";
@@ -34,6 +32,5 @@ while(<INPUT>) {
     print OUTPUT "$name\n$seq\n$name2\n$qual\n";
 }
 
-close INPUT;
 close OUTPUT;
 

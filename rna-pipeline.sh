@@ -89,7 +89,7 @@ module load tophat/2.0.4
 # Run template - setup which files to run etc
 #---------------------------------------------
 
-PIPELINE_SETUP_XML="src/test/resources/testdata/pipelineSetup.xml"
+PIPELINE_SETUP_XML="src/test/resources/testdata/exampleForNewSetupXML.xml"
 PROJECT_NAME="TestRNA"
 PROJECT_ID="a2009002"
 GENOME_REFERENCE=${GATK_BUNDLE}"/human_g1k_v37.fasta"

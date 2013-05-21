@@ -11,6 +11,7 @@ then
 	PATH_TO_BWA="/bubo/sw/apps/bioinfo/bwa/0.6.2/kalkyl/bwa"
 	PATH_TO_SAMTOOLS="/bubo/sw/apps/bioinfo/samtools/0.1.12-10/samtools"	
 	PATH_TO_TOPHAT="/bubo/sw/apps/bioinfo/tophat/2.0.4/kalkyl/bin/tophat2"
+	PATH_TO_CUTADAPT="/bubo/sw/apps/bioinfo/cutadapt/1.2.1/kalkyl/bin/cutadapt"
 	GATK_BUNDLE="/proj/a2009002/SnpSeqPipeline/gatk_bundle/2.2/b37"
 else
 	JOB_RUNNER=" Shell"
@@ -18,6 +19,7 @@ else
 	PATH_TO_BWA="/usr/bin/bwa"
 	PATH_TO_SAMTOOLS="/usr/bin/samtools"
 	PATH_TO_TOPHAT="/usr/local/bin/tophat2"
+	PATH_TO_CUTADAPT="/usr/local/bin/cutadapt"
 	GATK_BUNDLE="/local/data/gatk_bundle/b37"
 fi
 
