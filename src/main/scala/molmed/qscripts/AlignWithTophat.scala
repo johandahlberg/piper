@@ -140,12 +140,12 @@ class AlignWithTophat extends QScript {
 
         val readpairContainer = sample.getFastqs
 
-        val mate1SyncedFastq = new File(cutadaptOutputDir + "/" + constructTrimmedName(sample.getFastqs.mate1.getName()))
+        val mate1SyncedFastq = new File(cutadaptOutputDir + "/" + sample.getReadGroupInformation.platformUnitId + "/" + constructTrimmedName(sample.getFastqs.mate1.getName()))
         add(cutadapt(readpairContainer.mate1, mate1SyncedFastq, adaptor1))
 
         val mate2SyncedFastq =
           if (readpairContainer.isMatePaired) {
-            val mate2SyncedFastq = new File(cutadaptOutputDir + "/" + constructTrimmedName(sample.getFastqs.mate2.getName()))
+            val mate2SyncedFastq = new File(cutadaptOutputDir + "/" + sample.getReadGroupInformation.platformUnitId + "/" + constructTrimmedName(sample.getFastqs.mate2.getName()))
             add(cutadapt(readpairContainer.mate2, mate2SyncedFastq, adaptor2))
             mate2SyncedFastq
           } else null
@@ -218,7 +218,7 @@ class AlignWithTophat extends QScript {
 
   case class cutadapt(@Input fastq: File, @Output cutFastq: File, @Argument adaptor: String) extends ExternalCommonArgs {
 
-    this.isIntermediate = false
+    this.isIntermediate = true
 
     this.jobNativeArgs +:= "-p core -n 2 -A " + projId
     this.memoryLimit = 6
