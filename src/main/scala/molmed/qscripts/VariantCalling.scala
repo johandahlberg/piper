@@ -292,7 +292,7 @@ class NewVariantCalling extends QScript {
             this.resource :+= new TaggedFile(Resources.omni, "known=false,training=true,truth=false,prior=12.0")
             this.resource :+= new TaggedFile(Resources.dbsnp, "known=true,training=false,truth=false,prior=6.0")
 
-            if (t.nSamples <= 3) { // very few exome samples means very few variants
+            if (t.nSamples <= 30) { // very few exome samples means very few variants
                 this.mG = 4
                 this.percentBad = 0.04
             }
