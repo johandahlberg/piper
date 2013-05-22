@@ -61,7 +61,7 @@ class AlignmentQC extends QScript {
     def createOutputDir(file: File) = {
         val outDir = {
             val basename = file.getName().replace(".bam", "")
-            if (outputDir == "") new File(basename + "/" + basename) else new File(outputDir + "/" + basename + "/" + basename)
+            if (outputDir == "") new File(basename) else new File(outputDir + "/" + basename)
         }
         outDir.mkdirs()
         outDir
