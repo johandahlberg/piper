@@ -47,23 +47,8 @@ class RNAQC extends QScript {
      * **************************************************************************
      */
 
-    def createRNASeQCInputFile(inputfiles: Seq[File]): File = {
-
-        val qcInputFile = new File(outputDir + "/RNASeQC.input.csv")
-
-        def printToFile(f: java.io.File)(op: java.io.PrintWriter => Unit) {
-            val p = new java.io.PrintWriter(f)
-            try { op(p) } finally { p.close() }
-        }
-
-        printToFile(qcInputFile)(p => {
-            p.println("Sample ID\tBam File\tNotes")
-            inputfiles.foreach(file => {
-                p.println(file.getName() + "\t" + file.getAbsolutePath() + "\t" + file.getName())
-            })
-        })
-
-        qcInputFile
+    def createRNASeQCInputString(file: File): String = {
+        file.getName() + "|" + file.getAbsolutePath() + "|" + file.getName()
     }
 
     /**
@@ -81,11 +66,10 @@ class RNAQC extends QScript {
         val outDir = if (outputDir == "") new File("RNA_QC") else new File(outputDir)
         outDir.mkdirs()
 
-        // TODO Create the input input file in specified format
-        val inputFile = createRNASeQCInputFile(bams)
-
-        // TODO Run RNA-QC with the input file as specified.
-        add(RNA_QC(inputFile, reference, outDir, transcripts, rRNATargets))
+        for (bam <- bams) {
+            val inputString = createRNASeQCInputString(bam)
+            add(RNA_QC(inputString, reference, outDir, transcripts, rRNATargets))
+        }
     }
 
     /**
@@ -102,8 +86,8 @@ class RNAQC extends QScript {
     }
 
     //molmed.queue.extensions.RNAQC.RNASeQC
-    case class RNA_QC(inputFile: File, referenceFile: File, outDir: File, transcriptFile: File, rRNATargetsFile: File) extends RNASeQC with ExternalCommonArgs {
-        this.input = inputFile
+    case class RNA_QC(inputString: String, referenceFile: File, outDir: File, transcriptFile: File, rRNATargetsFile: File) extends RNASeQC with ExternalCommonArgs {
+        this.input = inputString
         this.output = outDir
         this.reference = referenceFile
         this.transcripts = transcriptFile
@@ -112,6 +96,5 @@ class RNAQC extends QScript {
         this.isIntermediate = false
         this.analysisName = "RNA_QC"
         this.jobName = "RNA_QC"
-
     }
 }

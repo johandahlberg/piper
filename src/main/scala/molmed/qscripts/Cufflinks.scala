@@ -50,7 +50,7 @@ class Cufflinks extends QScript {
     var findNovelTranscripts: Boolean = false
 
     @Argument(doc = "Run cuffmerge to merge together the cufflink assemblies.", fullName = "merge", shortName = "me", required = false)
-    var merge: Boolean = true
+    var merge: Boolean = false
 
     /**
      * **************************************************************************

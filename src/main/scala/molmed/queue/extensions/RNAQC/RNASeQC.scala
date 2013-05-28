@@ -8,8 +8,8 @@ class RNASeQC extends CommandLineFunction {
 
     analysisName = "RNASeQC"
 
-    @Input(doc = "Sample File: tab-delimited description of samples and their bams. \n With header: Sample ID    Bam File    Notes", shortName = "i", fullName = "input", required = true)
-    var input: File = _
+    @Input(doc = "String of format Sample ID|Bam File|Notes", shortName = "i", fullName = "input", required = true)
+    var input: String = _
 
     @Input(doc = "Reference file in fasta format.", shortName = "r", fullName = "reference", required = true)
     var reference: File = _
