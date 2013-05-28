@@ -97,6 +97,9 @@ class DataProcessingPipeline extends QScript {
 
     @Argument(doc = "Explicitly fix the mate pairs after alignement. This option seems to be needed when running on manually split files.", fullName = "fixMatePairInformation", shortName = "fixMateInfo", required = false)
     var fixMatePairInfo: Boolean = false
+    
+    @Argument(doc = "Skip the deduplication step - usefull when runing for example haloplex data", fullName = "skipDeduplication", shortName = "sdd", required = false)
+    var skipDeduplication: Boolean = false
 
     /**
      * **************************************************************************
@@ -324,11 +327,17 @@ class DataProcessingPipeline extends QScript {
             if (cleaningModel != ConsensusDeterminationModel.KNOWNS_ONLY)
                 add(target(fixBamList, targetIntervals))
 
-            add(clean(fixBamList, targetIntervals, cleanedBam),
-                dedup(cleanedBam, dedupedBam, metricsFile),
-                cov(dedupedBam, preRecalFile),
-                recal(dedupedBam, preRecalFile, recalBam),
-                cov(recalBam, postRecalFile))
+            add(clean(fixBamList, targetIntervals, cleanedBam))
+
+            if (!skipDeduplication)
+                add(dedup(cleanedBam, dedupedBam, metricsFile),
+                    cov(dedupedBam, preRecalFile),
+                    recal(dedupedBam, preRecalFile, recalBam),
+                    cov(recalBam, postRecalFile))
+            else
+                add(cov(cleanedBam, preRecalFile),
+                    recal(cleanedBam, preRecalFile, recalBam),
+                    cov(recalBam, postRecalFile))
 
             cohortList :+= recalBam
         }
@@ -386,7 +395,7 @@ class DataProcessingPipeline extends QScript {
     case class clean(inBams: Seq[File], tIntervals: File, outBam: File) extends IndelRealigner with CommandLineGATKArgs {
 
         //TODO This should probably be a core job since it does not support parallel exection.         
-        
+
         this.input_file = inBams
         this.targetIntervals = tIntervals
         this.out = outBam
@@ -403,7 +412,7 @@ class DataProcessingPipeline extends QScript {
 
     case class cov(inBam: File, outRecalFile: File) extends BaseRecalibrator with CommandLineGATKArgs {
 
-        this.num_cpu_threads_per_data_thread  = nbrOfThreads
+        this.num_cpu_threads_per_data_thread = nbrOfThreads
 
         this.knownSites ++= qscript.dbSNP
         this.covariate ++= Seq("ReadGroupCovariate", "QualityScoreCovariate", "CycleCovariate", "ContextCovariate")
@@ -424,7 +433,7 @@ class DataProcessingPipeline extends QScript {
         //TODO This should probably be a core job since it does not support parallel exection.   
 
         this.input_file :+= inBam
-        
+
         // TODO According to this thread: 
         // http://gatkforums.broadinstitute.org/discussion/2267/baq-tag-error#latest
         // There is a bug in the GATK which means that the baq calculations should not
@@ -435,7 +444,7 @@ class DataProcessingPipeline extends QScript {
         if (!qscript.intervalString.isEmpty) this.intervalsString ++= Seq(qscript.intervalString)
         else if (qscript.intervals != null) this.intervals :+= qscript.intervals
         this.scatterCount = nContigs
-        this.num_cpu_threads_per_data_thread  = nbrOfThreads
+        this.num_cpu_threads_per_data_thread = nbrOfThreads
         this.isIntermediate = false
         this.analysisName = queueLogDir + outBam + ".recalibration"
         this.jobName = queueLogDir + outBam + ".recalibration"
