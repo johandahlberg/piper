@@ -57,9 +57,9 @@ class VariantCallingSnpSeqPipelineTest {
         spec.name = "VariantCallingPipeline"
         spec.args = Array(
             pathToScript,
-            " -R " + snpSeqBaseTest.publicTestDir + "exampleFASTA.fasta",
+            " -R " + snpSeqBaseTest.fullHumanGenome,
             " -res " + snpSeqBaseTest.pathToBundle,
-            " -i " + snpSeqBaseTest.publicTestDir + "exampleBAM.bam",
+            " -i " + snpSeqBaseTest.chromosome20Bam,
             " -startFromScratch ",
             " -p " + projectName).mkString
         spec.fileMD5s += testRawSNV -> ""

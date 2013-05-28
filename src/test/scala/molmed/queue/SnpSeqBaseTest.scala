@@ -9,6 +9,8 @@ class SnpSeqBaseTest {
     // protected static final String publicTestDirRoot = publicTestDir.replace(publicTestDirRelative, "");
     
     val pathToBundle: String = "/local/data/gatk_bundle/b37"
+    val chromosome20Bam = "/local/data/gatk_bundle/b37/NA12878.HiSeq.WGS.bwa.cleaned.recal.hg19.20.bam"
+    val fullHumanGenome = "/local/data/gatk_bundle/b37/human_g1k_v37.fasta" 
     
     val pathToBaseDir: String = "src/test/resources/testdata/"
     val publicTestDir: String = new File("src/test/resources/testdata").getAbsolutePath() + "/"    
