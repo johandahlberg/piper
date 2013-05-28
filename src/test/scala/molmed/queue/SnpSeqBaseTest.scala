@@ -8,6 +8,8 @@ class SnpSeqBaseTest {
     // public static final String publicTestDir = new File(publicTestDirRelative).getAbsolutePath() + "/";
     // protected static final String publicTestDirRoot = publicTestDir.replace(publicTestDirRelative, "");
     
+    val pathToBundle: String = "/local/data/gatk_bundle/b37"
+    
     val pathToBaseDir: String = "src/test/resources/testdata/"
     val publicTestDir: String = new File("src/test/resources/testdata").getAbsolutePath() + "/"    
     

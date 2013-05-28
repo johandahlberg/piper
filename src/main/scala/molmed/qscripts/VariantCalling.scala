@@ -6,6 +6,7 @@ import org.broadinstitute.sting.gatk.phonehome.GATKRunReport
 import org.broadinstitute.sting.queue.util.QScriptUtils
 import org.broadinstitute.sting.commandline.Hidden
 import java.io.IOException
+import org.broadinstitute.sting.commandline.ArgumentException
 
 /**
  * TODO
@@ -102,10 +103,10 @@ class NewVariantCalling extends QScript {
 
         val name = qscript.outputDir.getAbsolutePath() + "/" + baseName
         val clusterFile = new File(name + ".clusters")
-        val rawSnpVCF = new File(name + ".raw.vcf")
+        val rawSnpVCF = new File(name + ".raw.snv.vcf")
         val rawIndelVCF = new File(name + ".raw.indel.vcf")
         val filteredIndelVCF = new File(name + ".filtered.indel.vcf")
-        val recalibratedSnpVCF = new File(name + ".snp.recalibrated.vcf")
+        val recalibratedSnpVCF = new File(name + ".snp.recalibrated.snv.vcf")
         val recalibratedIndelVCF = new File(name + ".indel.recalibrated.vcf")
         val tranchesSnpFile = new File(name + ".snp.tranches")
         val tranchesIndelFile = new File(name + ".indel.tranches")
@@ -127,7 +128,11 @@ class NewVariantCalling extends QScript {
         logger.debug("Determining paths to resource files...")
 
         //TODO When xml setup is implemented, get the path to the resource files from there.
-        val allFilesInResourceFiles = resources.getAbsolutePath().listFiles()
+        val allFilesInResourceFiles = 
+            if(resources.exists())
+                resources.getAbsolutePath().listFiles()
+            else    
+            	throw new ArgumentException("Could not locate GATK bundle at: " + resources.getAbsolutePath())            	
 
         // For each resource get the matching file
         val dbsnp = getResourceFile(""".*dbsnp_137\.\w+\.vcf""")
