@@ -67,6 +67,9 @@ class NewVariantCalling extends QScript {
     @Argument(shortName = "noIndels", doc = "do not call indels with the Unified Genotyper", required = false)
     var noIndels: Boolean = false
 
+    @Argument(shortName = "noRecal", doc = "Skip recalibration", required = false)
+    var noRecal: Boolean = false
+
     @Argument(shortName = "mbq", doc = "The minimum Phred-Scaled quality score threshold to be considered a good base.", required = false)
     var minimumBaseQuality: Int = -1
 
@@ -82,7 +85,7 @@ class NewVariantCalling extends QScript {
 
     @Argument(doc = "Number of threads to use in thread enabled walkers. Default: 1", fullName = "nbr_of_threads", shortName = "nt", required = false)
     var nbrOfThreads: Int = 1
-    
+
     @Argument(doc = "Downsample fraction. [0.0 - 1.0]", fullName = "downsample_to_fraction", shortName = "dtf", required = false)
     var downsampleFraction: Double = -1
 
@@ -128,11 +131,11 @@ class NewVariantCalling extends QScript {
         logger.debug("Determining paths to resource files...")
 
         //TODO When xml setup is implemented, get the path to the resource files from there.
-        val allFilesInResourceFiles = 
-            if(resources.exists())
+        val allFilesInResourceFiles =
+            if (resources.exists())
                 resources.getAbsolutePath().listFiles()
-            else    
-            	throw new ArgumentException("Could not locate GATK bundle at: " + resources.getAbsolutePath())            	
+            else
+                throw new ArgumentException("Could not locate GATK bundle at: " + resources.getAbsolutePath())
 
         // For each resource get the matching file
         val dbsnp = getResourceFile(""".*dbsnp_137\.\w+\.vcf""")
@@ -173,24 +176,28 @@ class NewVariantCalling extends QScript {
 
         val targets = if (!runSeparatly)
             Seq(new Target(projectName, reference, Resources.dbsnp, Resources.hapmap, input, Resources.mills, intervals, isLowpass, isExome, bams.size))
-        else{
-            bams.map(bam => new Target(bam.getName(), reference, Resources.dbsnp, Resources.hapmap, bam, Resources.mills, intervals, isLowpass, isExome, 1))            
-            }
+        else {
+            bams.map(bam => new Target(bam.getName(), reference, Resources.dbsnp, Resources.hapmap, bam, Resources.mills, intervals, isLowpass, isExome, 1))
+        }
 
         for (target <- targets) {
             if (!skipCalling) {
                 if (!noIndels) {
                     // Indel calling, recalibration and evaulation
                     add(new indelCall(target))
-                    add(new indelRecal(target))
-                    add(new indelCut(target))
-                    add(new indelEvaluation(target))
+                    if (!noRecal) {
+                        add(new indelRecal(target))
+                        add(new indelCut(target))
+                        add(new indelEvaluation(target))
+                    }
                 }
                 // SNP calling, recalibration and evaluation
                 add(new snpCall(target))
-                add(new snpRecal(target))
-                add(new snpCut(target))
-                add(new snpEvaluation(target))
+                if (!noRecal) {
+                    add(new snpRecal(target))
+                    add(new snpCut(target))
+                    add(new snpEvaluation(target))
+                }
             }
         }
 
@@ -199,7 +206,7 @@ class NewVariantCalling extends QScript {
     trait UNIVERSAL_GATK_ARGS extends CommandLineGATK {
         logging_level = "DEBUG"
         this.memoryLimit = 24
-        
+
         //TODO Add this when migrating to xml setup for all the scripts
         //this.jobNativeArgs +:= "-p node -A " + projId
     }
@@ -208,16 +215,16 @@ class NewVariantCalling extends QScript {
 
     // 1.) Unified Genotyper Base
     class GenotyperBase(t: Target) extends UnifiedGenotyper with UNIVERSAL_GATK_ARGS {
-        
-        if(downsampleFraction != -1)
+
+        if (downsampleFraction != -1)
             this.downsample_to_fraction = downsampleFraction
-        else 
+        else
             this.dcov = if (t.isLowpass) { 50 } else { 250 }
 
         this.reference_sequence = t.reference
         this.intervalsString ++= List(t.intervals)
         this.scatterCount = nContigs
-        this.nt = nbrOfThreads        
+        this.nt = nbrOfThreads
         this.stand_call_conf = if (t.isLowpass) { 4.0 } else { 30.0 }
         this.stand_emit_conf = if (t.isLowpass) { 4.0 } else { 30.0 }
         this.input_file :+= t.bamList

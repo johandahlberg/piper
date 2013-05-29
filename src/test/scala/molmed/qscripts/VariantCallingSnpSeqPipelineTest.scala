@@ -60,6 +60,9 @@ class VariantCallingSnpSeqPipelineTest {
             " -R " + snpSeqBaseTest.fullHumanGenome,
             " -res " + snpSeqBaseTest.pathToBundle,
             " -i " + snpSeqBaseTest.chromosome20Bam,
+            " --nbr_of_threads 8 ",
+            " --scatter_gather 1 ",
+            " -noRecal ",
             " -startFromScratch ",
             " -p " + projectName).mkString
         spec.fileMD5s += testRawSNV -> ""
