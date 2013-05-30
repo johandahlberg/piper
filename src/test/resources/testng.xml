@@ -1,19 +1,21 @@
 <suite name="PiperTests" verbose="2">
-    <listeners>
-        <listener class-name="org.testng.reporters.FailedReporter"/>
-        <listener class-name="org.testng.reporters.JUnitXMLReporter"/>
-    </listeners>
-    <test name="UnitTests">
-        <packages>
-            <package name="molmed.queue.setup"/>
-        </packages>
-    </test>
-    <test name="PipelineTests">
-        <parameter name="runpipeline" value="true"/>
-        
-        <classes>
-        	<class name="molmed.qscripts.VariantCallingSnpSeqPipelineTest" />
-        </classes>
-    </test>
+	<listeners>
+		<listener class-name="org.testng.reporters.FailedReporter" />
+		<listener class-name="org.testng.reporters.JUnitXMLReporter" />
+	</listeners>
+	<test name="UnitTests">
+		<packages>
+			<package name="molmed.queue.setup" />
+		</packages>
+	</test>
+	<test name="PipelineTests">
+		<parameter name="runpipeline" value="false" />
+
+		<classes>
+			<class name="molmed.qscripts.AlignWithBWASnpSeqPipelineTest" />
+			<class name="molmed.qscripts.DataProcessingSnpSeqPipelineTest" />
+			<class name="molmed.qscripts.VariantCallingSnpSeqPipelineTest" />
+		</classes>
+	</test>
 </suite>
 
