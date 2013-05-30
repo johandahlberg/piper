@@ -50,8 +50,8 @@ class VariantCallingSnpSeqPipelineTest {
     @Test
     def testVariantCalling {
         val projectName = "test1"
-        val testRawSNV = projectName + ".exampleBAM.raw.snv.vcf"
-        val testRawINDEL = projectName + ".exampleBAM.raw.indel.vcf"
+        val testRawSNV = projectName + ".raw.snv.vcf"
+        val testRawINDEL = projectName + ".raw.indel.vcf"
         val spec = new PipelineTestSpec
         spec.jobRunners = Seq("Shell")
         spec.name = "VariantCallingPipeline"
