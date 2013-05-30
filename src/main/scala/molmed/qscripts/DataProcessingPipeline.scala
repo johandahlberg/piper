@@ -304,7 +304,7 @@ class DataProcessingPipeline extends QScript {
 
             val cleanedBam = swapExt(bam, ".bam", ".clean.bam")
             val dedupedBam = swapExt(bam, ".bam", ".clean.dedup.bam")
-            val recalBam = swapExt(bam, ".bam", ".clean.dedup.recal.bam")
+            val recalBam = if(!skipDeduplication) swapExt(bam, ".bam", ".clean.dedup.recal.bam") else swapExt(bam, ".bam", ".clean.recal.bam") 
 
             // Accessory files
             val targetIntervals = if (cleaningModel == ConsensusDeterminationModel.KNOWNS_ONLY) { globalIntervals } else { swapExt(bam, ".bam", ".intervals") }
