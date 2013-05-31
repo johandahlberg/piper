@@ -48,7 +48,7 @@ class VariantCallingSnpSeqPipelineTest {
     }
 
     @Test
-    def testVariantCalling {
+    def testBasicVariantCalling {
         val projectName = "test1"
         val testRawSNV = projectName + ".raw.snv.vcf"
         val testRawINDEL = projectName + ".raw.indel.vcf"
@@ -60,13 +60,15 @@ class VariantCallingSnpSeqPipelineTest {
             " -R " + snpSeqBaseTest.fullHumanGenome,
             " -res " + snpSeqBaseTest.pathToBundle,
             " -i " + snpSeqBaseTest.chromosome20Bam,
-            " --nbr_of_threads 8 ",
+            " -intervals " + "/local/data/gatk_bundle/b37/first1000SNPsonChr20.intervals",
+            " -outputDir " + "target/pipelinetests/VariantCallingPipeline/Shell/run/",
+            " --nbr_of_threads 1 ",
             " --scatter_gather 1 ",
             " -noRecal ",
             " -startFromScratch ",
             " -p " + projectName).mkString
-        spec.fileMD5s += testRawSNV -> ""
-        spec.fileMD5s += testRawINDEL -> ""
+        spec.fileMD5s += testRawSNV -> "5699ed88a0d2d97dfcacd6860f13e568"
+        spec.fileMD5s += testRawINDEL -> "25c219248b0f1b850803dda08f393a18"
         PipelineTest.executeTest(spec, run)
     }
 }
