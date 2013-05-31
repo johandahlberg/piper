@@ -58,13 +58,14 @@ class VariantCallingSnpSeqPipelineTest {
         spec.args = Array(
             pathToScript,
             " -R " + snpSeqBaseTest.fullHumanGenome,
-            " -res " + snpSeqBaseTest.pathToBundle,
+            " -res " + "/non/exist/path",
             " -i " + snpSeqBaseTest.chromosome20Bam,
             " -intervals " + "/local/data/gatk_bundle/b37/first1000SNPsonChr20.intervals",
             " -outputDir " + "target/pipelinetests/VariantCallingPipeline/Shell/run/",
             " --nbr_of_threads 1 ",
             " --scatter_gather 1 ",
             " -noRecal ",
+            " --test_mode ",
             " -startFromScratch ",
             " -p " + projectName).mkString
         spec.fileMD5s += testRawSNV -> "5699ed88a0d2d97dfcacd6860f13e568"
