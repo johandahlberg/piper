@@ -13,8 +13,9 @@
 
 		<classes>
 			<class name="molmed.qscripts.AlignWithBWASnpSeqPipelineTest" />
-			<class name="molmed.qscripts.DataProcessingSnpSeqPipelineTest" />
+			<class name="molmed.qscripts.DataProcessingSnpSeqPipelineTest" /> 
 			<class name="molmed.qscripts.VariantCallingSnpSeqPipelineTest" />
+			<class name="molmed.qscripts.AlignWithTophatSnpSeqPipelineTest" />
 		</classes>
 	</test>
 </suite>
