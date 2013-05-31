@@ -13,7 +13,7 @@ import org.broadinstitute.sting.commandline.ArgumentException
  * - Clean up the argument list
  */
 
-class NewVariantCalling extends QScript {
+class VariantCalling extends QScript {
     qscript =>
 
     /**
