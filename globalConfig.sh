@@ -7,7 +7,7 @@ export LD_LIBRARY_PATH=/bubo/sw/apps/build/slurm-drmaa/1.0.6/lib/:$LD_LIBRARY_PA
 if [ -f "/bubo/sw/apps/build/slurm-drmaa/lib/libdrmaa.so" ];
 then
 	JOB_RUNNER=" Drmaa"
-	JOB_NATIVE_ARGS="-A ${PROJECT_ID} -p node -N 1 --qos=seqver"
+	JOB_NATIVE_ARGS="-A ${PROJECT_ID} -p node -N 1 ${QOS}"
 	PATH_TO_BWA="/bubo/sw/apps/bioinfo/bwa/0.6.2/kalkyl/bwa"
 	PATH_TO_SAMTOOLS="/bubo/sw/apps/bioinfo/samtools/0.1.12-10/samtools"	
 	PATH_TO_TOPHAT="/bubo/sw/apps/bioinfo/tophat/2.0.4/kalkyl/bin/tophat2"

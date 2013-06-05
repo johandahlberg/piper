@@ -123,6 +123,7 @@ PROJECT_ROOT_DIR="/proj/a2009002/private/nobackup/testingRNASeqPipeline/SnpSeqPi
 ANNOTATIONS="/proj/a2009002/SnpSeqPipeline/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf"
 RRNA_TARGETS=""
 LIBRARY_TYPE="fr-secondstrand"
+QOS="" # e.g. --qos=seqver
 
 #---------------------------------------------
 # The actual running of the script

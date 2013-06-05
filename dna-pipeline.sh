@@ -163,6 +163,7 @@ PROJECT_ID="a2009002"
 PROJECT_ROOT_DIR="/local/data/SnpSeqPipelineIntegrationTestData/"
 INTERVALS=""
 GENOME_REFERENCE=${GATK_BUNDLE}"/human_g1k_v37.fasta"
+QOS="" # e.g. --qos=seqver
 
 #---------------------------------------------
 # The actual running of the script
