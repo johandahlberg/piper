@@ -58,7 +58,7 @@ class VariantCallingSnpSeqPipelineTest {
         spec.args = Array(
             pathToScript,
             " -R " + snpSeqBaseTest.fullHumanGenome,
-            " -res " + "/non/exist/path",
+            " -res " + "/local/data/gatk_bundle/b37/",
             " -i " + snpSeqBaseTest.chromosome20Bam,
             " -intervals " + "/local/data/gatk_bundle/b37/first1000SNPsonChr20.intervals",
             " -outputDir " + "target/pipelinetests/VariantCallingPipeline/Shell/run/",
@@ -72,4 +72,31 @@ class VariantCallingSnpSeqPipelineTest {
         spec.fileMD5s += testRawINDEL -> "25c219248b0f1b850803dda08f393a18"
         PipelineTest.executeTest(spec, run)
     }
+
+  //  /**
+  //   * Note that this test will never be run (takes to long) but it will at least check that the 
+  //   * script compiles without intervals being given.
+  //   */
+  @Test
+  def testNoIntervalsVariantCalling {
+    val projectName = "test1"
+    val testRawSNV = projectName + ".raw.snv.vcf"
+    val testRawINDEL = projectName + ".raw.indel.vcf"
+    val spec = new PipelineTestSpec
+    spec.jobRunners = Seq("Shell")
+    spec.name = "VariantCallingPipeline"
+    spec.args = Array(
+      pathToScript,
+      " -R " + snpSeqBaseTest.fullHumanGenome,
+      " -res " + "/local/data/gatk_bundle/b37/",
+      " -i " + snpSeqBaseTest.chromosome20Bam,
+      " -outputDir " + "target/pipelinetests/VariantCallingPipeline/Shell/run/",
+      " --nbr_of_threads 1 ",
+      " --scatter_gather 1 ",
+      " -noRecal ",
+      " --test_mode ",
+      " -startFromScratch ",
+      " -p " + projectName).mkString
+    PipelineTest.executeTest(spec, false)
+  }
 }

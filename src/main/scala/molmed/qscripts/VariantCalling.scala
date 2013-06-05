@@ -235,7 +235,7 @@ class VariantCalling extends QScript {
       this.dcov = if (t.isLowpass) { 50 } else { 250 }
 
     this.reference_sequence = t.reference
-    this.intervalsString ++= List(t.intervals)
+    if (t.intervals != null) this.intervals :+= t.intervals
     this.scatterCount = nContigs
     this.nt = nbrOfThreads
     this.stand_call_conf = if (t.isLowpass) { 4.0 } else { 30.0 }
@@ -270,7 +270,7 @@ class VariantCalling extends QScript {
   // 2.) Hard Filtering for indels
   class indelFilter(t: Target) extends VariantFiltration with UNIVERSAL_GATK_ARGS {
     this.reference_sequence = t.reference
-    this.intervalsString ++= List(t.intervals)
+    if (t.intervals != null) this.intervals :+= t.intervals
     this.scatterCount = nContigs
     this.V = t.rawIndelVCF
     this.out = t.filteredIndelVCF
@@ -289,7 +289,7 @@ class VariantCalling extends QScript {
   class VQSRBase(t: Target) extends VariantRecalibrator with UNIVERSAL_GATK_ARGS {
     this.nt = nbrOfThreads
     this.reference_sequence = t.reference
-    this.intervalsString ++= List(t.intervals)
+    if (t.intervals != null) this.intervals :+= t.intervals
     this.allPoly = true
     this.tranche ++= List("100.0", "99.9", "99.5", "99.3", "99.0", "98.9", "98.8", "98.5", "98.4", "98.3", "98.2", "98.1", "98.0", "97.9", "97.8", "97.5", "97.0", "95.0", "90.0")
   }
@@ -358,7 +358,7 @@ class VariantCalling extends QScript {
   // 4.) Apply the recalibration table to the appropriate tranches
   class applyVQSRBase(t: Target) extends ApplyRecalibration with UNIVERSAL_GATK_ARGS {
     this.reference_sequence = t.reference
-    this.intervalsString ++= List(t.intervals)
+    if (t.intervals != null) this.intervals :+= t.intervals
   }
 
   class snpCut(t: Target) extends applyVQSRBase(t) {
@@ -393,7 +393,7 @@ class VariantCalling extends QScript {
     this.comp :+= new TaggedFile(t.hapmapFile, "hapmap")
     this.D = new File(t.dbsnpFile)
     this.reference_sequence = t.reference
-    this.intervalsString ++= List(t.intervals)
+    if (t.intervals != null) this.intervals :+= t.intervals
     this.sample = samples
   }
 
