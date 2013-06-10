@@ -339,7 +339,9 @@ class VariantCalling extends QScript {
 
     this.input :+= t.rawIndelVCF
     this.resource :+= new TaggedFile(Resources.mills, "known=true,training=true,truth=true,prior=12.0")
-    this.use_annotation ++= List("QD", "HaplotypeScore", "ReadPosRankSum", "FS")
+    
+    // From best practice: -an DP -an FS -an ReadPosRankSum -an MQRankSum
+    this.use_annotation ++= List("QD", "ReadPosRankSum", "FS", "DP", "MQRankSum")
 
     this.mG = 4
     this.std = 10
