@@ -303,7 +303,8 @@ class VariantCalling extends QScript {
     this.resource :+= new TaggedFile(Resources.omni, "known=false,training=true,truth=true,prior=12.0")
     this.resource :+= new TaggedFile(Resources.dbsnp, "known=true,training=false,truth=false,prior=6.0")
 
-    this.use_annotation ++= List("QD", "HaplotypeScore", "MQRankSum", "ReadPosRankSum", "MQ", "FS")
+    //  From best practice: -an QD -an MQRankSum -an ReadPosRankSum -an FS -an DP
+    this.use_annotation ++= List("QD", "HaplotypeScore", "MQRankSum", "ReadPosRankSum", "MQ", "FS", "DP")
     if (t.nSamples >= 10)
       this.use_annotation ++= List("InbreedingCoeff") // InbreedingCoeff is a population-wide statistic that requires at least 10 samples to calculate
 
