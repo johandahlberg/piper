@@ -177,7 +177,10 @@ class DataProcessingPipeline extends QScript {
                 cov(recalBam, postRecalFile))
 
             // SNP and INDEL Calls
-            add(new snpCall(target))
+           
+            //@TODO Continue here.
+                
+            add(new snpCall(recalBam))
             add()
 
             add(clean(Seq(bam), targetIntervals, cleanedBam))
@@ -222,25 +225,23 @@ class DataProcessingPipeline extends QScript {
     def bai(bam: File) = new File(bam + ".bai")
 
     // 1.) Unified Genotyper Base
-    class GenotyperBase(t: Target) extends UnifiedGenotyper with UNIVERSAL_GATK_ARGS {
+    class GenotyperBase(bam: Seq[File], tIntervals: Seq[File]) extends UnifiedGenotyper with CommandLineGATKArgs {
 
         if (downsampleFraction != -1)
             this.downsample_to_fraction = downsampleFraction
-        else
-            this.dcov = if (t.isLowpass) { 50 } else { 250 }
 
-        this.reference_sequence = t.reference
-        if (t.intervals != null) this.intervals :+= t.intervals
+        this.reference_sequence = reference
+        this.intervals = tIntervals
         this.scatterCount = nContigs
         this.nt = nbrOfThreads
-        this.stand_call_conf = if (t.isLowpass) { 4.0 } else { 30.0 }
-        this.stand_emit_conf = if (t.isLowpass) { 4.0 } else { 30.0 }
-        this.input_file :+= t.bamList
+        this.stand_call_conf =  50.0
+        this.stand_emit_conf =  10.0 
+        this.input_file = bam
         this.D = new File(t.dbsnpFile)
     }
 
-    // 1a.) Call SNPs with UG
-    case class snpCall(bam: File, vcf: File) extends GenotyperBase(t) {
+    // Call SNPs with UG
+    case class snpCall(bam: Seq[File], tIntervals: Seq[File], vcf: File) extends GenotyperBase(bam, tIntervals) {
         if (minimumBaseQuality >= 0)
             this.min_base_quality_score = minimumBaseQuality
         if (qscript.deletions >= 0)
@@ -253,8 +254,8 @@ class DataProcessingPipeline extends QScript {
         this.jobName = "UG_snp"
     }
 
-    // 1b.) Call Indels with UG
-    case class indelCall(bam: File, vcf: File) extends GenotyperBase(t) {
+    // Call Indels with UG
+    case class indelCall(bam: Seq[File], tIntervals: Seq[File], vcf: File) extends GenotyperBase(bam, tIntervals) {
         this.out = vcf
         this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.INDEL
         this.baq = org.broadinstitute.sting.utils.baq.BAQ.CalculationMode.OFF
