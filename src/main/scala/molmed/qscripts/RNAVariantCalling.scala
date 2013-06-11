@@ -3,9 +3,7 @@ package molmed.qscripts
 package molmed.qscripts
 
 import java.io.FileNotFoundException
-
 import scala.collection.JavaConversions._
-
 import org.broadinstitute.sting.commandline.Hidden
 import org.broadinstitute.sting.gatk.walkers.indels.IndelRealigner.ConsensusDeterminationModel
 import org.broadinstitute.sting.queue.QScript
@@ -14,10 +12,10 @@ import org.broadinstitute.sting.queue.extensions.picard._
 import org.broadinstitute.sting.queue.function.ListWriterFunction
 import org.broadinstitute.sting.queue.util.QScriptUtils
 import org.broadinstitute.sting.utils.baq.BAQ.CalculationMode
-
 import net.sf.picard.reference.IndexedFastaSequenceFile
 import net.sf.samtools.SAMFileHeader.SortOrder
 import net.sf.samtools.SAMFileReader
+import molmed.qscripts.indelCall
 
 class DataProcessingPipeline extends QScript {
     qscript =>
@@ -180,10 +178,19 @@ class DataProcessingPipeline extends QScript {
            
             //@TODO Continue here.
                 
-            add(new snpCall(recalBam))
-            add()
+            add(snpCall(recalBam))
+            add(indelCall(recalBam))
 
+            // Take regions from previous step
             add(clean(Seq(bam), targetIntervals, cleanedBam))
+            
+            // Call snps/indels again (possibly only in previously identifed regions)
+            
+            // Variant effect predictor - get all variants which change a aa
+            
+            // Annotate all snps from the previous step
+            
+            
 
             cohortList :+= recalBam
         }
