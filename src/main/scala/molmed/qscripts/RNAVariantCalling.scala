@@ -32,7 +32,7 @@ class RNAVariantCalling extends QScript {
     var reference: File = _
 
     @Input(doc = "dbsnp ROD to use (must be in VCF format)", fullName = "dbsnp", shortName = "D", required = true)
-    var dbSNP: Seq[File] = Seq()
+    var dbSNP: File = _
 
     /**
      * **************************************************************************
@@ -102,21 +102,6 @@ class RNAVariantCalling extends QScript {
 
     /**
      * **************************************************************************
-     * Helper classes and methods
-     * **************************************************************************
-     */
-
-    def getIndelCleaningModel: ConsensusDeterminationModel = {
-        if (cleaningModel == "KNOWNS_ONLY")
-            ConsensusDeterminationModel.KNOWNS_ONLY
-        else if (cleaningModel == "USE_SW")
-            ConsensusDeterminationModel.USE_SW
-        else
-            ConsensusDeterminationModel.USE_READS
-    }
-
-    /**
-     * **************************************************************************
      * Main script
      * **************************************************************************
      */
@@ -124,9 +109,6 @@ class RNAVariantCalling extends QScript {
     def script() {
         // final output list of processed bam files
         var cohortList: Seq[File] = Seq()
-
-        // sets the model for the Indel Realigner
-        cleanModelEnum = getIndelCleaningModel
 
         // keep a record of the number of contigs in the first bam file in the list
         val bams = QScriptUtils.createSeqFromFile(input)
@@ -145,12 +127,10 @@ class RNAVariantCalling extends QScript {
             else
                 new File(outputDir + qscript.projectName + "." + file.getName)
 
-            val cleanedBam = swapExt(bam, ".bam", ".clean.bam")
-            val dedupedBam = swapExt(bam, ".bam", ".clean.dedup.bam")
-            val recalBam = swapExt(bam, ".bam", ".clean.dedup.recal.bam")
+            val dedupedBam = swapExt(bam, ".bam", "dedup.bam")
+            val recalBam = swapExt(bam, ".bam", "dedup.recal.bam")
 
             // Accessory files
-            val targetIntervals = if (cleaningModel == ConsensusDeterminationModel.KNOWNS_ONLY) { globalIntervals } else { swapExt(bam, ".bam", ".intervals") }
             val metricsFile = swapExt(bam, ".bam", ".metrics")
             val preRecalFile = swapExt(bam, ".bam", ".pre_recal.table")
             val postRecalFile = swapExt(bam, ".bam", ".post_recal.table")
@@ -171,26 +151,27 @@ class RNAVariantCalling extends QScript {
         }
 
         val candidateSnps = new File(outputDir + "/" + projectName + ".candidate.snp.vcf")
-        val candidateIndels = new File(outputDir + "/" +  ".candidate.snp.vcf")
+        val candidateIndels = new File(outputDir + "/" + ".candidate.snp.vcf")
 
         // SNP and INDEL Calls
         add(snpCall(cohortList, candidateSnps))
         add(indelCall(cohortList, candidateIndels))
 
-        //@TODO Continue here.
-
+        val indelRealignedBam = new File(outputDir + "/" + projectName + "dedup.recal.clean.bam")
         // Take regions from previous step
-        add(clean(Seq(bam), targetIntervals, cleanedBam))
+        add(clean(cohortList, candidateIndels, indelRealignedBam))
+
+        val afterCleanupSnps = new File(outputDir + "/" + projectName + ".clean.snp.vcf")
+        val afterCleanupIndels = new File(outputDir + "/" + ".clean.snp.vcf")
 
         // Call snps/indels again (possibly only in previously identifed regions)
+        add(snpCall(Seq(indelRealignedBam), afterCleanupSnps))
+        add(indelCall(Seq(indelRealignedBam), afterCleanupIndels))
 
         // Variant effect predictor - get all variants which change a aa
 
         // Annotate all snps from the previous step
 
-        // output a BAM list with all the processed per sample files
-        val cohortFile = new File(qscript.outputDir + qscript.projectName + ".cohort.list")
-        add(writeList(cohortList, cohortFile))
     }
 
     // Override the normal swapExt metod by adding the outputDir to the file path by default if it is defined.
@@ -225,7 +206,7 @@ class RNAVariantCalling extends QScript {
     def bai(bam: File) = new File(bam + ".bai")
 
     // 1.) Unified Genotyper Base
-    class GenotyperBase(bam: Seq[File], tIntervals: Seq[File]) extends UnifiedGenotyper with CommandLineGATKArgs {
+    class GenotyperBase(bam: Seq[File]) extends UnifiedGenotyper with CommandLineGATKArgs {
 
         if (downsampleFraction != -1)
             this.downsample_to_fraction = downsampleFraction
@@ -237,7 +218,7 @@ class RNAVariantCalling extends QScript {
         this.stand_call_conf = 50.0
         this.stand_emit_conf = 10.0
         this.input_file = bam
-        this.D = new File(t.dbsnpFile)
+        this.D = qscript.dbSNP
     }
 
     // Call SNPs with UG
@@ -271,7 +252,7 @@ class RNAVariantCalling extends QScript {
             this.input_file = inBams
         this.out = outIntervals
         this.mismatchFraction = 0.0
-        this.known ++= qscript.dbSNP
+        this.known :+= qscript.dbSNP
         if (indels != null)
             this.known ++= qscript.indels
         this.scatterCount = nContigs
@@ -284,7 +265,7 @@ class RNAVariantCalling extends QScript {
         this.input_file = inBams
         this.targetIntervals = tIntervals
         this.out = outBam
-        this.known ++= qscript.dbSNP
+        this.known :+= qscript.dbSNP
         if (qscript.indels != null)
             this.known ++= qscript.indels
         this.consensusDeterminationModel = cleanModelEnum
@@ -299,7 +280,7 @@ class RNAVariantCalling extends QScript {
 
         this.num_cpu_threads_per_data_thread = nbrOfThreads
 
-        this.knownSites ++= qscript.dbSNP
+        this.knownSites :+= qscript.dbSNP
         this.covariate ++= Seq("ReadGroupCovariate", "QualityScoreCovariate", "CycleCovariate", "ContextCovariate")
         this.input_file :+= inBam
         this.disable_indel_quals = false
