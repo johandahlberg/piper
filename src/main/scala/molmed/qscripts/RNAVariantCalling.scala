@@ -367,7 +367,7 @@ class RNAVariantCalling extends QScript {
     case class variantEffectPredictor(@Input inputVcf: File, @Output outputVcf: File) extends ExternalCommonArgs {
 
         this.isIntermediate = false
-        def commandline = "perl " + vepPath + " -i " + inputVcf + " -o " + outputVcf +
+        def commandLine = "perl " + vepPath + " -i " + inputVcf + " -o " + outputVcf +
             " --coding_only " +
             " --sift b " +
             " --polyphen b " +
