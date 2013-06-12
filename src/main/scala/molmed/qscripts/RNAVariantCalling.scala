@@ -15,9 +15,8 @@ import org.broadinstitute.sting.utils.baq.BAQ.CalculationMode
 import net.sf.picard.reference.IndexedFastaSequenceFile
 import net.sf.samtools.SAMFileHeader.SortOrder
 import net.sf.samtools.SAMFileReader
-import molmed.qscripts.indelCall
 
-class DataProcessingPipeline extends QScript {
+class RNAVariantCalling extends QScript {
     qscript =>
 
     /**
