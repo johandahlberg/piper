@@ -208,6 +208,8 @@ class RNAVariantCalling extends QScript {
     // 1.) Unified Genotyper Base
     class GenotyperBase(bam: Seq[File]) extends UnifiedGenotyper with CommandLineGATKArgs {
 
+        this.isIntermediate = false
+        
         if (downsampleFraction != -1)
             this.downsample_to_fraction = downsampleFraction
 
@@ -278,6 +280,8 @@ class RNAVariantCalling extends QScript {
 
     case class cov(inBam: File, outRecalFile: File) extends BaseRecalibrator with CommandLineGATKArgs {
 
+        this.isIntermediate = false
+        
         this.num_cpu_threads_per_data_thread = nbrOfThreads
 
         this.knownSites :+= qscript.dbSNP
@@ -328,6 +332,50 @@ class RNAVariantCalling extends QScript {
         this.memoryLimit = 16
         this.analysisName = queueLogDir + outBam + ".dedup"
         this.jobName = queueLogDir + outBam + ".dedup"
+    }
+
+    case class variantEffectPredictor(@Input inputVcf: File, @Output outputVcf: File) extends ExternalCommonArgs {
+        
+        this.isIntermediate = false
+        def commandline = "perl " + vepPath + " -i " + inputVcf + " -o " + outputVcf + 
+                  " --coding_only " + 
+          " --sift b " +
+          " --polyphen b " +
+          " --vcf " +
+          " --filter coding_change " +
+          " --no_progress " +
+          " -force " +
+          " -custom " + mapability50mer + ",Mapability50,bed,overlap" +
+          " -custom " + mapability100mer + ",Mapability100,bed,overlap" +
+          " -custom " + COSMIC_1 + ",cosmic_wgs,vcf,overlap" +
+          " -custom " + COSMIC_2 + ",cosmic,vcf,overlap" +
+          " -custom " + GENOMIC_SUPER_DUPS + ",SuperDups,bed,overlap" +
+          " -custom " +  SELFCHAIN + ",selfChain,bed,overlap" +
+          " -custom " + ESP_ESP6500SI_V2 + ",ExomeDB,bed,overlap" +
+          " -custom " + RNA_EDITING + ",RNAEditing,bed,overlap" +
+          " -custom " + REPEATMASKER + ",repeatMask,bed,overlap"
+
+        /**
+         * perl $VEP/variant_effect_predictor.pl -i ${BAM}_markdups_recal_candidateSNPs_reAlign.vcf -o ${BAM}_markdups_recal_candidateSNPs_reAlign_VEP.vcf \
+         * --coding_only \
+         * --sift b \
+         * --polyphen b \
+         * --vcf \
+         * --filter coding_change \
+         * --no_progress \
+         * -force \
+         * -custom $Mapability50mer,Mapability50,bed,overlap \
+         * -custom $Mapability100mer,Mapability100,bed,overlap \
+         * -custom $COSMIC_1,cosmic_wgs,vcf,overlap \
+         * -custom $COSMIC_2,cosmic,vcf,overlap \
+         * -custom $GENOMIC_SUPER_DUPS,SuperDups,bed,overlap \
+         * -custom $SELFCHAIN,selfChain,bed,overlap \
+         * -custom $ESP_ESP6500SI_V2,ExomeDB,bed,overlap \
+         * -custom $RNA_EDITING,RNAEditing,bed,overlap \
+         * -custom $REPEATMASKER,repeatMask,bed,overlap
+         *
+         */
+
     }
 
     case class sortSam(inSam: File, outBam: File, sortOrderP: SortOrder) extends SortSam with ExternalCommonArgs {
