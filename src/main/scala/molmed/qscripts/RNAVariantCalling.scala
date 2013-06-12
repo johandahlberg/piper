@@ -149,9 +149,6 @@ class RNAVariantCalling extends QScript {
             val dedupedBam = swapExt(bam, ".bam", ".clean.dedup.bam")
             val recalBam = swapExt(bam, ".bam", ".clean.dedup.recal.bam")
 
-            val candidateSnps = swapExt(bam, ".bam", ".candidate.snp.vcf")
-            val candidateIndels = swapExt(bam, ".bam", ".candidate.indels.vcf")
-
             // Accessory files
             val targetIntervals = if (cleaningModel == ConsensusDeterminationModel.KNOWNS_ONLY) { globalIntervals } else { swapExt(bam, ".bam", ".intervals") }
             val metricsFile = swapExt(bam, ".bam", ".metrics")
@@ -162,9 +159,6 @@ class RNAVariantCalling extends QScript {
             val preValidateLog = swapExt(bam, ".bam", ".pre.validation")
             val postValidateLog = swapExt(bam, ".bam", ".post.validation")
 
-            /**
-             * Start of actually adding the jobs.
-             */
             // Deduplicate
             add(dedup(bam, dedupedBam, metricsFile))
 
@@ -173,26 +167,26 @@ class RNAVariantCalling extends QScript {
                 recal(dedupedBam, preRecalFile, recalBam),
                 cov(recalBam, postRecalFile))
 
-            // SNP and INDEL Calls
-           
-            //@TODO Continue here.
-                
-            add(snpCall(recalBam))
-            add(indelCall(recalBam))
-
-            // Take regions from previous step
-            add(clean(Seq(bam), targetIntervals, cleanedBam))
-            
-            // Call snps/indels again (possibly only in previously identifed regions)
-            
-            // Variant effect predictor - get all variants which change a aa
-            
-            // Annotate all snps from the previous step
-            
-            
-
             cohortList :+= recalBam
         }
+
+        val candidateSnps = new File(outputDir + "/" + projectName + ".candidate.snp.vcf")
+        val candidateIndels = new File(outputDir + "/" +  ".candidate.snp.vcf")
+
+        // SNP and INDEL Calls
+        add(snpCall(cohortList, candidateSnps))
+        add(indelCall(cohortList, candidateIndels))
+
+        //@TODO Continue here.
+
+        // Take regions from previous step
+        add(clean(Seq(bam), targetIntervals, cleanedBam))
+
+        // Call snps/indels again (possibly only in previously identifed regions)
+
+        // Variant effect predictor - get all variants which change a aa
+
+        // Annotate all snps from the previous step
 
         // output a BAM list with all the processed per sample files
         val cohortFile = new File(qscript.outputDir + qscript.projectName + ".cohort.list")
@@ -237,17 +231,17 @@ class RNAVariantCalling extends QScript {
             this.downsample_to_fraction = downsampleFraction
 
         this.reference_sequence = reference
-        this.intervals = tIntervals
+        this.intervals = intervals
         this.scatterCount = nContigs
         this.nt = nbrOfThreads
-        this.stand_call_conf =  50.0
-        this.stand_emit_conf =  10.0 
+        this.stand_call_conf = 50.0
+        this.stand_emit_conf = 10.0
         this.input_file = bam
         this.D = new File(t.dbsnpFile)
     }
 
     // Call SNPs with UG
-    case class snpCall(bam: Seq[File], tIntervals: Seq[File], vcf: File) extends GenotyperBase(bam, tIntervals) {
+    case class snpCall(bam: Seq[File], vcf: File) extends GenotyperBase(bam) {
         if (minimumBaseQuality >= 0)
             this.min_base_quality_score = minimumBaseQuality
         if (qscript.deletions >= 0)
@@ -261,7 +255,7 @@ class RNAVariantCalling extends QScript {
     }
 
     // Call Indels with UG
-    case class indelCall(bam: Seq[File], tIntervals: Seq[File], vcf: File) extends GenotyperBase(bam, tIntervals) {
+    case class indelCall(bam: Seq[File], vcf: File) extends GenotyperBase(bam) {
         this.out = vcf
         this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.INDEL
         this.baq = org.broadinstitute.sting.utils.baq.BAQ.CalculationMode.OFF
@@ -330,7 +324,6 @@ class RNAVariantCalling extends QScript {
         this.BQSR = inRecalFile
         //this.baq = CalculationMode.CALCULATE_AS_NECESSARY
         this.out = outBam
-        this.knownSites ++= qscript.dbSNP
         if (!qscript.intervalString.isEmpty) this.intervalsString ++= Seq(qscript.intervalString)
         else if (qscript.intervals != null) this.intervals :+= qscript.intervals
         this.scatterCount = nContigs
