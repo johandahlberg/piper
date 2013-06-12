@@ -331,6 +331,7 @@ class DataProcessingPipeline extends QScript {
         this.BQSR = inRecalFile
         //this.baq = CalculationMode.CALCULATE_AS_NECESSARY
         this.out = outBam
+        this.knownSites ++= qscript.dbSNP
         if (!qscript.intervalString.isEmpty) this.intervalsString ++= Seq(qscript.intervalString)
         else if (qscript.intervals != null) this.intervals :+= qscript.intervals
         this.scatterCount = nContigs
