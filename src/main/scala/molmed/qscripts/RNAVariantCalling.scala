@@ -73,6 +73,36 @@ class RNAVariantCalling extends QScript {
     @Argument(doc = "Downsample fraction. [0.0 - 1.0]", fullName = "downsample_to_fraction", shortName = "dtf", required = false)
     var downsampleFraction: Double = -1
 
+    @Argument(doc = "", fullName = "vep_path", shortName = "veppath", required = true)
+    var vepPath: String = ""
+
+    @Argument(doc = "", fullName = "mapability_50mer", shortName = "mapability50mer", required = true)
+    var mapability50mer: String = ""
+
+    @Argument(doc = "", fullName = "mapability_100mer", shortName = "mapability100mer", required = true)
+    var mapability100mer: String = ""
+
+    @Argument(doc = "", fullName = "COSMIC_1", shortName = "C_1", required = true)
+    var COSMIC_1: String = ""
+
+    @Argument(doc = "", fullName = "COSMIC_2", shortName = "C_2", required = true)
+    var COSMIC_2: String = ""
+
+    @Argument(doc = "", fullName = "GENOMIC_SUPER_DUPS", shortName = "gsd", required = true)
+    var GENOMIC_SUPER_DUPS: String = ""
+
+    @Argument(doc = "", fullName = "SELFCHAIN", shortName = "sc", required = true)
+    var SELFCHAIN: String = ""
+
+    @Argument(doc = "", fullName = "ESP_ESP6500SI_V2", shortName = "eev2", required = true)
+    var ESP_ESP6500SI_V2: String = ""
+
+    @Argument(doc = "", fullName = "RNA_EDITING", shortName = "rnaedit", required = true)
+    var RNA_EDITING: String = ""
+        
+    @Argument(doc = "", fullName = "REPEATMASKER", shortName = "rptmsk", required = true)    
+    var REPEATMASKER: String = ""
+
     /**
      * **************************************************************************
      * Hidden Parameters
@@ -209,7 +239,7 @@ class RNAVariantCalling extends QScript {
     class GenotyperBase(bam: Seq[File]) extends UnifiedGenotyper with CommandLineGATKArgs {
 
         this.isIntermediate = false
-        
+
         if (downsampleFraction != -1)
             this.downsample_to_fraction = downsampleFraction
 
@@ -281,7 +311,7 @@ class RNAVariantCalling extends QScript {
     case class cov(inBam: File, outRecalFile: File) extends BaseRecalibrator with CommandLineGATKArgs {
 
         this.isIntermediate = false
-        
+
         this.num_cpu_threads_per_data_thread = nbrOfThreads
 
         this.knownSites :+= qscript.dbSNP
@@ -335,47 +365,25 @@ class RNAVariantCalling extends QScript {
     }
 
     case class variantEffectPredictor(@Input inputVcf: File, @Output outputVcf: File) extends ExternalCommonArgs {
-        
+
         this.isIntermediate = false
-        def commandline = "perl " + vepPath + " -i " + inputVcf + " -o " + outputVcf + 
-                  " --coding_only " + 
-          " --sift b " +
-          " --polyphen b " +
-          " --vcf " +
-          " --filter coding_change " +
-          " --no_progress " +
-          " -force " +
-          " -custom " + mapability50mer + ",Mapability50,bed,overlap" +
-          " -custom " + mapability100mer + ",Mapability100,bed,overlap" +
-          " -custom " + COSMIC_1 + ",cosmic_wgs,vcf,overlap" +
-          " -custom " + COSMIC_2 + ",cosmic,vcf,overlap" +
-          " -custom " + GENOMIC_SUPER_DUPS + ",SuperDups,bed,overlap" +
-          " -custom " +  SELFCHAIN + ",selfChain,bed,overlap" +
-          " -custom " + ESP_ESP6500SI_V2 + ",ExomeDB,bed,overlap" +
-          " -custom " + RNA_EDITING + ",RNAEditing,bed,overlap" +
-          " -custom " + REPEATMASKER + ",repeatMask,bed,overlap"
-
-        /**
-         * perl $VEP/variant_effect_predictor.pl -i ${BAM}_markdups_recal_candidateSNPs_reAlign.vcf -o ${BAM}_markdups_recal_candidateSNPs_reAlign_VEP.vcf \
-         * --coding_only \
-         * --sift b \
-         * --polyphen b \
-         * --vcf \
-         * --filter coding_change \
-         * --no_progress \
-         * -force \
-         * -custom $Mapability50mer,Mapability50,bed,overlap \
-         * -custom $Mapability100mer,Mapability100,bed,overlap \
-         * -custom $COSMIC_1,cosmic_wgs,vcf,overlap \
-         * -custom $COSMIC_2,cosmic,vcf,overlap \
-         * -custom $GENOMIC_SUPER_DUPS,SuperDups,bed,overlap \
-         * -custom $SELFCHAIN,selfChain,bed,overlap \
-         * -custom $ESP_ESP6500SI_V2,ExomeDB,bed,overlap \
-         * -custom $RNA_EDITING,RNAEditing,bed,overlap \
-         * -custom $REPEATMASKER,repeatMask,bed,overlap
-         *
-         */
-
+        def commandline = "perl " + vepPath + " -i " + inputVcf + " -o " + outputVcf +
+            " --coding_only " +
+            " --sift b " +
+            " --polyphen b " +
+            " --vcf " +
+            " --filter coding_change " +
+            " --no_progress " +
+            " -force " +
+            " -custom " + mapability50mer + ",Mapability50,bed,overlap" +
+            " -custom " + mapability100mer + ",Mapability100,bed,overlap" +
+            " -custom " + COSMIC_1 + ",cosmic_wgs,vcf,overlap" +
+            " -custom " + COSMIC_2 + ",cosmic,vcf,overlap" +
+            " -custom " + GENOMIC_SUPER_DUPS + ",SuperDups,bed,overlap" +
+            " -custom " + SELFCHAIN + ",selfChain,bed,overlap" +
+            " -custom " + ESP_ESP6500SI_V2 + ",ExomeDB,bed,overlap" +
+            " -custom " + RNA_EDITING + ",RNAEditing,bed,overlap" +
+            " -custom " + REPEATMASKER + ",repeatMask,bed,overlap"
     }
 
     case class sortSam(inSam: File, outBam: File, sortOrderP: SortOrder) extends SortSam with ExternalCommonArgs {
