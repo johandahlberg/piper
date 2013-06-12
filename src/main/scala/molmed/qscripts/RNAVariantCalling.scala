@@ -199,8 +199,12 @@ class RNAVariantCalling extends QScript {
         add(indelCall(Seq(indelRealignedBam), afterCleanupIndels))
 
         // Variant effect predictor - get all variants which change a aa
-
-        // Annotate all snps from the previous step
+        val finalSnps = new File(outputDir + "/" + projectName + ".final.snp.vcf")
+        add(variantEffectPredictor(afterCleanupSnps,finalSnps))
+        
+        val finalIndels = new File(outputDir + "/" + projectName + ".final.indel.vcf")
+        add(variantEffectPredictor(afterCleanupIndels,finalIndels))
+        
 
     }
 
