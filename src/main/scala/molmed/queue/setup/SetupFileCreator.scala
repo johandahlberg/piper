@@ -122,10 +122,17 @@ object SetupFileCreator extends App {
     // -------------------------------------------------
     // Setup run folders
     // -------------------------------------------------
+    
+    def getRunFoldersFromRootDir(): List[String] = {
+        val rootDir = new File(getSingleInput(Option("Path to the run folder root dir")))
+        require(rootDir.isDirectory(), rootDir + " was not a directory.")
+        rootDir.listFiles().toList.map(f => f.getAbsolutePath())
+    }
+    
+    
+    val runFolderList = project.getInputs().getRunfolder()    
 
-    val runFolderList = project.getInputs().getRunfolder()
-
-    val runFolderPathList = getMultipleInputs(Option("Run folders"))
+    val runFolderPathList = getRunFoldersFromRootDir()
 
     runFolderList.addAll(runFolderPathList.map(path => {
 
