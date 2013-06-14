@@ -1,7 +1,5 @@
 package molmed.qscripts
 
-package molmed.qscripts
-
 import java.io.FileNotFoundException
 import scala.collection.JavaConversions._
 import org.broadinstitute.sting.commandline.Hidden
@@ -33,6 +31,36 @@ class RNAVariantCalling extends QScript {
 
     @Input(doc = "dbsnp ROD to use (must be in VCF format)", fullName = "dbsnp", shortName = "D", required = true)
     var dbSNP: File = _
+
+    @Argument(doc = "", fullName = "vep_path", shortName = "veppath", required = true)
+    var vepPath: String = ""
+
+    @Argument(doc = "", fullName = "mapability_50mer", shortName = "mapability50mer", required = true)
+    var mapability50mer: String = ""
+
+    @Argument(doc = "", fullName = "mapability_100mer", shortName = "mapability100mer", required = true)
+    var mapability100mer: String = ""
+
+    @Argument(doc = "", fullName = "COSMIC_1", shortName = "C_1", required = true)
+    var COSMIC_1: String = ""
+
+    @Argument(doc = "", fullName = "COSMIC_2", shortName = "C_2", required = true)
+    var COSMIC_2: String = ""
+
+    @Argument(doc = "", fullName = "GENOMIC_SUPER_DUPS", shortName = "gsd", required = true)
+    var GENOMIC_SUPER_DUPS: String = ""
+
+    @Argument(doc = "", fullName = "SELFCHAIN", shortName = "sc", required = true)
+    var SELFCHAIN: String = ""
+
+    @Argument(doc = "", fullName = "ESP_ESP6500SI_V2", shortName = "eev2", required = true)
+    var ESP_ESP6500SI_V2: String = ""
+
+    @Argument(doc = "", fullName = "RNA_EDITING", shortName = "rnaedit", required = true)
+    var RNA_EDITING: String = ""
+
+    @Argument(doc = "", fullName = "REPEATMASKER", shortName = "rptmsk", required = true)
+    var REPEATMASKER: String = ""
 
     /**
      * **************************************************************************
@@ -72,36 +100,6 @@ class RNAVariantCalling extends QScript {
 
     @Argument(doc = "Downsample fraction. [0.0 - 1.0]", fullName = "downsample_to_fraction", shortName = "dtf", required = false)
     var downsampleFraction: Double = -1
-
-    @Argument(doc = "", fullName = "vep_path", shortName = "veppath", required = true)
-    var vepPath: String = ""
-
-    @Argument(doc = "", fullName = "mapability_50mer", shortName = "mapability50mer", required = true)
-    var mapability50mer: String = ""
-
-    @Argument(doc = "", fullName = "mapability_100mer", shortName = "mapability100mer", required = true)
-    var mapability100mer: String = ""
-
-    @Argument(doc = "", fullName = "COSMIC_1", shortName = "C_1", required = true)
-    var COSMIC_1: String = ""
-
-    @Argument(doc = "", fullName = "COSMIC_2", shortName = "C_2", required = true)
-    var COSMIC_2: String = ""
-
-    @Argument(doc = "", fullName = "GENOMIC_SUPER_DUPS", shortName = "gsd", required = true)
-    var GENOMIC_SUPER_DUPS: String = ""
-
-    @Argument(doc = "", fullName = "SELFCHAIN", shortName = "sc", required = true)
-    var SELFCHAIN: String = ""
-
-    @Argument(doc = "", fullName = "ESP_ESP6500SI_V2", shortName = "eev2", required = true)
-    var ESP_ESP6500SI_V2: String = ""
-
-    @Argument(doc = "", fullName = "RNA_EDITING", shortName = "rnaedit", required = true)
-    var RNA_EDITING: String = ""
-        
-    @Argument(doc = "", fullName = "REPEATMASKER", shortName = "rptmsk", required = true)    
-    var REPEATMASKER: String = ""
 
     /**
      * **************************************************************************
@@ -200,11 +198,10 @@ class RNAVariantCalling extends QScript {
 
         // Variant effect predictor - get all variants which change a aa
         val finalSnps = new File(outputDir + "/" + projectName + ".final.snp.vcf")
-        add(variantEffectPredictor(afterCleanupSnps,finalSnps))
-        
+        add(variantEffectPredictor(afterCleanupSnps, finalSnps))
+
         val finalIndels = new File(outputDir + "/" + projectName + ".final.indel.vcf")
-        add(variantEffectPredictor(afterCleanupIndels,finalIndels))
-        
+        add(variantEffectPredictor(afterCleanupIndels, finalIndels))
 
     }
 
