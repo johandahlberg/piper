@@ -152,7 +152,7 @@ class RNAVariantCalling extends QScript {
 
     // Scatter gatter to 23 or the number of contigs, depending on which is the smallest.
     if (nContigs < 0) {
-      nContigs = math.min(QScriptUtils.getNumberOfContigs(bams(0)), 23)
+      nContigs = math.min(QScriptUtils.getNumberOfContigs(bams(0)._1), 23)
     }
 
     // put each sample through the pipeline
