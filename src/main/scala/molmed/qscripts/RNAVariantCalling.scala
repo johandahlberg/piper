@@ -169,8 +169,8 @@ class RNAVariantCalling extends QScript {
             else
                 new File(outputDir + qscript.projectName + "." + file.getName)
 
-            val dedupedBam = swapExt(bam, ".bam", "dedup.bam")
-            val recalBam = swapExt(bam, ".bam", "dedup.recal.bam")
+            val dedupedBam = swapExt(bam, ".bam", ".dedup.bam")
+            val recalBam = swapExt(bam, ".bam", ".dedup.recal.bam")
 
             // Accessory files
             val metricsFile = swapExt(bam, ".bam", ".metrics")
@@ -193,7 +193,7 @@ class RNAVariantCalling extends QScript {
         }
 
         val candidateSnps = new File(outputDir + "/" + projectName + ".candidate.snp.vcf")
-        val candidateIndels = new File(outputDir + "/" + ".candidate.snp.vcf")
+        val candidateIndels = new File(outputDir + "/" + ".candidate.indel.vcf")
 
         // SNP and INDEL Calls
         add(snpCall(cohortList, candidateSnps))
