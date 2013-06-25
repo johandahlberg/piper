@@ -210,7 +210,7 @@ class RNAVariantCalling extends QScript {
 
     // Call snps/indels again (possibly only in previously identified regions)
     add(snpCall(postCleaningBamList, afterCleanupSnps))
-    add(indelCall(postCleaningBamList, afterCleanupIndels))
+    add(indelCall(postCleaningBamList, afterCleanupIndels, 1))
 
     // Variant effect predictor - get all variants which change a aa
     val finalSnps = swapExt(candidateSnps, ".cleaned.snp.vcf", ".final.snp.vcf")
@@ -285,7 +285,9 @@ class RNAVariantCalling extends QScript {
   }
 
   // Call Indels with UG
-  case class indelCall(bam: Seq[File], vcf: File) extends GenotyperBase(bam) {
+  case class indelCall(bam: Seq[File], vcf: File, scatterGather: Int = nContigs) extends GenotyperBase(bam) {
+    //@TODO See if this hacky solution can be removed.
+    this.scatterCount = scatterGather
     this.out = vcf
     this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.INDEL
     this.baq = org.broadinstitute.sting.utils.baq.BAQ.CalculationMode.OFF
