@@ -199,23 +199,22 @@ class RNAVariantCalling extends QScript {
         add(snpCall(cohortList, candidateSnps))
         add(indelCall(cohortList, candidateIndels))
 
-        val indelRealignedBam = new File(outputDir + "/" + projectName + ".dedup.recal.clean.bam")
-        // Take regions from previous step
-        add(clean(cohortList, candidateIndels, indelRealignedBam))
+        val indelRealignedBam = new File(outputDir + "/" + projectName + ".dedup.recal.clean.bam")        // Take regions from previous step
+        //add(clean(cohortList, candidateIndels, indelRealignedBam))
 
         val afterCleanupSnps = new File(outputDir + "/" + projectName + ".clean.snp.vcf")
         val afterCleanupIndels = new File(outputDir + "/" + ".clean.snp.vcf")
 
         // Call snps/indels again (possibly only in previously identifed regions)
-        add(snpCall(Seq(indelRealignedBam), afterCleanupSnps))
-        add(indelCall(Seq(indelRealignedBam), afterCleanupIndels))
+        //add(snpCall(Seq(indelRealignedBam), afterCleanupSnps))
+        //add(indelCall(Seq(indelRealignedBam), afterCleanupIndels))
 
         // Variant effect predictor - get all variants which change a aa
         val finalSnps = new File(outputDir + "/" + projectName + ".final.snp.vcf")
-        add(variantEffectPredictor(afterCleanupSnps, finalSnps))
+        //add(variantEffectPredictor(afterCleanupSnps, finalSnps))
 
         val finalIndels = new File(outputDir + "/" + projectName + ".final.indel.vcf")
-        add(variantEffectPredictor(afterCleanupIndels, finalIndels))
+        //add(variantEffectPredictor(afterCleanupIndels, finalIndels))
 
     }
 
