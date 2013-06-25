@@ -139,7 +139,21 @@ class RNAVariantCalling extends QScript {
         var cohortList: Seq[File] = Seq()
 
         // keep a record of the number of contigs in the first bam file in the list
-        val bams = QScriptUtils.createSeqFromFile(input)
+        val acceptedHitsBams = QScriptUtils.createSeqFromFile(input)
+        val bams = acceptedHitsBams.map(file => {
+          
+        	val samReader = new SAMFileReader(file)
+            val header = samReader.getFileHeader
+            val readGroups = header.getReadGroups
+            
+            val sampleSet = readGroups.map(f => f.getSample()).toSet
+            
+            require(sampleSet.size == 1, "There were more than one sample in file: " + file + 
+                ". Please make sure there is only one sample per file before running RNAVariantCalling.")
+        	
+        	new File(sampleSet.toSeq(0) + ".bam")
+          
+        })
 
         // Scatter gatter to 23 or the number of contigs, depending on which is the smallest.
         if (nContigs < 0) {
