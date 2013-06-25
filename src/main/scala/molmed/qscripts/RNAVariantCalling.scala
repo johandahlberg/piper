@@ -196,8 +196,8 @@ class RNAVariantCalling extends QScript {
 
     val targets = new File(outputDir + "/" + projectName + ".targets")
     add(target(candidateIndels, targets))
-    
-    // Take regions from previous step
+
+    // Take regions based on indels called in previous step
     val postCleaningBamList =
       for (bam <- cohortList) yield {
         val indelRealignedBam = swapExt(bam, ".bam", ".clean.bam")
@@ -208,16 +208,16 @@ class RNAVariantCalling extends QScript {
     val afterCleanupSnps = swapExt(candidateSnps, ".candidate.snp.vcf", ".cleaned.snp.vcf")
     val afterCleanupIndels = swapExt(candidateIndels, ".candidate.indel.vcf", ".cleaned.indel.vcf")
 
-    // Call snps/indels again (possibly only in previously identifed regions)
+    // Call snps/indels again (possibly only in previously identified regions)
     add(snpCall(postCleaningBamList, afterCleanupSnps))
     add(indelCall(postCleaningBamList, afterCleanupIndels))
 
     // Variant effect predictor - get all variants which change a aa
     val finalSnps = swapExt(candidateSnps, ".cleaned.snp.vcf", ".final.snp.vcf")
-    //add(variantEffectPredictor(afterCleanupSnps, finalSnps))
+    add(variantEffectPredictor(afterCleanupSnps, finalSnps))
 
     val finalIndels = swapExt(candidateIndels, ".cleaned.indel.vcf", ".final.indel.vcf")
-    //add(variantEffectPredictor(afterCleanupIndels, finalIndels))
+    add(variantEffectPredictor(afterCleanupIndels, finalIndels))
 
   }
 
@@ -307,20 +307,20 @@ class RNAVariantCalling extends QScript {
     this.jobName = queueLogDir + outIntervals + ".target"
   }
 
-    case class clean(inBams: Seq[File], tIntervals: File, outBam: File) extends IndelRealigner with CommandLineGATKArgs {
-        this.input_file = inBams
-        this.targetIntervals = tIntervals
-        this.out = outBam
-        this.known :+= qscript.dbSNP
-        if (qscript.indels != null)
-            this.known ++= qscript.indels
-        this.consensusDeterminationModel = ConsensusDeterminationModel.KNOWNS_ONLY
-        this.compress = 0
-        this.noPGTag = qscript.testMode;
-        this.scatterCount = nContigs
-        this.analysisName = queueLogDir + outBam + ".clean"
-        this.jobName = queueLogDir + outBam + ".clean"
-    }
+  case class clean(inBams: Seq[File], tIntervals: File, outBam: File) extends IndelRealigner with CommandLineGATKArgs {
+    this.input_file = inBams
+    this.targetIntervals = tIntervals
+    this.out = outBam
+    this.known :+= qscript.dbSNP
+    if (qscript.indels != null)
+      this.known ++= qscript.indels
+    this.consensusDeterminationModel = ConsensusDeterminationModel.KNOWNS_ONLY
+    this.compress = 0
+    this.noPGTag = qscript.testMode;
+    this.scatterCount = nContigs
+    this.analysisName = queueLogDir + outBam + ".clean"
+    this.jobName = queueLogDir + outBam + ".clean"
+  }
 
   case class cov(inBam: File, outRecalFile: File) extends BaseRecalibrator with CommandLineGATKArgs {
 
