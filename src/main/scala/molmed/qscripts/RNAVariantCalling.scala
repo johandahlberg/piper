@@ -83,9 +83,6 @@ class RNAVariantCalling extends QScript {
   @Input(doc = "an intervals file to be used by GATK - output bams at intervals only", fullName = "gatk_interval_file", shortName = "intervals", required = false)
   var intervals: File = _
 
-  @Argument(doc = "Cleaning model: KNOWNS_ONLY, USE_READS or USE_SW", fullName = "clean_model", shortName = "cm", required = false)
-  var cleaningModel: String = "USE_READS"
-
   @Argument(doc = "Perform validation on the BAM files", fullName = "validation", shortName = "vs", required = false)
   var validation: Boolean = false
 
@@ -199,25 +196,26 @@ class RNAVariantCalling extends QScript {
     add(snpCall(cohortList, candidateSnps))
     add(indelCall(cohortList, candidateIndels))
 
+    // Take regions from previous step
     val postCleaningBamList =
       for (bam <- cohortList) yield {
-        val indelRealignedBam = swapExt(bam, ".bam", ".clean.bam") // Take regions from previous step
+        val indelRealignedBam = swapExt(bam, ".bam", ".clean.bam")
         add(clean(Seq(bam), candidateIndels, indelRealignedBam))
         indelRealignedBam
       }
 
-    val afterCleanupSnps = new File(outputDir + "/" + projectName + ".clean.snp.vcf")
-    val afterCleanupIndels = new File(outputDir + "/" + projectName + ".clean.indel.vcf")
+    val afterCleanupSnps = swapExt(candidateSnps, ".candidate.snp.vcf", ".cleaned.snp.vcf")
+    val afterCleanupIndels = swapExt(candidateIndels, ".candidate.indel.vcf", ".cleaned.indel.vcf")
 
     // Call snps/indels again (possibly only in previously identifed regions)
     add(snpCall(postCleaningBamList, afterCleanupSnps))
     add(indelCall(postCleaningBamList, afterCleanupIndels))
 
     // Variant effect predictor - get all variants which change a aa
-    val finalSnps = new File(outputDir + "/" + projectName + ".final.snp.vcf")
+    val finalSnps = swapExt(candidateSnps, ".cleaned.snp.vcf", ".final.snp.vcf")
     //add(variantEffectPredictor(afterCleanupSnps, finalSnps))
 
-    val finalIndels = new File(outputDir + "/" + projectName + ".final.indel.vcf")
+    val finalIndels = swapExt(candidateIndels, ".cleaned.indel.vcf", ".final.indel.vcf")
     //add(variantEffectPredictor(afterCleanupIndels, finalIndels))
 
   }
@@ -294,31 +292,15 @@ class RNAVariantCalling extends QScript {
     this.jobName = "UG_Indel"
   }
 
-  case class target(inBams: Seq[File], outIntervals: File) extends RealignerTargetCreator with CommandLineGATKArgs {
-
-    this.num_threads = nbrOfThreads
-
-    if (cleanModelEnum != ConsensusDeterminationModel.KNOWNS_ONLY)
-      this.input_file = inBams
-    this.out = outIntervals
-    this.mismatchFraction = 0.0
-    this.known :+= qscript.dbSNP
-    if (indels != null)
-      this.known ++= qscript.indels
-    this.scatterCount = nContigs
-    this.analysisName = queueLogDir + outIntervals + ".target"
-    this.jobName = queueLogDir + outIntervals + ".target"
-  }
-
-  case class clean(inBams: Seq[File], tIntervals: File, outBam: File) extends IndelRealigner with CommandLineGATKArgs {
+  case class clean(inBams: Seq[File], @Input candidateIndels: File, outBam: File) extends IndelRealigner with CommandLineGATKArgs {
 
     this.input_file = inBams
-    this.targetIntervals = tIntervals
     this.out = outBam
     this.known :+= qscript.dbSNP
+    this.known :+= candidateIndels
     if (qscript.indels != null)
       this.known ++= qscript.indels
-    this.consensusDeterminationModel = cleanModelEnum
+    this.consensusDeterminationModel = ConsensusDeterminationModel.KNOWNS_ONLY
     this.compress = 0
     this.noPGTag = qscript.testMode;
     this.scatterCount = nContigs
