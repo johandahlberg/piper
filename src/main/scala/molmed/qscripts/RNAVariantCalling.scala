@@ -207,7 +207,7 @@ class RNAVariantCalling extends QScript {
       }
 
     val afterCleanupSnps = new File(outputDir + "/" + projectName + ".clean.snp.vcf")
-    val afterCleanupIndels = new File(outputDir + "/" + ".clean.snp.vcf")
+    val afterCleanupIndels = new File(outputDir + "/" + projectName + ".clean.indel.vcf")
 
     // Call snps/indels again (possibly only in previously identifed regions)
     add(snpCall(postCleaningBamList, afterCleanupSnps))
@@ -215,10 +215,10 @@ class RNAVariantCalling extends QScript {
 
     // Variant effect predictor - get all variants which change a aa
     val finalSnps = new File(outputDir + "/" + projectName + ".final.snp.vcf")
-    add(variantEffectPredictor(afterCleanupSnps, finalSnps))
+    //add(variantEffectPredictor(afterCleanupSnps, finalSnps))
 
     val finalIndels = new File(outputDir + "/" + projectName + ".final.indel.vcf")
-    add(variantEffectPredictor(afterCleanupIndels, finalIndels))
+    //add(variantEffectPredictor(afterCleanupIndels, finalIndels))
 
   }
 
