@@ -193,7 +193,7 @@ class RNAVariantCalling extends QScript {
         }
 
         val candidateSnps = new File(outputDir + "/" + projectName + ".candidate.snp.vcf")
-        val candidateIndels = new File(outputDir + "/" + ".candidate.indel.vcf")
+        val candidateIndels = new File(outputDir + "/" + projectName +  ".candidate.indel.vcf")
 
         // SNP and INDEL Calls
         add(snpCall(cohortList, candidateSnps))
