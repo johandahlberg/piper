@@ -191,7 +191,7 @@ class RNAVariantCalling extends QScript {
 
             cohortList :+= recalBam
         }
-
+        
         val candidateSnps = new File(outputDir + "/" + projectName + ".candidate.snp.vcf")
         val candidateIndels = new File(outputDir + "/" + projectName +  ".candidate.indel.vcf")
 
@@ -199,7 +199,7 @@ class RNAVariantCalling extends QScript {
         add(snpCall(cohortList, candidateSnps))
         add(indelCall(cohortList, candidateIndels))
 
-        val indelRealignedBam = new File(outputDir + "/" + projectName + "dedup.recal.clean.bam")
+        val indelRealignedBam = new File(outputDir + "/" + projectName + ".dedup.recal.clean.bam")
         // Take regions from previous step
         add(clean(cohortList, candidateIndels, indelRealignedBam))
 
