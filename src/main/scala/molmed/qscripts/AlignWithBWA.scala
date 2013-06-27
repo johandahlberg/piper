@@ -139,7 +139,8 @@ class AlignWithBWA extends QScript {
 
     val expression = (""".*""" + sampleName + """\.ver\.(\d+)\.bam$""").r
     def getVersionOfPreviousAlignment(bam: File): Int = {
-      expression.findFirstIn(bam.getName()).getOrElse(throw new Exception("Did not find version string.")).toInt
+      val version = expression.findAllIn(bam.getName()).group(1).toInt
+      version
     }
 
     lazy val hasBeenSequenced: (Boolean, File) = {
