@@ -137,10 +137,13 @@ class AlignWithBWA extends QScript {
    */
   private def alignMultipleSamples(sampleName: String, sampleList: Seq[SampleAPI]): File = {
 
-    val expression = (""".*""" + sampleName + """\.ver\.(\d+)\.bam$""").r
+    val expression = (".*" + sampleName + "\\.ver\\.(\\d)\\.bam$").r
     def getVersionOfPreviousAlignment(bam: File): Int = {
-      val version = expression.findAllIn(bam.getName()).group(1).toInt
-      version
+      val matches = expression.findAllIn(bam.getName())
+      if(matches.isEmpty)
+        throw new Exception("Couldn't find match for version regexp." + expression)
+      else
+        matches.group(1).toInt
     }
 
     lazy val hasBeenSequenced: (Boolean, File) = {
