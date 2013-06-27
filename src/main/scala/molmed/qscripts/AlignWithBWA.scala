@@ -137,12 +137,13 @@ class AlignWithBWA extends QScript {
    */
   private def alignMultipleSamples(sampleName: String, sampleList: Seq[SampleAPI]): File = {
 
-    val joinedBam = new File(outputDir + sampleName + ".bam")
-    val joinedFilesIndex = new File(outputDir + sampleName + ".bai")
+    val previouslyJoinedBam = new File(outputDir + sampleName + ".bam")
+    val newJoinedBam = new File(outputDir + sampleName + ".bam.new")
+    val newJoinedFilesIndex = new File(outputDir + sampleName + ".bai.new")
 
     if (hasBeenSequenced) {
 
-      val previouslyRunPlatformIds = findPlatformIds(joinedBam)
+      val previouslyRunPlatformIds = findPlatformIds(previouslyJoinedBam)
       val nonRunSamples = sampleList.filter(p => previouslyRunPlatformIds.contains(p.getReadGroupInformation.platformUnitId))
 
       val sampleSams: Seq[File] = for (sample <- nonRunSamples) yield {
@@ -151,12 +152,13 @@ class AlignWithBWA extends QScript {
 
       val oldJoinedFile = new File(outputDir + sampleName + ".bam.old")
       
-      add(reNameFile(joinedBam, oldJoinedFile))
+      add(reNameFile(previouslyJoinedBam, oldJoinedFile))
       
       val filesToJoin = sampleSams :+ oldJoinedFile
 
-      add(joinBams(filesToJoin, joinedBam, joinedFilesIndex))
+      add(joinBams(filesToJoin, newJoinedBam, newJoinedFilesIndex))
       add(removeIntermeditateFiles(filesToJoin))
+      add(reNameFile(newJoinedBam, previouslyJoinedBam))
     } else {
 
       val sampleSams: Seq[File] = for (sample <- sampleList) yield {
@@ -164,11 +166,12 @@ class AlignWithBWA extends QScript {
       }
 
       // Join and sort the sample bam files.
-      add(joinBams(sampleSams, joinedBam, joinedFilesIndex))
+      add(joinBams(sampleSams, newJoinedBam, newJoinedFilesIndex))
+      add(reNameFile(newJoinedBam, previouslyJoinedBam))
     }
 
     def hasBeenSequenced: Boolean = {
-      joinedBam.exists()
+      previouslyJoinedBam.exists()
     }
 
     def findPlatformIds(bam: File): List[String] = {
@@ -193,7 +196,7 @@ class AlignWithBWA extends QScript {
       performAlignment(fastqs, readGroupInfo, reference, asIntermidate)
     }
 
-    joinedBam
+    previouslyJoinedBam
   }
 
   /**
