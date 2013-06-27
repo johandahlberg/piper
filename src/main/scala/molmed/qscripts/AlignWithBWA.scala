@@ -146,7 +146,7 @@ class AlignWithBWA extends QScript {
       val listOfOutputFiles = new File(outputDir).list().toList
       if (listOfOutputFiles.exists(file => file.matches(expression.toString)))
         (true, new File(outputDir + "/" + listOfOutputFiles.find(file => 
-          file.matches(expression.toString).getOrElse(throw new Exception("Did not find file.")))))
+          file.matches(expression.toString)).getOrElse(throw new Exception("Did not find file."))))
       else
         (false, null)
     }
