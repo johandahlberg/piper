@@ -150,7 +150,9 @@ class AlignWithBWA extends QScript {
       }
 
       val oldJoinedFile = new File(outputDir + sampleName + ".bam.old")
-      joinedBam.renameTo(oldJoinedFile)
+      
+      add(reNameFile(joinedBam, oldJoinedFile))
+      
       val filesToJoin = sampleSams :+ oldJoinedFile
 
       add(joinBams(filesToJoin, joinedBam, joinedFilesIndex))
@@ -347,7 +349,6 @@ class AlignWithBWA extends QScript {
   }
 
   case class removeIntermeditateFiles(@Input files: Seq[File]) extends InProcessFunction {
-
     def run(): Unit = {
       files.foreach(f => {
         val success = f.delete()
@@ -357,6 +358,11 @@ class AlignWithBWA extends QScript {
           logger.error("Failed deleted intermediate file: " + f.getAbsoluteFile())
       })
     }
+  }
 
+  case class reNameFile(@Input inFile: File, @Output outFile: File) extends InProcessFunction {
+    def run(): Unit = {
+      inFile.renameTo(outFile)
+    }
   }
 }
