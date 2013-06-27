@@ -145,7 +145,8 @@ class AlignWithBWA extends QScript {
     lazy val hasBeenSequenced: (Boolean, File) = {
       val listOfOutputFiles = new File(outputDir).list().toList
       if (listOfOutputFiles.exists(file => file.matches(expression.toString)))
-        (true, listOfOutputFiles.find(file => file.matches(expression.toString)).getOrElse(throw new Exception("Did not find file.")))
+        (true, new File(outputDir + "/" + listOfOutputFiles.find(file => 
+          file.matches(expression.toString).getOrElse(throw new Exception("Did not find file.")))))
       else
         (false, null)
     }
