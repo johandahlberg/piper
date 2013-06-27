@@ -137,40 +137,6 @@ class AlignWithBWA extends QScript {
    */
   private def alignMultipleSamples(sampleName: String, sampleList: Seq[SampleAPI]): File = {
 
-    if (hasBeenSequenced._1) {
-
-      val previouslyJoinedBam = hasBeenSequenced._2
-      val previouslyRunPlatformIds = findPlatformIds(previouslyJoinedBam)
-      val nonRunSamples = sampleList.filter(p => previouslyRunPlatformIds.contains(p.getReadGroupInformation.platformUnitId))
-
-      // @TODO Construct based on version of previous file
-      val versionOfJoinedBam = getVersionOfPreviousAlignment(previouslyJoinedBam) + 1
-      val newJoinedBam = new File(outputDir + "/" + sampleName + "ver." + versionOfJoinedBam + ".bam")
-      val newJoinedBamIndex = new File(outputDir + "/" + sampleName + "ver." + versionOfJoinedBam + ".bai")
-
-      if (nonRunSamples.length > 0) {
-        val sampleSams: Seq[File] = for (sample <- nonRunSamples) yield {
-          align(sample, false)
-        }
-
-        val filesToJoin = sampleSams :+ previouslyJoinedBam
-
-        add(joinBams(filesToJoin, newJoinedBam, newJoinedBamIndex))
-        add(removeIntermeditateFiles(Seq(previouslyJoinedBam)))
-      }
-    } else {
-
-      val sampleSams: Seq[File] = for (sample <- sampleList) yield {
-        align(sample, true)
-      }
-
-      val joinedBam = new File(outputDir + "/" + sampleName + "ver.1.bam")
-      val joinedBamIndex = new File(outputDir + "/" + sampleName + "ver.1.bai")
-
-      // Join and sort the sample bam files.
-      add(joinBams(sampleSams, joinedBam, joinedBamIndex))
-    }
-
     val expression = (""".*""" + sampleName + """\.ver\.(\d+)\.bam$""").r
     def getVersionOfPreviousAlignment(bam: File): Int = {
       expression.findFirstIn(bam.getAbsolutePath()).getOrElse(throw new Exception("Did not find version string.")).toInt
@@ -205,6 +171,45 @@ class AlignWithBWA extends QScript {
       // Run the alignment
       performAlignment(fastqs, readGroupInfo, reference, asIntermidate)
     }
+
+    val bam =
+      if (hasBeenSequenced._1) {
+
+        val previouslyJoinedBam = hasBeenSequenced._2
+        val previouslyRunPlatformIds = findPlatformIds(previouslyJoinedBam)
+        val nonRunSamples = sampleList.filter(p => previouslyRunPlatformIds.contains(p.getReadGroupInformation.platformUnitId))
+
+        // Construct based on version of previous file
+        val versionOfJoinedBam = getVersionOfPreviousAlignment(previouslyJoinedBam) + 1
+        val newJoinedBam = new File(outputDir + "/" + sampleName + "ver." + versionOfJoinedBam + ".bam")
+        val newJoinedBamIndex = new File(outputDir + "/" + sampleName + "ver." + versionOfJoinedBam + ".bai")
+
+        if (nonRunSamples.length > 0) {
+          val sampleSams: Seq[File] = for (sample <- nonRunSamples) yield {
+            align(sample, false)
+          }
+
+          val filesToJoin = sampleSams :+ previouslyJoinedBam
+
+          add(joinBams(filesToJoin, newJoinedBam, newJoinedBamIndex))
+          add(removeIntermeditateFiles(Seq(previouslyJoinedBam)))
+          newJoinedBam
+        } else
+          previouslyJoinedBam
+      } else {
+
+        val sampleSams: Seq[File] = for (sample <- sampleList) yield {
+          align(sample, true)
+        }
+
+        val joinedBam = new File(outputDir + "/" + sampleName + "ver.1.bam")
+        val joinedBamIndex = new File(outputDir + "/" + sampleName + "ver.1.bai")
+
+        // Join and sort the sample bam files.
+        add(joinBams(sampleSams, joinedBam, joinedBamIndex))
+        joinedBam
+      }
+    bam
   }
 
   /**
