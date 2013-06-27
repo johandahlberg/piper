@@ -197,7 +197,7 @@ class AlignWithBWA extends QScript {
           val filesToJoin = sampleSams :+ previouslyJoinedBam
 
           add(joinBams(filesToJoin, newJoinedBam, newJoinedBamIndex))
-          add(removeIntermeditateFiles(Seq(previouslyJoinedBam)))
+          add(removeIntermeditateFiles(Seq(previouslyJoinedBam), newJoinedBam))
           newJoinedBam
         } else
           previouslyJoinedBam
@@ -369,7 +369,7 @@ class AlignWithBWA extends QScript {
     this.jobName = "sortSam"
   }
 
-  case class removeIntermeditateFiles(@Input files: Seq[File]) extends InProcessFunction {
+  case class removeIntermeditateFiles(@Input files: Seq[File], @Input placeHolder: File) extends InProcessFunction {
     def run(): Unit = {
       files.foreach(f => {
         val success = f.delete()
