@@ -137,17 +137,13 @@ class AlignWithBWA extends QScript {
         // List of output bams for all inputs from the same sample
         var sampleSams: Seq[File] = Seq()
 
-        // Counter for temporary sample names.
-        var tempCounter: Int = 1
-
         for (sample <- sampleList) {
             val fastqs = sample.getFastqs()
             val readGroupInfo = sample.getBwaStyleReadGroupInformationString()
             val reference = sample.getReference()
 
             // Add temporary run name
-            fastqs.sampleName = sampleName + "." + tempCounter
-            tempCounter = tempCounter + 1
+            fastqs.sampleName = sampleName + "." + sample.getReadGroupInformation.platformUnitId
 
             // Check that the reference is indexed
             checkReferenceIsBwaIndexed(reference)
