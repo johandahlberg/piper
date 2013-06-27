@@ -181,8 +181,8 @@ class AlignWithBWA extends QScript {
 
         // Construct based on version of previous file
         val versionOfJoinedBam = getVersionOfPreviousAlignment(previouslyJoinedBam) + 1
-        val newJoinedBam = new File(outputDir + "/" + sampleName + "ver." + versionOfJoinedBam + ".bam")
-        val newJoinedBamIndex = new File(outputDir + "/" + sampleName + "ver." + versionOfJoinedBam + ".bai")
+        val newJoinedBam = new File(outputDir + "/" + sampleName + ".ver." + versionOfJoinedBam + ".bam")
+        val newJoinedBamIndex = new File(outputDir + "/" + sampleName + ".ver." + versionOfJoinedBam + ".bai")
 
         if (nonRunSamples.length > 0) {
           val sampleSams: Seq[File] = for (sample <- nonRunSamples) yield {
@@ -202,8 +202,8 @@ class AlignWithBWA extends QScript {
           align(sample, true)
         }
 
-        val joinedBam = new File(outputDir + "/" + sampleName + "ver.1.bam")
-        val joinedBamIndex = new File(outputDir + "/" + sampleName + "ver.1.bai")
+        val joinedBam = new File(outputDir + "/" + sampleName + ".ver.1.bam")
+        val joinedBamIndex = new File(outputDir + "/" + sampleName + ".ver.1.bai")
 
         // Join and sort the sample bam files.
         add(joinBams(sampleSams, joinedBam, joinedBamIndex))
