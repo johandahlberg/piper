@@ -1,12 +1,12 @@
 package molmed.qscripts
 import collection.JavaConversions._
-
 import org.broadinstitute.sting.queue.QScript
 import org.broadinstitute.sting.queue.function.ListWriterFunction
 import org.broadinstitute.sting.queue.util.QScriptUtils
 import java.io.File
+import net.sf.samtools.SAMFileReader
 
-class Cufflinks extends QScript {
+class Cuffdiff extends QScript {
 
     qscript =>
 
@@ -19,17 +19,17 @@ class Cufflinks extends QScript {
     @Input(doc = "input cohort file. One bam file per line.", fullName = "input", shortName = "i", required = true)
     var input: File = _
 
+    @Input(doc = "Reference fasta file", fullName = "reference", shortName = "R", required = true)
+    var reference: File = _
+
+    @Input(doc = "The path to the binary of cufflinks", fullName = "path_to_cufflinks", shortName = "cufflinks", required = true)
+    var cuffdiffPath: File = _
+
     /**
      * **************************************************************************
      * Optional Parameters
      * **************************************************************************
      */
-
-    @Input(doc = "Reference fasta file", fullName = "reference", shortName = "R", required = false)
-    var reference: File = _
-
-    @Input(doc = "The path to the binary of cufflinks", fullName = "path_to_cufflinks", shortName = "cufflinks", required = false)
-    var cufflinksPath: File = _
 
     @Argument(doc = "Output path for the processed files.", fullName = "output_directory", shortName = "outputDir", required = false)
     var outputDir: String = ""
@@ -43,15 +43,6 @@ class Cufflinks extends QScript {
     @Argument(doc = "Annotations of known transcripts in GTF 2.2 or GFF 3 format.", fullName = "annotations", shortName = "a", required = false)
     var annotations: Option[File] = None
 
-    @Argument(doc = "GTF file with transcripts to ignore, e.g. rRNA, mitochondrial transcripts etc.", fullName = "mask", shortName = "m", required = false)
-    var maskFile: Option[File] = None
-
-    @Argument(doc = "Use to find novel transcripts. If not will only find transcripts supplied in annotations file.", fullName = "findNovel", shortName = "fn", required = false)
-    var findNovelTranscripts: Boolean = false
-
-    @Argument(doc = "Run cuffmerge to merge together the cufflink assemblies.", fullName = "merge", shortName = "me", required = false)
-    var merge: Boolean = false
-
     /**
      * **************************************************************************
      * Private variables
@@ -60,17 +51,17 @@ class Cufflinks extends QScript {
 
     var projId: String = ""
 
-    def createOutputDir(file: File) = {
-        val outDir = {
-            val basename = file.getName().replace(".bam", "")
-            if (outputDir == "") {
-                new File("cufflinks/" + basename)
-            } else {
-                new File(outputDir + "/cufflinks/" + basename)
-            }
-        }
-        outDir.mkdirs()
-        outDir
+    /**
+     *  Help methods
+     */
+    def getSampleNameFromReadGroups(bam: File): String = {
+    		val samFileReader = new SAMFileReader(bam)
+    		val samHeader = samFileReader.getFileHeader()
+    		val sampleNames = samHeader.getReadGroups().map(rg => rg.getSample())
+    		require(!sampleNames.isEmpty, "Couldn't find read groups in file: " + bam.getAbsolutePath() + ". This is required for the script to work.")
+    		require(sampleNames.length == 1, "More than one sample in file: " + bam.getAbsolutePath() +
+    				". Please make sure that there is only one sample per file in input.")
+    		sampleNames(0)		
     }
 
     /**
@@ -85,22 +76,11 @@ class Cufflinks extends QScript {
 
         val bams = QScriptUtils.createSeqFromFile(input)
 
-        for (bam <- bams) {
-            val outDir = createOutputDir(bam)
-            val placeHolderFile = new File(outDir + "/qscript_cufflinks.stdout.log")
+        val samplesAndLables = bams.map(file => (file, getSampleNameFromReadGroups(file)))
 
-            add(cufflinks(bam, outDir, placeHolderFile))
-            placeHolderList :+= placeHolderFile
-            outputDirList :+= outDir
-        }
+        val placeHolderFile = new File(outputDir + "/qscript_cufflinks.stdout.log")
+        add(cuffdiff(samplesAndLables, placeHolderFile))
 
-        if (merge) {
-            val transcriptList = new File(qscript.outputDir + "cufflinks_transcript.cohort.list")
-            add(writeTranscriptList(transcriptList, outputDirList, placeHolderList))
-
-            val placeHolderFile = new File(outputDir + "/qscript_cuffmerge.stdout.log")
-            add(cuffmerge(transcriptList, outputDir + "/cuffmerge/", reference, placeHolderFile))
-        }
     }
 
     // General arguments to non-GATK tools
@@ -111,67 +91,27 @@ class Cufflinks extends QScript {
         this.isIntermediate = false
     }
 
-    case class writeTranscriptList(transcriptList: File, outputDirList: Seq[File], placeHolder: Seq[File]) extends ListWriterFunction {
-
-        @Input val ph = placeHolder
-        this.listFile = transcriptList
-        this.inputFiles = outputDirList.map(file => { file.getAbsolutePath() + "/transcripts.gtf" })
-        this.analysisName = "writeTranscriptList"
-        this.jobName = "writeTranscriptList"
-
-    }
-
-    case class cufflinks(inputBamFile: File, sampleOutputDir: File, outputFile: File) extends CommandLineFunction with ExternalCommonArgs {
+    case class cuffdiff(samplesAndLables: Seq[(File, String)], outputFile: File) extends CommandLineFunction with ExternalCommonArgs {
 
         // Sometime this should be kept, sometimes it shouldn't
         this.isIntermediate = false
 
-        @Input var bamFile = inputBamFile
-        @Input var dir = sampleOutputDir
+        //@TODO Handle replicates
+
+        @Input var bamFiles = samplesAndLables.map(f => f._1).mkString(" ")
+        @Input var lables = samplesAndLables.map(f => f._2).mkString(",")
         @Output var stdOut = outputFile
 
-        val maskFileString = if (maskFile.isDefined && maskFile.get != null) "--mask-file " + maskFile.get.getAbsolutePath() + " " else ""
-
-        def annotationString = if (annotations.isDefined && annotations.get != null) {
-            (if (findNovelTranscripts) " --GTF-guide " else " --GTF ") + annotations.get.getAbsolutePath() + " "
-        } else ""
-
-        def commandLine = "cufflinks " +
+        def commandLine = cuffdiffPath +
             " --library-type " + libraryType + " " +
-            maskFileString + annotationString +
             " -p " + threads +
-            " -o " + sampleOutputDir + " " +
-            bamFile +
+            " -o " + outputDir + " " +
+            " --lables " + lables + " "
+        annotations.get.getAbsolutePath() + " "
+        bamFiles +
             " 1> " + stdOut
 
-        this.analysisName = "cufflinks"
-        this.jobName = "cufflinks"
-    }
-
-    case class cuffmerge(assemblies: File, outputDir: File, reference: File, outputFile: File) extends CommandLineFunction with ExternalCommonArgs {
-
-        // Sometime this should be kept, sometimes it shouldn't
-        this.isIntermediate = false
-
-        @Input var as = assemblies
-        @Input var dir = outputDir
-        @Input var ref = reference
-        @Output var stdOut = outputFile
-
-        val referenceAnnotationString = if (annotations.isDefined && annotations.get != null)
-            " --ref-gtf " + annotations.get.getAbsolutePath() + " "
-        else ""
-
-        //cuffmerge -s /seqdata/fastafiles/hg19/hg19.fa assemblies.txt
-        def commandLine = "cuffmerge -p " + threads +
-            " -o " + dir +
-            " --ref-sequence " + ref + " " +
-            referenceAnnotationString +
-            assemblies +
-            " 1> " + stdOut
-
-        this.analysisName = "cuffmerge"
-        this.jobName = "cuffmerge"
-
+        this.analysisName = "cuffdiff"
+        this.jobName = "cuffdiff"
     }
 }
