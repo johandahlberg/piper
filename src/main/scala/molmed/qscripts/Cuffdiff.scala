@@ -153,15 +153,19 @@ class Cuffdiff extends QScript {
                 conditionsAndFiles ++ samplesAndfilesNotInRelicatesFile
             }
         }
+        
+        val conditionsAndFiles = mapFilesToConditions
+        val labelsString = conditionsAndFiles.keys.mkString(",")
+        val inputFilesSting = conditionsAndFiles.values.map(fileList => fileList.mkString(",")).mkString(" ")
 
         //@TODO Setup proper command line when repliation functions are finished.
         def commandLine = cuffdiffPath +
             " --library-type " + libraryType + " " +
             " -p " + threads +
             " -o " + outputDir + " " +
-            " --labels " + labels + " "
+            " --labels " + labelsString + " "
         annotations.get.getAbsolutePath() + " "
-        bamFiles +
+        inputFilesSting +
             " 1> " + stdOut
 
         this.analysisName = "cuffdiff"
