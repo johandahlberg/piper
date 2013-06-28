@@ -93,7 +93,7 @@ class Cuffdiff extends QScript {
         val bams = QScriptUtils.createSeqFromFile(input)
         val replicates: Map[String, List[String]] = if (replicatesFile.isDefined) getReplicatesFromFile(replicatesFile.get) else Map.empty
 
-        val samplesAndLables = bams.map(file => (file, getSampleNameFromReadGroups(file)))
+        val samplesAndLables = bams.map(file => (file, getSampleNameFromReadGroups(file))).toMap
 
         val placeHolderFile = new File(outputDir + "/qscript_cufflinks.stdout.log")
         add(cuffdiff(samplesAndLables, replicates, placeHolderFile))
@@ -108,15 +108,53 @@ class Cuffdiff extends QScript {
         this.isIntermediate = false
     }
 
-    case class cuffdiff(samplesAndLables: Seq[(File, String)], replicates: Map[String, List[String]], outputFile: File) extends CommandLineFunction with ExternalCommonArgs {
+    case class cuffdiff(samplesAndLables: Map[File, String], replicates: Map[String, List[String]], outputFile: File) extends CommandLineFunction with ExternalCommonArgs {
 
-        @Input var bamFiles: String = samplesAndLables.map(f => f._1).mkString(" ")
+        @Input var bamFiles: Seq[File] = samplesAndLables.keys.toSeq
         @Argument var labels: String = samplesAndLables.map(f => f._2).mkString(",")
-        @Output var stdOut = outputFile
+        @Output var stdOut: File = outputFile
 
         //@TODO Handle replicates
-        
 
+        /**
+         * This function will merge all samples with identical names into the same condition
+         * and check the if there are further replications to handle from the replication file.
+         */
+        def mapFilesToConditions(): Map[String, Seq[File]] = {
+
+            def mergeIdenticalSamplesToReplicates(): Map[String, Seq[File]] = {
+                samplesAndLables.foldLeft(Map.empty[String, Seq[File]])((map, tupple) => {
+                    val sampleName = tupple._2
+                    val file = tupple._1
+
+                    if (map.contains(sampleName))
+                        map.updated(sampleName, map(sampleName) :+ file)
+                    else
+                        map.updated(sampleName, Seq(file))
+                })
+            }
+
+            if (replicates.isEmpty)
+                mergeIdenticalSamplesToReplicates()
+            else {
+                val identicalSamplesToFileMap = mergeIdenticalSamplesToReplicates()
+
+                val conditionsAndFiles = for (
+                    (condition, sampleNames) <- replicates
+                ) yield {
+                    val samplesAndFileFoundInReplicateFile = identicalSamplesToFileMap.filterKeys(sampleName => sampleNames.contains(sampleName))
+                    (condition, samplesAndFileFoundInReplicateFile.values.flatten.toSeq)
+                }
+
+                val samplesAndfilesNotInRelicatesFile = identicalSamplesToFileMap.
+                    filterNot(f =>
+                        { conditionsAndFiles.values.flatten.contains(f._2) })
+
+                conditionsAndFiles ++ samplesAndfilesNotInRelicatesFile
+            }
+        }
+
+        //@TODO Setup proper command line when repliation functions are finished.
         def commandLine = cuffdiffPath +
             " --library-type " + libraryType + " " +
             " -p " + threads +
