@@ -31,6 +31,10 @@ class Cuffdiff extends QScript {
      * **************************************************************************
      */
 
+    @Argument(doc = "File specifing if there are any replicates in the cohort. On each line should be the label (e.g. the name of the condition) and sample names of the samples included in that condition seperated by tabs." +
+        "Please note that only samples which have replicates need to be specified. The default is one sample - one replicate", fullName = "replicates", shortName = "rep", required = false)
+    var replicatesFile: Option[File] = None
+
     @Argument(doc = "Output path for the processed files.", fullName = "output_directory", shortName = "outputDir", required = false)
     var outputDir: String = ""
 
@@ -55,13 +59,25 @@ class Cuffdiff extends QScript {
      *  Help methods
      */
     def getSampleNameFromReadGroups(bam: File): String = {
-    		val samFileReader = new SAMFileReader(bam)
-    		val samHeader = samFileReader.getFileHeader()
-    		val sampleNames = samHeader.getReadGroups().map(rg => rg.getSample())
-    		require(!sampleNames.isEmpty, "Couldn't find read groups in file: " + bam.getAbsolutePath() + ". This is required for the script to work.")
-    		require(sampleNames.length == 1, "More than one sample in file: " + bam.getAbsolutePath() +
-    				". Please make sure that there is only one sample per file in input.")
-    		sampleNames(0)		
+        val samFileReader = new SAMFileReader(bam)
+        val samHeader = samFileReader.getFileHeader()
+        val sampleNames = samHeader.getReadGroups().map(rg => rg.getSample())
+        require(!sampleNames.isEmpty, "Couldn't find read groups in file: " + bam.getAbsolutePath() + ". This is required for the script to work.")
+        require(sampleNames.length == 1, "More than one sample in file: " + bam.getAbsolutePath() +
+            ". Please make sure that there is only one sample per file in input.")
+        sampleNames(0)
+    }
+
+    def getReplicatesFromFile(file: File): Map[String, List[String]] = {
+        val lines = scala.io.Source.fromFile("file.txt").getLines
+        val conditionSampleTuples = for (line <- lines) yield {
+            val values = line.split("\t")
+            require(values.size > 2, "Could not find any replicates for all lines in: " + file.getAbsolutePath())
+            val conditionName = values(0)
+            val sampleNames = values.drop(1).toList
+            (conditionName, sampleNames)
+        }
+        conditionSampleTuples.toMap
     }
 
     /**
@@ -75,11 +91,12 @@ class Cuffdiff extends QScript {
         var outputDirList: Seq[File] = Seq()
 
         val bams = QScriptUtils.createSeqFromFile(input)
+        val replicates: Map[String, List[String]] = if (replicatesFile.isDefined) getReplicatesFromFile(replicatesFile.get) else Map.empty
 
         val samplesAndLables = bams.map(file => (file, getSampleNameFromReadGroups(file)))
 
         val placeHolderFile = new File(outputDir + "/qscript_cufflinks.stdout.log")
-        add(cuffdiff(samplesAndLables, placeHolderFile))
+        add(cuffdiff(samplesAndLables, replicates, placeHolderFile))
 
     }
 
@@ -91,22 +108,20 @@ class Cuffdiff extends QScript {
         this.isIntermediate = false
     }
 
-    case class cuffdiff(samplesAndLables: Seq[(File, String)], outputFile: File) extends CommandLineFunction with ExternalCommonArgs {
+    case class cuffdiff(samplesAndLables: Seq[(File, String)], replicates: Map[String, List[String]], outputFile: File) extends CommandLineFunction with ExternalCommonArgs {
 
-        // Sometime this should be kept, sometimes it shouldn't
-        this.isIntermediate = false
+        @Input var bamFiles: String = samplesAndLables.map(f => f._1).mkString(" ")
+        @Argument var labels: String = samplesAndLables.map(f => f._2).mkString(",")
+        @Output var stdOut = outputFile
 
         //@TODO Handle replicates
-
-        @Input var bamFiles = samplesAndLables.map(f => f._1).mkString(" ")
-        @Input var lables = samplesAndLables.map(f => f._2).mkString(",")
-        @Output var stdOut = outputFile
+        
 
         def commandLine = cuffdiffPath +
             " --library-type " + libraryType + " " +
             " -p " + threads +
             " -o " + outputDir + " " +
-            " --lables " + lables + " "
+            " --labels " + labels + " "
         annotations.get.getAbsolutePath() + " "
         bamFiles +
             " 1> " + stdOut
