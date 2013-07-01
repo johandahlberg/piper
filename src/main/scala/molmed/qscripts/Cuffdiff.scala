@@ -64,7 +64,7 @@ class Cuffdiff extends QScript {
   }
 
   def getReplicatesFromFile(file: File): Map[String, List[String]] = {
-    val lines = scala.io.Source.fromFile("file.txt").getLines
+    val lines = scala.io.Source.fromFile(file).getLines
     val conditionSampleTuples = for (line <- lines) yield {
       val values = line.split("\t")
       require(values.size > 2, "Could not find any replicates for all lines in: " + file.getAbsolutePath())
