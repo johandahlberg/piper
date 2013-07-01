@@ -161,9 +161,9 @@ class Cuffdiff extends QScript {
       " --library-type " + libraryType + " " +
       " -p " + threads +
       " -o " + outputDir + " " +
-      " --labels " + labelsString + " "
-    annotations.get.getAbsolutePath() + " "
-    inputFilesString +
+      " --labels " + labelsString + " " +
+      annotations.get.getAbsolutePath() + " " +
+      inputFilesString +
       " 1> " + stdOut
 
     this.analysisName = "cuffdiff"
