@@ -142,8 +142,8 @@ class Cuffdiff extends QScript {
         }
 
         val samplesAndfilesNotInRelicatesFile = identicalSamplesToFileMap.
-          filter(f =>
-            { conditionsAndFiles.values.flatten.contains(f._2) })
+          filterNot(f =>
+            { replicates.values.flatten.contains(f._1) })
 
         conditionsAndFiles ++ samplesAndfilesNotInRelicatesFile
       }
