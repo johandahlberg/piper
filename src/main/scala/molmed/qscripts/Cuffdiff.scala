@@ -22,7 +22,7 @@ class Cuffdiff extends QScript {
     @Input(doc = "Reference fasta file", fullName = "reference", shortName = "R", required = true)
     var reference: File = _
 
-    @Input(doc = "The path to the binary of cufflinks", fullName = "path_to_cufflinks", shortName = "cufflinks", required = true)
+    @Input(doc = "The path to the binary of cufflinks", fullName = "path_to_cuffdiff", shortName = "cuffdiff", required = true)
     var cuffdiffPath: File = _
 
     /**
