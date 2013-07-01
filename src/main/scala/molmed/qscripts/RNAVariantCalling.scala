@@ -194,7 +194,7 @@ class RNAVariantCalling extends QScript {
     add(snpCall(cohortList, candidateSnps))
     add(indelCall(cohortList, candidateIndels))
 
-    val targets = new File(outputDir + "/" + projectName + ".targets")
+    val targets = new File(outputDir + "/" + projectName + ".targets.intervals")
     add(target(candidateIndels, targets))
 
     // Take regions based on indels called in previous step
