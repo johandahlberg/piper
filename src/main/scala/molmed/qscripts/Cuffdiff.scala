@@ -155,8 +155,11 @@ class Cuffdiff extends QScript {
         }
         
         val conditionsAndFiles = mapFilesToConditions
-        val labelsString = conditionsAndFiles.keys.mkString(",")
-        val inputFilesSting = conditionsAndFiles.values.map(fileList => fileList.mkString(",")).mkString(" ")
+        val labelsString: String = conditionsAndFiles.keys.mkString(",")
+        val inputFilesString: String = conditionsAndFiles.values.map(fileList => fileList.mkString(",")).mkString(" ")
+        
+        require(!labelsString.isEmpty(), "Lables string in empty. Something went wrong!")
+        require(!inputFilesString.isEmpty(), "Input file string in empty. Something went wrong!")
 
         //@TODO Setup proper command line when repliation functions are finished.
         def commandLine = cuffdiffPath +
@@ -165,7 +168,7 @@ class Cuffdiff extends QScript {
             " -o " + outputDir + " " +
             " --labels " + labelsString + " "
         annotations.get.getAbsolutePath() + " "
-        inputFilesSting +
+        inputFilesString +
             " 1> " + stdOut
 
         this.analysisName = "cuffdiff"
