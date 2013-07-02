@@ -124,7 +124,7 @@ function variantCalling {
 			      -R ${GENOME_REFERENCE} \
 			      -res ${GATK_BUNDLE} \
 			      --project ${PROJECT_NAME} \
-			      -i ${PROCESSED_BAM_OUTPUT}/${PROJECT_NAME}.cohort.list \
+			      -i $1 \
 			      -intervals ${INTERVALS} \
 			      -outputDir ${VCF_OUTPUT}/ \
 			      -run \
