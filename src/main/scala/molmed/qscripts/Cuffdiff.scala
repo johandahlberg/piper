@@ -105,6 +105,9 @@ class Cuffdiff extends QScript {
 
   case class cuffdiff(samplesAndLables: Map[File, String], replicates: Map[String, List[String]], outputFile: File) extends CommandLineFunction with ExternalCommonArgs {
 
+    this.jobNativeArgs +:= "-p node -C fat -A " + projId
+    this.memoryLimit = 48
+    
     @Input var bamFiles: Seq[File] = samplesAndLables.keys.toSeq
     @Argument var labels: String = samplesAndLables.map(f => f._2).mkString(",")
     @Output var stdOut: File = outputFile
@@ -156,7 +159,6 @@ class Cuffdiff extends QScript {
     require(!labelsString.isEmpty(), "Lables string in empty. Something went wrong!")
     require(!inputFilesString.isEmpty(), "Input file string in empty. Something went wrong!")
 
-    //@TODO Setup proper command line when repliation functions are finished.
     def commandLine = cuffdiffPath +
       " --library-type " + libraryType + " " +
       " -p " + threads +
