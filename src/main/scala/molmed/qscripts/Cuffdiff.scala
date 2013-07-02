@@ -95,24 +95,17 @@ class Cuffdiff extends QScript {
 
   }
 
-  // General arguments to non-GATK tools
-  trait ExternalCommonArgs extends CommandLineFunction {
 
-    this.jobNativeArgs +:= "-p node -A " + projId
-    this.memoryLimit = 24
-    this.isIntermediate = false
-  }
-
-  case class cuffdiff(samplesAndLables: Map[File, String], replicates: Map[String, List[String]], outputFile: File) extends CommandLineFunction with ExternalCommonArgs {
+  case class cuffdiff(samplesAndLables: Map[File, String], replicates: Map[String, List[String]], outputFile: File) extends CommandLineFunction {
 
     this.jobNativeArgs +:= "-p node -C fat -A " + projId
     this.memoryLimit = 48
-    
+    this.isIntermediate = false
+
     @Input var bamFiles: Seq[File] = samplesAndLables.keys.toSeq
     @Argument var labels: String = samplesAndLables.map(f => f._2).mkString(",")
     @Output var stdOut: File = outputFile
 
-    //@TODO Handle replicates
 
     /**
      * This function will merge all samples with identical names into the same condition
