@@ -46,18 +46,6 @@ class RNAQC extends QScript {
 
     /**
      * **************************************************************************
-     * Utility methods
-     * **************************************************************************
-     */
-
-    def createRNASeQCInputString(file: File): String = {
-        import molmed.utils.BamUtils._
-        val sampleName = getSampleNameFromReadGroups(file)
-        sampleName + "|" + file.getAbsolutePath() + "|" + sampleName
-    }
-
-    /**
-     * **************************************************************************
      * Main script
      * **************************************************************************
      */
@@ -72,8 +60,7 @@ class RNAQC extends QScript {
         outDir.mkdirs()
 
         for (bam <- bams) {
-            val inputString = createRNASeQCInputString(bam)
-            add(RNA_QC(inputString, reference, outDir, transcripts, rRNATargets))
+            add(RNA_QC(bam, reference, outDir, transcripts, rRNATargets))
         }
     }
 
@@ -90,7 +77,16 @@ class RNAQC extends QScript {
         this.jobNativeArgs +:= "-p node -A " + projId
     }
 
-    case class RNA_QC(inputString: String, referenceFile: File, outDir: File, transcriptFile: File, rRNATargetsFile: File) extends RNASeQC with ExternalCommonArgs {
+    case class RNA_QC(@Input bamfile: File, referenceFile: File, outDir: File, transcriptFile: File, rRNATargetsFile: File) extends RNASeQC with ExternalCommonArgs {
+
+        def createRNASeQCInputString(file: File): String = {
+            import molmed.utils.BamUtils._
+            val sampleName = getSampleNameFromReadGroups(file)
+            sampleName + "|" + file.getAbsolutePath() + "|" + sampleName
+        }
+
+        val inputString = createRNASeQCInputString(bamfile)
+        
         this.input = inputString
         this.output = outDir
         this.reference = referenceFile
