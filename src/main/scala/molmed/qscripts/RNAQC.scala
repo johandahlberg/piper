@@ -41,6 +41,9 @@ class RNAQC extends QScript {
     @Argument(doc = "intervalFile for rRNA loci (must end in .list). This is an alternative flag to the -BWArRNA flag.", shortName = "rRNA", fullName = "rRNA_targets", required = false)
     var rRNATargets: File = _
 
+    @Argument(doc = "Perform downsampling to the given number of reads.", shortName = "d", fullName = "downsample", required = false)
+    var downsample: Int = -1
+
     /**
      * **************************************************************************
      * Utility methods
@@ -85,13 +88,13 @@ class RNAQC extends QScript {
         this.jobNativeArgs +:= "-p node -A " + projId
     }
 
-    //molmed.queue.extensions.RNAQC.RNASeQC
     case class RNA_QC(inputString: String, referenceFile: File, outDir: File, transcriptFile: File, rRNATargetsFile: File) extends RNASeQC with ExternalCommonArgs {
         this.input = inputString
         this.output = outDir
         this.reference = referenceFile
         this.transcripts = transcriptFile
         this.rRNATargets = rRNATargetsFile
+        this.downsample = qscript.downsample
 
         this.isIntermediate = false
         this.analysisName = "RNA_QC"
