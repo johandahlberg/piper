@@ -8,7 +8,7 @@ class RNASeQC extends CommandLineFunction {
 
     analysisName = "RNASeQC"
 
-    @Input(doc = "String of format Sample ID|Bam File|Notes", shortName = "i", fullName = "input", required = true)
+    @Argument(doc = "String of format Sample ID|Bam File|Notes", shortName = "i", fullName = "input", required = true)
     var input: String = _
 
     @Input(doc = "Reference file in fasta format.", shortName = "r", fullName = "reference", required = true)
