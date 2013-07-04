@@ -82,7 +82,7 @@ class RNAQC extends QScript {
         def createRNASeQCInputString(file: File): String = {
             import molmed.utils.BamUtils._
             val sampleName = getSampleNameFromReadGroups(file)
-            sampleName + "|" + file.getAbsolutePath() + "|" + sampleName
+            "\"" + sampleName + "|" + file.getAbsolutePath() + "|" + sampleName + "\""
         }
 
         val inputString = createRNASeQCInputString(bamfile)
