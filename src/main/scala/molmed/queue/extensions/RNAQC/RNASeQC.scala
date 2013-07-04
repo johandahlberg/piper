@@ -13,6 +13,9 @@ class RNASeQC extends CommandLineFunction {
 
     @Input(doc = "Reference file in fasta format.", shortName = "r", fullName = "reference", required = true)
     var reference: File = _
+    
+    @Output(doc = "StdOut used for placeholding purposes", shortName = "place", fullName = "place_holder", required = true)
+    var placeHolderFile: File = _
 
     @Input(doc = "GTF File defining the transcripts (must end in .gtf)", shortName = "t", fullName = "transcripts", required = true)
     var transcripts: File = _
@@ -35,5 +38,5 @@ class RNASeQC extends CommandLineFunction {
         " -t " + transcripts +
         " -o " + output +
         rRNATargetString +
-        downsampleString
+        downsampleString + " > " + placeHolderFile
 }
