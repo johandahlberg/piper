@@ -83,6 +83,7 @@ function cufflinks {
 function RNA_QC {
     source piper -S ${SCRIPTS_DIR}/RNAQC.scala \
 	    -i $1 \
+	    --downsample 1000 \
 	    --project_id ${PROJECT_ID} \
 		-R ${GENOME_REFERENCE} \
 	    --transcripts ${ANNOTATIONS} \

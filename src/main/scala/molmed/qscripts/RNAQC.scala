@@ -41,15 +41,8 @@ class RNAQC extends QScript {
     @Argument(doc = "intervalFile for rRNA loci (must end in .list). This is an alternative flag to the -BWArRNA flag.", shortName = "rRNA", fullName = "rRNA_targets", required = false)
     var rRNATargets: File = _
 
-    /**
-     * **************************************************************************
-     * Utility methods
-     * **************************************************************************
-     */
-
-    def createRNASeQCInputString(file: File): String = {
-        file.getName() + "|" + file.getAbsolutePath() + "|" + file.getName()
-    }
+    @Argument(doc = "Perform downsampling to the given number of reads.", shortName = "d", fullName = "downsample", required = false)
+    var downsample: Int = -1
 
     /**
      * **************************************************************************
@@ -67,8 +60,7 @@ class RNAQC extends QScript {
         outDir.mkdirs()
 
         for (bam <- bams) {
-            val inputString = createRNASeQCInputString(bam)
-            add(RNA_QC(inputString, reference, outDir, transcripts, rRNATargets))
+            add(RNA_QC(bam, reference, outDir, transcripts, rRNATargets))
         }
     }
 
@@ -85,13 +77,22 @@ class RNAQC extends QScript {
         this.jobNativeArgs +:= "-p node -A " + projId
     }
 
-    //molmed.queue.extensions.RNAQC.RNASeQC
-    case class RNA_QC(inputString: String, referenceFile: File, outDir: File, transcriptFile: File, rRNATargetsFile: File) extends RNASeQC with ExternalCommonArgs {
+    case class RNA_QC(@Input bamfile: File, referenceFile: File, outDir: File, transcriptFile: File, rRNATargetsFile: File) extends RNASeQC with ExternalCommonArgs {
+
+        def createRNASeQCInputString(file: File): String = {
+            import molmed.utils.BamUtils._
+            val sampleName = getSampleNameFromReadGroups(file)
+            sampleName + "|" + file.getAbsolutePath() + "|" + sampleName
+        }
+
+        val inputString = createRNASeQCInputString(bamfile)
+        
         this.input = inputString
         this.output = outDir
         this.reference = referenceFile
         this.transcripts = transcriptFile
         this.rRNATargets = rRNATargetsFile
+        this.downsample = qscript.downsample
 
         this.isIntermediate = false
         this.analysisName = "RNA_QC"
