@@ -46,7 +46,7 @@ class RNAQC extends QScript {
   var rRNATargetsFile: Option[File] = None
 
   @Argument(doc = "Perform downsampling to the given number of reads.", shortName = "d", fullName = "downsample", required = false)
-  var downsampling: Option[Int] = None
+  var downsampling: Int = -1
 
   /**
    * **************************************************************************

@@ -27,10 +27,10 @@ class RNASeQC extends CommandLineFunction {
   var rRNATargets: Option[File] = None
 
   @Argument(doc = "Perform downsampling to the given number of reads.", shortName = "d", fullName = "downsample", required = false)
-  var downsample: Option[Int] = None
+  var downsample: Int = -1
 
   val rRNATargetString: String = if (rRNATargets.isDefined && rRNATargets.get != null) " -rRNA " + rRNATargets.get.getAbsolutePath() + " " else ""
-  val downsampleString: String = if (downsample.isDefined) " -d " + downsample.get + " " else ""
+  val downsampleString: String = if (downsample > 0) " -d " + downsample + " " else ""
 
   override def commandLine = "java -jar resources/RNA-SeQC_v1.1.7.jar " +
     " -s " + input +
