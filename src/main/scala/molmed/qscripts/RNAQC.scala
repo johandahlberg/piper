@@ -43,10 +43,10 @@ class RNAQC extends QScript {
   var outputDir: String = ""
 
   @Argument(doc = "intervalFile for rRNA loci (must end in .list). This is an alternative flag to the -BWArRNA flag.", shortName = "rRNA", fullName = "rRNA_targets", required = false)
-  var rRNATargets: File = _
+  var rRNATargetsFile: Option[File] = None
 
   @Argument(doc = "Perform downsampling to the given number of reads.", shortName = "d", fullName = "downsample", required = false)
-  var downsample: Int = -1
+  var downsampling: Option[Int] = None
 
   /**
    * **************************************************************************
@@ -68,7 +68,7 @@ class RNAQC extends QScript {
       val sampleOutputDir = new File(outDir + "/" + sampleName)
       sampleOutputDir.mkdir()
       val placeHolderFile = new File(sampleOutputDir + "/qscript_RNASeQC.stdout.log")
-      add(RNA_QC(bam, reference, sampleOutputDir, transcripts, rRNATargets, placeHolderFile))
+      add(RNA_QC(bam, reference, sampleOutputDir, transcripts, placeHolderFile))
       placeHolderFile
     }
 
@@ -89,7 +89,7 @@ class RNAQC extends QScript {
     this.jobNativeArgs +:= "-p node -A " + projId
   }
 
-  case class RNA_QC(@Input bamfile: File, referenceFile: File, outDir: File, transcriptFile: File, rRNATargetsFile: File, placeHolder: File) extends RNASeQC with ExternalCommonArgs {
+  case class RNA_QC(@Input bamfile: File, referenceFile: File, outDir: File, transcriptFile: File, placeHolder: File) extends RNASeQC with ExternalCommonArgs {
 
     def createRNASeQCInputString(file: File): String = {
       val sampleName = getSampleNameFromReadGroups(file)
@@ -103,7 +103,7 @@ class RNAQC extends QScript {
     this.reference = referenceFile
     this.transcripts = transcriptFile
     this.rRNATargets = rRNATargetsFile
-    this.downsample = qscript.downsample
+    this.downsample = downsampling
     this.placeHolderFile = placeHolder
 
     this.isIntermediate = false
