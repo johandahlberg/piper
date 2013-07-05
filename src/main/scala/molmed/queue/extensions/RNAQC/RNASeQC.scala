@@ -23,14 +23,8 @@ class RNASeQC extends CommandLineFunction {
   @Input(doc = "Output directory", shortName = "o", fullName = "output_dir", required = true)
   var output: File = _
 
-  @Argument(doc = "interval file for rRNA loci (must end in .list). This is an alternative flag to the -BWArRNA flag.", shortName = "rRNA", fullName = "rRNA_targets", required = false)
-  var rRNATargets: Option[File] = None
-
-  @Argument(doc = "Perform downsampling to the given number of reads.", shortName = "d", fullName = "downsample", required = false)
-  var downsample: Int = -1
-
-  val rRNATargetString: String = if (rRNATargets.isDefined && rRNATargets.get != null) " -rRNA " + rRNATargets.get.getAbsolutePath() + " " else ""
-  val downsampleString: String = if (downsample > 0) " -d " + downsample + " " else ""
+  var rRNATargetString: String = ""
+  var downsampleString: String = ""
 
   override def commandLine = "java -jar resources/RNA-SeQC_v1.1.7.jar " +
     " -s " + input +

@@ -43,7 +43,7 @@ class RNAQC extends QScript {
   var outputDir: String = ""
 
   @Argument(doc = "intervalFile for rRNA loci (must end in .list). This is an alternative flag to the -BWArRNA flag.", shortName = "rRNA", fullName = "rRNA_targets", required = false)
-  var rRNATargetsFile: Option[File] = None
+  var rRNATargetsFile: File = _
 
   @Argument(doc = "Perform downsampling to the given number of reads.", shortName = "d", fullName = "downsample", required = false)
   var downsampling: Int = -1
@@ -97,13 +97,13 @@ class RNAQC extends QScript {
     }
 
     val inputString = createRNASeQCInputString(bamfile)
-
+    
     this.input = inputString
     this.output = outDir
     this.reference = referenceFile
     this.transcripts = transcriptFile
-    this.rRNATargets = rRNATargetsFile
-    this.downsample = downsampling
+    this.rRNATargetString = if(rRNATargetsFile != null) " -rRNA " + rRNATargetsFile.getAbsolutePath() + " " else ""
+    this.downsampleString = if (downsampling > 0) " -d " + downsampling + " " else ""
     this.placeHolderFile = placeHolder
 
     this.isIntermediate = false
