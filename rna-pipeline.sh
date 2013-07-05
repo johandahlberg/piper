@@ -118,9 +118,11 @@ module load R/2.15.0
 PIPELINE_SETUP_XML="src/test/resources/testdata/exampleForNewSetupXML.xml"
 PROJECT_NAME="TestRNA"
 PROJECT_ID="a2009002"
+
+# Loads the global settings. To change them open globalConfig.sh and rewrite them.
+source globalConfig.sh
+
 GENOME_REFERENCE=${GATK_BUNDLE}"/human_g1k_v37.fasta"
-# Note that it's important that the last / is included in the root dir path
-PROJECT_ROOT_DIR="/proj/a2009002/private/nobackup/testingRNASeqPipeline/SnpSeqPipeline/fastqs_with_adaptors_trimmed/"
 ANNOTATIONS="/proj/a2009002/SnpSeqPipeline/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf"
 RRNA_TARGETS=""
 LIBRARY_TYPE="fr-secondstrand"
@@ -131,9 +133,6 @@ QOS="" # e.g. --qos=seqver
 # Modify this if you want to chain the parts
 # in a different way.
 #---------------------------------------------
-
-# Loads the global settings. To change them open globalConfig.sh and rewrite them.
-source globalConfig.sh
 
 ALIGN_OUTPUT=$(alignWithTophat ${PIPELINE_SETUP_XML})
 RNA_QC_OUTPUT=$(RNA_QC ${ALIGN_OUTPUT})

@@ -159,8 +159,8 @@ module load samtools/0.1.18
 PIPELINE_SETUP_XML="src/test/resources/testdata/pipelineSetup.xml"
 PROJECT_NAME="TestProject"
 PROJECT_ID="a2009002"
-# Note that it's important that the last / is included in the root dir path
-PROJECT_ROOT_DIR="/local/data/SnpSeqPipelineIntegrationTestData/"
+# Loads the global settings. To change them open globalConfig.sh and rewrite them.
+source globalConfig.sh
 INTERVALS=""
 GENOME_REFERENCE=${GATK_BUNDLE}"/human_g1k_v37.fasta"
 QOS="" # e.g. --qos=seqver
@@ -170,9 +170,6 @@ QOS="" # e.g. --qos=seqver
 # Modify this if you want to chain the parts
 # in a different way.
 #---------------------------------------------
-
-# Loads the global settings. To change them open globalConfig.sh and rewrite them.
-source globalConfig.sh
 
 ALIGN_OUTPUT=$(alignWithBwa ${PIPELINE_SETUP_XML})
 ALIGN_QC_OUTPUT=$(alignmentQC ${ALIGN_OUTPUT})
