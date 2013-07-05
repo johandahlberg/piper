@@ -12,7 +12,7 @@ A pipeline project for the SNP&SEQ platform built on top of GATK Queue. Note tha
 Prerequisites and installation
 ==============================
 
-Piper runs has been tested on the Java(TM) SE Runtime Environment (build 1.6.0_18) on the UPPMAX cluster. It might run on in other environments, but this is untested. Besides the JVM Piper depends on the (sbt)[http://www.scala-sbt.org/] and (ant)[http://ant.apache.org/], and (git)[http://git-scm.com/] to checkout the source. To install piper, make sure that there programs are on you path, then clone this repository and run the setup script:
+Piper runs has been tested on the Java(TM) SE Runtime Environment (build 1.6.0_18) on the UPPMAX cluster. It might run on in other environments, but this is untested. Besides the JVM Piper depends on the [sbt](http://www.scala-sbt.org/) and [ant](http://ant.apache.org/), and [git](http://git-scm.com/) to checkout the source. To install piper, make sure that there programs are on you path, then clone this repository and run the setup script:
 
     git clone https://github.com/johandahlberg/piper.git
     cd piper
