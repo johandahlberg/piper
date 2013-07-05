@@ -87,7 +87,7 @@ function RNA_QC {
 	    --project_id ${PROJECT_ID} \
 		-R ${GENOME_REFERENCE} \
 	    --transcripts ${ANNOTATIONS} \
-	    --rRNA_targets ${RNA_RNA_TARGETS} \
+	    --rRNA_targets ${RRNA_TARGETS} \
 	    -outputDir ${RNA_QC_OUTPUT}/ \
 	    -jobRunner ${JOB_RUNNER} \
 	    -jobNative "${JOB_NATIVE_ARGS}" \
