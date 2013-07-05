@@ -30,7 +30,7 @@ class RNASeQC extends CommandLineFunction {
   var downsample: Option[Int] = None
 
   val rRNATargetString: String = if (rRNATargets.isDefined && rRNATargets.get != null) " -rRNA " + rRNATargets.get.getAbsolutePath() + " " else ""
-  val downsampleString: String = if (downsample.isDefined && downsample.get != null) " -d " + downsample.get + " " else ""
+  val downsampleString: String = if (downsample.isDefined) " -d " + downsample.get + " " else ""
 
   override def commandLine = "java -jar resources/RNA-SeQC_v1.1.7.jar " +
     " -s " + input +
