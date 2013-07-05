@@ -10,6 +10,7 @@ import molmed.queue.extensions.RNAQC.RNASeQC
 import org.broadinstitute.sting.queue.function.InProcessFunction
 import scala.io.Source
 import java.io.PrintWriter
+import molmed.utils.BamUtils._
 
 class RNAQC extends QScript {
   qscript =>
@@ -63,8 +64,11 @@ class RNAQC extends QScript {
     outDir.mkdirs()
 
     val placeHolderFileList = for (bam <- bams) yield {
-      val placeHolderFile = new File(outDir + "/qscript_RNASeQC.stdout.log")
-      add(RNA_QC(bam, reference, outDir, transcripts, rRNATargets, placeHolderFile))
+      val sampleName = getSampleNameFromReadGroups(bam)
+      val sampleOutputDir = new File(outDir + "/" + sampleName)
+      sampleOutputDir.mkdir()
+      val placeHolderFile = new File(sampleOutputDir + "/qscript_RNASeQC.stdout.log")
+      add(RNA_QC(bam, reference, sampleOutputDir, transcripts, rRNATargets, placeHolderFile))
       placeHolderFile
     }
 
@@ -88,7 +92,6 @@ class RNAQC extends QScript {
   case class RNA_QC(@Input bamfile: File, referenceFile: File, outDir: File, transcriptFile: File, rRNATargetsFile: File, placeHolder: File) extends RNASeQC with ExternalCommonArgs {
 
     def createRNASeQCInputString(file: File): String = {
-      import molmed.utils.BamUtils._
       val sampleName = getSampleNameFromReadGroups(file)
       "\"" + sampleName + "|" + file.getAbsolutePath() + "|" + sampleName + "\""
     }
@@ -122,16 +125,15 @@ class RNAQC extends QScript {
 
       val aggregatedMetrics = new File(aggregatedMetricsFile)
       val writer = new PrintWriter(aggregatedMetrics)
-            
-      val metricsFiles = findFiles(outputDir, {case file: File => file.getName().endsWith(".metrics.tsv")})      
+
+      val metricsFiles = findFiles(outputDir, { case file: File => file.getName().endsWith(".metrics.tsv") })
       val header = Source.fromFile(metricsFiles(0)).getLines.take(1).toString
-            
+
       writer.write(header)
       metricsFiles.foreach(file => writer.write(Source.fromFile(file).getLines.drop(1).toString))
-      
+
       writer.close()
-     
-      
+
     }
   }
 }
