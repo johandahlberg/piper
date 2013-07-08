@@ -194,30 +194,33 @@ class RNAVariantCalling extends QScript {
     add(snpCall(cohortList, candidateSnps))
     add(indelCall(cohortList, candidateIndels))
 
-    val targets = new File(outputDir + "/" + projectName + ".targets.intervals")
-    add(target(candidateIndels, targets))
-
-    // Take regions based on indels called in previous step
-    val postCleaningBamList =
-      for (bam <- cohortList) yield {
-        val indelRealignedBam = swapExt(bam, ".bam", ".clean.bam")
-        add(clean(Seq(bam), targets, indelRealignedBam))
-        indelRealignedBam
-      }
-
-    val afterCleanupSnps = swapExt(candidateSnps, ".candidate.snp.vcf", ".cleaned.snp.vcf")
-    val afterCleanupIndels = swapExt(candidateIndels, ".candidate.indel.vcf", ".cleaned.indel.vcf")
-
-    // Call snps/indels again (possibly only in previously identified regions)
-    add(snpCall(postCleaningBamList, afterCleanupSnps))
-    add(indelCall(postCleaningBamList, afterCleanupIndels, 1))
+    // @TODO Probably it's not possible to run indel realignment on rna-data. See:
+    // http://gatkforums.broadinstitute.org/discussion/1868/view-the-local-realignment-around-indels-by-gatk
+    // Remove when this has been confirmed.
+    //    val targets = new File(outputDir + "/" + projectName + ".targets.intervals")
+    //    add(target(candidateIndels, targets))
+    //
+    //    // Take regions based on indels called in previous step
+    //    val postCleaningBamList =
+    //      for (bam <- cohortList) yield {
+    //        val indelRealignedBam = swapExt(bam, ".bam", ".clean.bam")
+    //        add(clean(Seq(bam), targets, indelRealignedBam))
+    //        indelRealignedBam
+    //      }
+    //
+    //    val afterCleanupSnps = swapExt(candidateSnps, ".candidate.snp.vcf", ".cleaned.snp.vcf")
+    //    val afterCleanupIndels = swapExt(candidateIndels, ".candidate.indel.vcf", ".cleaned.indel.vcf")
+    //
+    //    // Call snps/indels again (possibly only in previously identified regions)
+    //    add(snpCall(postCleaningBamList, afterCleanupSnps))
+    //    add(indelCall(postCleaningBamList, afterCleanupIndels, 1))
 
     // Variant effect predictor - get all variants which change a aa
-    val finalSnps = swapExt(candidateSnps, ".cleaned.snp.vcf", ".final.snp.vcf")
-    add(variantEffectPredictor(afterCleanupSnps, finalSnps))
+    val finalSnps = swapExt(candidateSnps, ".candidate.snp.vcf", ".final.snp.vcf")
+    add(variantEffectPredictor(candidateSnps, finalSnps))
 
-    val finalIndels = swapExt(candidateIndels, ".cleaned.indel.vcf", ".final.indel.vcf")
-    add(variantEffectPredictor(afterCleanupIndels, finalIndels))
+    val finalIndels = swapExt(candidateIndels, ".candidate.indel.vcf", ".final.indel.vcf")
+    add(variantEffectPredictor(candidateIndels, finalIndels))
 
   }
 
@@ -318,6 +321,7 @@ class RNAVariantCalling extends QScript {
       this.known ++= qscript.indels
     this.consensusDeterminationModel = ConsensusDeterminationModel.KNOWNS_ONLY
     this.compress = 0
+    this.downsample_to_coverage = 100
     this.noPGTag = qscript.testMode;
     this.scatterCount = nContigs
     this.analysisName = queueLogDir + outBam + ".clean"
