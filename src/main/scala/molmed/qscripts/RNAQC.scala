@@ -119,14 +119,15 @@ class RNAQC extends QScript {
         f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)
         else Stream.empty)
 
-      val aggregatedMetrics = new File(aggregatedMetricsFile)
-      val writer = new PrintWriter(aggregatedMetrics)
+      val writer = new PrintWriter(aggregatedMetricsFile)
 
-      val metricsFiles = getFileTree(outputDir).filter(file => file.getName().endsWith(".metrics.tsv"))
-      val header = Source.fromFile(metricsFiles(0)).getLines.take(1).toString
+      val metricsFiles = getFileTree(outputDir).filter(file => file.getName().endsWith("metrics.tsv"))
+      val header = Source.fromFile(metricsFiles(0)).getLines.take(1).next.toString()
 
-      writer.write(header)
-      metricsFiles.foreach(file => writer.write(Source.fromFile(file).getLines.drop(1).toString))
+      writer.println(header)
+      metricsFiles.foreach(file =>
+        for (row <- Source.fromFile(file).getLines.drop(1))
+          writer.println(row))
 
       writer.close()
 
