@@ -129,6 +129,9 @@ class VariantCalling extends QScript {
     val goldStandardClusterFile = new File(goldStandardName + ".clusters")
   }
 
+  
+  // @TODO There is now a class for this in molmed.utils. This should be refactored to use that instead
+  // when this script is cleaned up for real.
   object Resources {
 
     logger.debug("Determining paths to resource files...")
