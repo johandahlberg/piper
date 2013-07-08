@@ -97,12 +97,12 @@ class RNAQC extends QScript {
     }
 
     val inputString = createRNASeQCInputString(bamfile)
-    
+
     this.input = inputString
     this.output = outDir
     this.reference = referenceFile
     this.transcripts = transcriptFile
-    this.rRNATargetString = if(rRNATargetsFile != null) " -rRNA " + rRNATargetsFile.getAbsolutePath() + " " else ""
+    this.rRNATargetString = if (rRNATargetsFile != null) " -rRNA " + rRNATargetsFile.getAbsolutePath() + " " else ""
     this.downsampleString = if (downsampling > 0) " -d " + downsampling + " " else ""
     this.placeHolderFile = placeHolder
 
@@ -115,18 +115,14 @@ class RNAQC extends QScript {
 
     def run() = {
 
-      def findFiles(path: File, fileFilter: PartialFunction[File, Boolean] = { case _ => false }): List[File] = {
-        (path :: path.listFiles.toList.filter {
-          _.isDirectory
-        }.flatMap {
-          findFiles(_)
-        }).filter(fileFilter.isDefinedAt(_))
-      }
+      def getFileTree(f: File): Stream[File] =
+        f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)
+        else Stream.empty)
 
       val aggregatedMetrics = new File(aggregatedMetricsFile)
       val writer = new PrintWriter(aggregatedMetrics)
 
-      val metricsFiles = findFiles(outputDir, { case file: File => file.getName().endsWith(".metrics.tsv") })
+      val metricsFiles = getFileTree(outputDir).filter(file => file.getName().endsWith(".metrics.tsv"))
       val header = Source.fromFile(metricsFiles(0)).getLines.take(1).toString
 
       writer.write(header)
