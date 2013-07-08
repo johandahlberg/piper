@@ -43,7 +43,7 @@ ONE_K_G=${GATK_BUNDLE}"/1000G_phase1.indels.b37.vcf"
 TMP=tmp/${PROJECT_NAME}
 
 # Comment and uncomment DEBUG to enable/disable the debugging mode of the pipeline.
-DEBUG="-l DEBUG" # -startFromScratch"
+DEBUG="-l DEBUG" #-startFromScratch"
 
 if [ ! -d "${TMP}" ]; then
    mkdir -p ${TMP}

@@ -42,7 +42,7 @@ function call_variants {
 	    --extra_indels ${KNOWN_INDELS} \
 	    -outputDir ${PROCESSED_BAM_OUTPUT}/ \
 	    --nbr_of_threads 8 \
-	    --scatter_gather 1 \
+	    --scatter_gather 20 \
 	    -jobRunner ${JOB_RUNNER} \
 	    -jobNative "${JOB_NATIVE_ARGS}" \
 	    -gv graph.dot \
@@ -94,33 +94,26 @@ VCFTOOLS=/bubo/home/h2/anderslu/b2012073/private/bin/vcftools_0.1.10/perl/
 export PERL5LIB=$VCFTOOLS
 
 ##General reference data
-REF_DATA=/proj/b2012073/private/nobackup/references
 HG19=/bubo/nobackup/uppnex/reference/biodata/GATK/ftp.broadinstitute.org/bundle/2.2/b37/human_g1k_v37.fasta
-#DBSNP=$REF_DATA/dbsnp_135.hg19.sort.vcf
-DBSNP=/proj/b2012073/private/nobackup/devel/perw/ALL_RNA_seq/reference_data/dbsnp_137.b37.vcf
-
-##Reference data
-##from Johan 
+DBSNP=/bubo/nobackup/uppnex/reference/biodata/GATK/ftp.broadinstitute.org/bundle/2.2/b37/dbsnp_137.b37.vcf
 KNOWN_INDELS=/bubo/nobackup/uppnex/reference/biodata/GATK/ftp.broadinstitute.org/bundle/2.2/b37/Mills_and_1000G_gold_standard.indels.b37.vcf
+
 ##Exome set created for ALL RNA-seq project
-CUSTOM_EXOME=/proj/b2012073/private/nobackup/references/SNP_calling_RNA_seq/Ensembl_RefSeq_UCSC_genes_sno_miRNA_sort_merge.bed
-##mårtens WGS data 
-ALL_WGS=/proj/b2012073/private/nobackup/references/ALL_WGS/06_274_sorted_realign_recal_duprm.filter30.sorted.gr2.bwa.bam.GATK.SNPs.vcf
+CUSTOM_EXOME=../custom_annotations/Ensembl_RefSeq_UCSC_genes_sno_miRNA_sort_merge.bed
 ##Exome_db (index by tabix)
-ESP_ESP6500SI_V2=/proj/b2012073/private/nobackup/references/Exome_Variant_Server/ESP6500SI-V2.ALL.snps_withoutIndels_without_rs_snp.bed.gz
+ESP_ESP6500SI_V2=../custom_annotations/ESP6500SI-V2.ALL.snps_withoutIndels_without_rs_snp.bed.gz
 ##Cosmic_V64 (two files..., index by tabix)
-COSMIC_1=/proj/b2012073/private/nobackup/references/Cosmic_db/v64/CosmicCodingMuts_v64_26032013_noLimit_wgs.vcf.gz
-COSMIC_2=/proj/b2012073/private/nobackup/references/Cosmic_db/v64/CosmicCodingMuts_v64_02042013_noLimit.vcf.gz
+COSMIC_1=../custom_annotations/CosmicCodingMuts_v64_26032013_noLimit_wgs.vcf.gz
+COSMIC_2=../custom_annotations/CosmicCodingMuts_v64_02042013_noLimit.vcf.gz
 ##Mapability (Works with VEP script)
-Mapability50mer=/proj/b2012073/private/nobackup/references/wgEncodeCrgMapabilityAlign50mer.bg.gz
-Mapability75mer=/proj/b2012073/private/nobackup/references/wgEncodeCrgMapabilityAlign75mer.bg.gz
-Mapability100mer=/proj/b2012073/private/nobackup/references/wgEncodeCrgMapabilityAlign100mer.bg.gz
+Mapability50mer=../custom_annotations/wgEncodeCrgMapabilityAlign50mer.bg.gz
+Mapability75mer=../custom_annotations/wgEncodeCrgMapabilityAlign75mer.bg.gz
+Mapability100mer=../custom_annotations/wgEncodeCrgMapabilityAlign100mer.bg.gz
 #Data from UCSC table browser (have created index with tabix)
-DGV_STRUCT_VAR_DB=/proj/b2012073/private/nobackup/references/SNP_calling_RNA_seq/RNA_SNP_annotation_tracks/DGV_Struct_Var_db_mod.bed.gz
-GENOMIC_SUPER_DUPS=/proj/b2012073/private/nobackup/references/SNP_calling_RNA_seq/RNA_SNP_annotation_tracks/genomicSuperDups_mod.bed.gz
-REPEATMASKER=/proj/b2012073/private/nobackup/references/SNP_calling_RNA_seq/RNA_SNP_annotation_tracks/RepeatMasker_mod.bed.gz
-SELFCHAIN=/proj/b2012073/private/nobackup/references/SNP_calling_RNA_seq/RNA_SNP_annotation_tracks/SelfChain_mod.bed.gz
-RNA_EDITING=/proj/b2012073/private/nobackup/references/SNP_calling_RNA_seq/RNA_SNP_annotation_tracks/Human_RNA_editing_mod.bed.gz
+GENOMIC_SUPER_DUPS=../custom_annotations/genomicSuperDups_mod.bed.gz
+REPEATMASKER=../custom_annotations/RepeatMasker_mod.bed.gz
+SELFCHAIN=../custom_annotations/SelfChain_mod.bed.gz
+RNA_EDITING=../custom_annotations/Human_RNA_editing_mod.bed.gz
 
 #------------------
 # Run the function
