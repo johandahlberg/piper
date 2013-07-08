@@ -1,32 +1,28 @@
 package molmed.qscripts
 
+import scala.collection.JavaConversions.asScalaBuffer
+
+import org.broadinstitute.sting.gatk.downsampling.DownsampleType
 import org.broadinstitute.sting.queue.QScript
-import molmed.queue.setup.SampleAPI
-import molmed.queue.setup.SetupXMLReaderAPI
-import molmed.queue.setup.SetupXMLReader
-import molmed.queue.setup.ReadPairContainer
-import molmed.queue.setup.Sample
-import org.broadinstitute.sting.queue.function.ListWriterFunction
-import net.sf.samtools.SAMFileReader
-import collection.JavaConversions._
-import net.sf.samtools.SAMFileHeader.SortOrder
+import org.broadinstitute.sting.queue.extensions.gatk.BaseRecalibrator
+import org.broadinstitute.sting.queue.extensions.gatk.ClipReads
+import org.broadinstitute.sting.queue.extensions.gatk.CommandLineGATK
+import org.broadinstitute.sting.queue.extensions.gatk.IndelRealigner
+import org.broadinstitute.sting.queue.extensions.gatk.RealignerTargetCreator
+import org.broadinstitute.sting.queue.extensions.gatk.UnifiedGenotyper
+import org.broadinstitute.sting.queue.extensions.gatk.VariantFiltration
 import org.broadinstitute.sting.queue.extensions.picard.MergeSamFiles
 import org.broadinstitute.sting.queue.extensions.picard.SortSam
-import org.broadinstitute.sting.queue.extensions.gatk.UnifiedGenotyper
-import org.broadinstitute.sting.queue.extensions.gatk.CommandLineGATK
-import org.broadinstitute.sting.gatk.downsampling.Downsampler
-import org.broadinstitute.sting.gatk.downsampling.DownsamplingMethod
-import org.broadinstitute.sting.gatk.downsampling.DownsampleType
-import org.broadinstitute.sting.commandline.ArgumentException
-import java.io.IOException
-import org.broadinstitute.sting.queue.extensions.gatk.PrintReads
-import org.broadinstitute.sting.queue.extensions.gatk.BaseRecalibrator
-import org.broadinstitute.sting.queue.extensions.gatk.RealignerTargetCreator
-import org.broadinstitute.sting.queue.extensions.gatk.IndelRealigner
-import org.broadinstitute.sting.gatk.walkers.indels.ConsensusDeterminationModel
+import org.broadinstitute.sting.queue.function.ListWriterFunction
+
+import molmed.queue.setup.ReadPairContainer
+import molmed.queue.setup.Sample
+import molmed.queue.setup.SampleAPI
+import molmed.queue.setup.SetupXMLReader
+import molmed.queue.setup.SetupXMLReaderAPI
 import molmed.utils.Resources
-import org.broadinstitute.sting.queue.extensions.gatk.ClipReads
-import org.broadinstitute.sting.queue.extensions.gatk.VariantFiltration
+import net.sf.samtools.SAMFileHeader.SortOrder
+import net.sf.samtools.SAMFileReader
 
 class Haloplex extends QScript {
 
