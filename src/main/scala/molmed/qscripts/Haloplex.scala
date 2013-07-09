@@ -440,7 +440,7 @@ class Haloplex extends QScript {
     }
   }
 
-  case class genotype(bam: Seq[File], reference: File, vcf: File, isSecondPass: Boolean) extends UnifiedGenotyper with CommandLineGATKArgs {
+  case class genotype(@Input bam: Seq[File], reference: File, @Output vcf: File, isSecondPass: Boolean) extends UnifiedGenotyper with CommandLineGATKArgs {
 
     this.isIntermediate = false
 
@@ -520,7 +520,7 @@ class Haloplex extends QScript {
     this.jobName = outRecalFile + ".covariates"
   }
 
-  case class clip(inBam: File, outBam: File, covariates: File, reference: File) extends ClipReads with CommandLineGATKArgs {
+  case class clip(@Input inBam: File, @Output outBam: File, covariates: File, reference: File) extends ClipReads with CommandLineGATKArgs {
     this.reference_sequence = reference
     this.input_file = Seq(inBam)
     this.out = outBam
@@ -530,7 +530,7 @@ class Haloplex extends QScript {
     this.BQSR = covariates
   }
 
-  case class filterVariations(inVcf: File, outVcf: File, reference: File) extends VariantFiltration with CommandLineGATKArgs {
+  case class filterVariations(@Input inVcf: File, @Output outVcf: File, reference: File) extends VariantFiltration with CommandLineGATKArgs {
     this.reference_sequence = reference
     this.variant = inVcf
     this.out = outVcf
