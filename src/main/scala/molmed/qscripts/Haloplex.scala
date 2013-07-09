@@ -75,8 +75,8 @@ class Haloplex extends QScript {
    * Private variables
    */
 
-  private var projId: String = ""
-
+  private var uppmaxProjId: String = ""
+  private var projectName: String = ""
   private var resources: Resources = null
 
   /**
@@ -272,7 +272,8 @@ class Haloplex extends QScript {
     // Get and setup input files
     val setupReader: SetupXMLReaderAPI = new SetupXMLReader(input)
     val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
-    projId = setupReader.getUppmaxProjectId()
+    uppmaxProjId = setupReader.getUppmaxProjectId()
+    projectName = setupReader.getProjectName
 
     // Run cutadapt       
     val cutAndSyncedSamples = cutSamples(samples)
@@ -293,12 +294,12 @@ class Haloplex extends QScript {
       }
 
     // Make raw variation calls
-    val preliminaryVariantCalls = new File(outputDir + "/" + projId + ".pre.vcf")
+    val preliminaryVariantCalls = new File(outputDir + "/" + projectName + ".pre.vcf")
     val reference = samples.values.flatten.toList(0).getReference
     add(genotype(cohortList.toSeq, reference, preliminaryVariantCalls, false))
 
     // Create realignment targets
-    val targets = new File(outputDir + "/" + projId + ".targets.intervals")
+    val targets = new File(outputDir + "/" + projectName + ".targets.intervals")
     add(target(preliminaryVariantCalls, targets, reference))
 
     // Do indel realignment
@@ -341,7 +342,7 @@ class Haloplex extends QScript {
   // General arguments to non-GATK tools
   trait ExternalCommonArgs extends CommandLineFunction {
 
-    this.jobNativeArgs +:= "-p node -A " + projId
+    this.jobNativeArgs +:= "-p node -A " + uppmaxProjId
     this.memoryLimit = 24
     this.isIntermediate = false
   }
@@ -353,7 +354,7 @@ class Haloplex extends QScript {
 
     this.isIntermediate = true
 
-    this.jobNativeArgs +:= "-p core -n 2 -A " + projId
+    this.jobNativeArgs +:= "-p core -n 2 -A " + uppmaxProjId
     this.memoryLimit = 6
 
     // Run cutadapt and sync via perl script by adding N's in all empty reads.  
@@ -362,7 +363,7 @@ class Haloplex extends QScript {
   }
 
   trait SixGbRamJobs extends ExternalCommonArgs {
-    this.jobNativeArgs +:= "-p core -n 2 -A " + projId
+    this.jobNativeArgs +:= "-p core -n 2 -A " + uppmaxProjId
     this.memoryLimit = 6
   }
 
@@ -385,8 +386,8 @@ class Haloplex extends QScript {
     this.isIntermediate = true
 
     def commandLine = bwaPath + " aln -t " + nbrOfThreads + " -q 5 " + ref + " " + fastq + " > " + sai
-    this.analysisName = projId + "bwa_aln"
-    this.jobName = projId + "bwa_aln"
+    this.analysisName = projectName + "bwa_aln"
+    this.jobName = projectName + "bwa_aln"
   }
 
   // Help function to create samtools sorting and indexing paths
