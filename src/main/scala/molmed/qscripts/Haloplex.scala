@@ -1,7 +1,6 @@
 package molmed.qscripts
 
 import scala.collection.JavaConversions.asScalaBuffer
-
 import org.broadinstitute.sting.gatk.downsampling.DownsampleType
 import org.broadinstitute.sting.queue.QScript
 import org.broadinstitute.sting.queue.extensions.gatk.BaseRecalibrator
@@ -14,7 +13,6 @@ import org.broadinstitute.sting.queue.extensions.gatk.VariantFiltration
 import org.broadinstitute.sting.queue.extensions.picard.MergeSamFiles
 import org.broadinstitute.sting.queue.extensions.picard.SortSam
 import org.broadinstitute.sting.queue.function.ListWriterFunction
-
 import molmed.queue.setup.ReadPairContainer
 import molmed.queue.setup.Sample
 import molmed.queue.setup.SampleAPI
@@ -23,6 +21,7 @@ import molmed.queue.setup.SetupXMLReaderAPI
 import molmed.utils.Resources
 import net.sf.samtools.SAMFileHeader.SortOrder
 import net.sf.samtools.SAMFileReader
+import molmed.utils.Resources
 
 class Haloplex extends QScript {
 
@@ -63,7 +62,6 @@ class Haloplex extends QScript {
   @Argument(doc = "Output path for the processed BAM files.", fullName = "output_directory", shortName = "outputDir", required = false)
   var outputDir: String = ""
 
-
   @Argument(doc = "Test mode", fullName = "test_mode", shortName = "test", required = false)
   var testMode: Boolean = false
 
@@ -79,7 +77,7 @@ class Haloplex extends QScript {
 
   private var projId: String = ""
 
-  private val resources = new Resources(resourcesPath, testMode)
+  private var resources: Resources = null
 
   /**
    * Helper methods
@@ -269,6 +267,8 @@ class Haloplex extends QScript {
 
   def script() = {
 
+    resources = new Resources(resourcesPath, testMode)
+    
     // Get and setup input files
     val setupReader: SetupXMLReaderAPI = new SetupXMLReader(input)
     val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
