@@ -40,9 +40,9 @@ Running the pipeline
 
 Right now two primary workflows are supported by Piper (though a more fine grained division of there are in the works at the moment), DNA variant analysis (alignment, qc, data processing and variant calling) and RNA differential expression analysis (as well as producing raw FPKMs). There two workflows are supported by `dna-pipeline.sh` and `rna-pipeline.sh` respectively. Both scripts share a structure which looks like this:
 
-* A number of bash functions which wrap QScripts with there parameters some simply log redirecting etc.
+* A number of bash functions which wrap QScripts with their parameters some simply log redirecting etc.
 * A Run template (this is probably where you want to start looking), where parameters such as reference genome, interval file (e.g. for targeted sequencing) are set.
-* A section where the different QScripts are chained together so that for example: variant calling follows data processing, etc. If you want to change the order of the analysis, or skip some part entirely, comment these lines out and change their input/outputs accordingly.
+* A section where the different QScripts are chained together so that for example: variant calling follows data processing, etc. If you want to change the order of the analysis, or skip some part entirely, comment these lines out and change their input/outputs accordingly. (Note that not all workflows are setup this way, and if they are not you will have to change the qscript to solve this)
 
 Setup for run
 -------------
