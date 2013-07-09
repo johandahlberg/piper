@@ -34,6 +34,7 @@ function haloplex {
 	            -jobRunner ${JOB_RUNNER} \
         		-jobNative "${JOB_NATIVE_ARGS}" \
 			    --job_walltime 345600 \
+			    -sg 1 \
 			    -gv graph.dot \
 			    ${DEBUG} >> ${LOGS}/haloplex.log  2>&1
 
