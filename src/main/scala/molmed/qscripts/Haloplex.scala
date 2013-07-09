@@ -279,7 +279,7 @@ class Haloplex extends QScript {
 
     // Align with bwa
     val cohortList =
-      for ((sampleName, sampleList) <- samples) yield {
+      for ((sampleName, sampleList) <- cutAndSyncedSamples) yield {
 
         // One sample can be sequenced in multiple lanes. This handles that scenario.
         val bam: File =
