@@ -523,6 +523,7 @@ class Haloplex extends QScript {
   case class clip(inBam: File, outBam: File, covariates: File, reference: File) extends ClipReads with CommandLineGATKArgs {
     this.reference_sequence = reference
     this.input_file = Seq(inBam)
+    this.out = outBam
     this.cyclesToTrim = "1-5"
     this.clipRepresentation = org.broadinstitute.sting.utils.clipping.ClippingRepresentation.WRITE_NS
     this.BQSR = covariates
