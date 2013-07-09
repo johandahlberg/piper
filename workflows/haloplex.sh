@@ -33,9 +33,8 @@ function haloplex {
 			    --nbr_of_threads ${NBR_OF_THREADS} \
 	            -jobRunner ${JOB_RUNNER} \
         		-jobNative "${JOB_NATIVE_ARGS}" \
-			    --job_walltime 345600 \
-			    -sg 1 \
-			    -gv graph.dot \
+			    --job_walltime 36000 \
+			    -run \
 			    ${DEBUG} >> ${LOGS}/haloplex.log  2>&1
 
 
