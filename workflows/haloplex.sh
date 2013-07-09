@@ -34,8 +34,7 @@ function haloplex {
 	            -jobRunner ${JOB_RUNNER} \
         		-jobNative "${JOB_NATIVE_ARGS}" \
 			    --job_walltime 345600 \
-			    -run \
-			    ${DEBUG} >> ${LOGS}/alignWithBwa.log  2>&1
+			    ${DEBUG} >> ${LOGS}/haloplex.log  2>&1
 
 
     # Check the script exit status, and if it did not finish, clean up and exit
@@ -57,7 +56,7 @@ function haloplex {
 source globalConfig.sh
 
 PIPELINE_SETUP_XML="pipelineSetup.xml"
-INTERVALS=""
+INTERVALS="interval.list"
 GENOME_REFERENCE=${GATK_BUNDLE}"/human_g1k_v37.fasta"
 QOS="" # e.g. --qos=seqver
 OUTPUT_DIR="pipeline_output/haloplex"
@@ -68,7 +67,7 @@ OUTPUT_DIR="pipeline_output/haloplex"
 # in a different way.
 #---------------------------------------------
 
-mkdir OUTPUT_DIR
+mkdir $OUTPUT_DIR
 PIPELINE_OUTPUT=$(haloplex ${PIPELINE_SETUP_XML})
 
 # Perform final clean up
