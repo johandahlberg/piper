@@ -47,7 +47,7 @@ Right now two primary workflows are supported by Piper (though a more fine grain
 Setup for run
 -------------
 
-Both of workflows above start with a xml file, for example: `pipelineSetup.xml`. This contains information about the raw data (run folders) that you which to run in the project. This is created using the `createSetupXml.sh` script. Run this: 
+Both of workflows above start with a xml file, for example: `pipelineSetup.xml`. This contains information about the raw data (run folders) that you which to run in the project. This is created using the `createSetupXml.sh` script. Before running this make sure that are you run folders are located (or linked) from a common folder (e.g. the runfolders directory under you project), then run this: 
 
     ./createSetupXML.sh pipelineSetup.xml
 
@@ -71,7 +71,11 @@ This is the file you should assign the `PIPELINE_SETUP_XML` variable to in the w
 Run
 ---
 
+NOTE: THE FOLLOWING PARAGRAPH CONCERING RUNNING WILL SOON BE OUTDATE - THE WORKFLOW CONCEPT WILL REPLACE IT.
 To run the pipeline you setup the workflow you want according to the above. The you run it with for example `dna-pipeline.sh`. Please note that this assumes that you are allowed to run jobs without a time limit on the machine that you are running on. This will not be the case if you are running on a normal UPPMAX node. Then the you wall time will be limited. In that case you might want to submit the pipeline script as a batch job to the cluster. A sbatch variable template is available at the to of the workflow scripts if you need to to this. Note that you will have to fill this in with your own user names, etc.
+
+Pick the workflow that you want to run, e.g. haloplex. Open the corresponding file in the `workflow` directory with your favorite text editor and edit the last part with the parameters you want to use. Then start the correponding workflow script with for example:
+	./workflow/haloplex.sh # OR sbatch workflow/haloplex.sh to sending it to a node
 
 Development
 ===========
