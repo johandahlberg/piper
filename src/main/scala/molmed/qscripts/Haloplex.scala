@@ -85,7 +85,7 @@ class Haloplex extends QScript {
 
   def cutSamples(sampleMap: Map[String, Seq[SampleAPI]]): Map[String, Seq[SampleAPI]] = {
 
-    // Standard Illumina adaptors
+    // Standard Illumina adaptors    
     val adaptor1 = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC"
     val adaptor2 = "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT"
 
@@ -385,7 +385,7 @@ class Haloplex extends QScript {
 
     this.isIntermediate = true
 
-    def commandLine = bwaPath + " aln -t " + nbrOfThreads + " -q 5 " + ref + " " + fastq + " > " + sai
+    def commandLine = bwaPath + " aln -t " + nbrOfThreads + " " + ref + " " + fastq + " > " + sai
     this.analysisName = projectName + "bwa_aln"
     this.jobName = projectName + "bwa_aln"
   }
@@ -521,6 +521,7 @@ class Haloplex extends QScript {
   }
 
   case class clip(@Input inBam: File, @Output outBam: File, covariates: File, reference: File) extends ClipReads with CommandLineGATKArgs {
+    this.isIntermediate = false
     this.reference_sequence = reference
     this.input_file = Seq(inBam)
     this.out = outBam
