@@ -63,8 +63,6 @@ class Haloplex extends QScript {
   @Argument(doc = "Output path for the processed BAM files.", fullName = "output_directory", shortName = "outputDir", required = false)
   var outputDir: String = ""
 
-  @Argument(doc = "Number of threads BWA should use", fullName = "bwa_threads", shortName = "bt", required = false)
-  var bwaThreads: Int = 1
 
   @Argument(doc = "Test mode", fullName = "test_mode", shortName = "test", required = false)
   var testMode: Boolean = false
@@ -386,7 +384,7 @@ class Haloplex extends QScript {
 
     this.isIntermediate = true
 
-    def commandLine = bwaPath + " aln -t " + bwaThreads + " -q 5 " + ref + " " + fastq + " > " + sai
+    def commandLine = bwaPath + " aln -t " + nbrOfThreads + " -q 5 " + ref + " " + fastq + " > " + sai
     this.analysisName = projId + "bwa_aln"
     this.jobName = projId + "bwa_aln"
   }
