@@ -530,7 +530,7 @@ class Haloplex extends QScript {
 
   case class filterVariations(inVcf: File, outVcf: File, reference: File) extends VariantFiltration with CommandLineGATKArgs {
     this.reference_sequence = reference
-    this.input_file = Seq(inVcf)
+    this.variant = inVcf
     this.out = outVcf
 
     this.clusterWindowSize = 10
