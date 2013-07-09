@@ -268,7 +268,7 @@ class Haloplex extends QScript {
   def script() = {
 
     resources = new Resources(resourcesPath, testMode)
-    
+
     // Get and setup input files
     val setupReader: SetupXMLReaderAPI = new SetupXMLReader(input)
     val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
@@ -525,6 +525,7 @@ class Haloplex extends QScript {
     this.input_file = Seq(inBam)
     this.out = outBam
     this.cyclesToTrim = "1-5"
+    this.scatterCount = nContigs
     this.clipRepresentation = org.broadinstitute.sting.utils.clipping.ClippingRepresentation.WRITE_NS
     this.BQSR = covariates
   }
