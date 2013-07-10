@@ -13,7 +13,8 @@ then
 	PATH_TO_TOPHAT="/bubo/sw/apps/bioinfo/tophat/2.0.4/kalkyl/bin/tophat2"
 	PATH_TO_CUTADAPT="/bubo/sw/apps/bioinfo/cutadapt/1.2.1/kalkyl/bin/cutadapt"
 	PATH_TO_CUFFLINKS="/bubo/sw/apps/bioinfo/cufflinks/2.1.1/kalkyl/cufflinks"
-	GATK_BUNDLE="/proj/b2010028/references/piper_references/gatk_bundle/2.2/b37"
+	GATK_BUNDLE_B37="/proj/b2010028/references/piper_references/gatk_bundle/2.2/b37"
+	GATK_BUNDLE_HG19="/proj/b2010028/references/piper_references/gatk_bundle/2.2/hg19"
 else
 	JOB_RUNNER=" Shell"
 	JOB_NATIVE_ARGS=""
@@ -22,17 +23,21 @@ else
 	PATH_TO_TOPHAT="/usr/local/bin/tophat2"
 	PATH_TO_CUTADAPT="/usr/local/bin/cutadapt"
 	PATH_TO_CUFFLINKS="$HOME/Bin/cufflinks/cufflinks"
-	GATK_BUNDLE="/local/data/gatk_bundle/b37"
+	GATK_BUNDLE_B37="/local/data/gatk_bundle/b37"
+	GATK_BUNDLE_HG19="/local/data/gatk_bundle/hg19"
 fi
 
 #---------------------------------------------
 # Paths to general resources
 #---------------------------------------------
 
-DB_SNP=${GATK_BUNDLE}"/dbsnp_137.b37.vcf"
-MILLS=${GATK_BUNDLE}"/Mills_and_1000G_gold_standard.indels.b37.vcf"
-ONE_K_G=${GATK_BUNDLE}"/1000G_phase1.indels.b37.vcf"
+DB_SNP_B37=${GATK_BUNDLE_B37}"/dbsnp_137.b37.vcf"
+MILLS_B37=${GATK_BUNDLE_B37}"/Mills_and_1000G_gold_standard.indels.b37.vcf"
+ONE_K_G_B37=${GATK_BUNDLE_B37}"/1000G_phase1.indels.b37.vcf"
 
+DB_SNP_H19=${GATK_BUNDLE_H19}"/dbsnp_137.hg19.vcf"
+MILLS_H19=${GATK_BUNDLE_H19}"/Mills_and_1000G_gold_standard.indels.hg19.vcf"
+ONE_K_G_H19=${GATK_BUNDLE_H19}"/1000G_phase1.indels.hg19.vcf"
 
 #---------------------------------------------
 # Global variables

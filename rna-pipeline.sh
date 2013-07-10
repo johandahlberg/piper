@@ -122,7 +122,7 @@ PROJECT_ID="a2009002"
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
 source globalConfig.sh
 
-GENOME_REFERENCE=${GATK_BUNDLE}"/human_g1k_v37.fasta"
+GENOME_REFERENCE=${GATK_BUNDLE_B37}"/human_g1k_v37.fasta"
 ANNOTATIONS="/proj/a2009002/SnpSeqPipeline/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf"
 RRNA_TARGETS=""
 LIBRARY_TYPE="fr-secondstrand"

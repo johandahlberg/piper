@@ -91,9 +91,9 @@ function dataPreprocessing {
 			      --project ${PROJECT_NAME} \
 			      -i $1 \
 			      -outputDir ${PROCESSED_BAM_OUTPUT}/ \
-        		  --dbsnp ${DB_SNP} \
-                  --extra_indels ${MILLS} \
-          		  --extra_indels ${ONE_K_G} \
+        		  --dbsnp ${DB_SNP_B37} \
+                  --extra_indels ${MILLS_B37} \
+          		  --extra_indels ${ONE_K_G_B37} \
 			      -intervals ${INTERVALS} \
 			      -cm USE_SW \
 			      -run \
@@ -122,7 +122,7 @@ function variantCalling {
 
     source piper -S ${SCRIPTS_DIR}/VariantCalling.scala \
 			      -R ${GENOME_REFERENCE} \
-			      -res ${GATK_BUNDLE} \
+			      -res ${GATK_BUNDLE_B37} \
 			      --project ${PROJECT_NAME} \
 			      -i $1 \
 			      -intervals ${INTERVALS} \
@@ -162,7 +162,7 @@ PROJECT_ID="a2009002"
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
 source globalConfig.sh
 INTERVALS=""
-GENOME_REFERENCE=${GATK_BUNDLE}"/human_g1k_v37.fasta"
+GENOME_REFERENCE=${GATK_BUNDLE_B37}"/human_g1k_v37.fasta"
 QOS="" # e.g. --qos=seqver
 
 #---------------------------------------------
