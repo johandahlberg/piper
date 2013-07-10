@@ -24,6 +24,8 @@ import net.sf.samtools.SAMFileReader
 import molmed.utils.Resources
 
 class Haloplex extends QScript {
+  
+  qscript => 
 
   /**
    * Arguments
@@ -449,7 +451,7 @@ class Haloplex extends QScript {
 
     this.dbsnp = resources.dbsnp
     this.reference_sequence = reference
-    this.intervals = intervals
+    this.intervals = Seq(qscript.intervals)
     this.scatterCount = nContigs
     this.nt = nbrOfThreads
     this.stand_call_conf = 30.0
@@ -474,7 +476,7 @@ class Haloplex extends QScript {
 
     this.reference_sequence = reference
     this.num_threads = nbrOfThreads
-    this.intervals = intervals
+    this.intervals = Seq(qscript.intervals)
     this.out = outIntervals
     this.mismatchFraction = 0.0
     this.known :+= resources.mills
@@ -513,7 +515,7 @@ class Haloplex extends QScript {
     this.input_file = inBam
     this.disable_indel_quals = false
     this.out = outRecalFile
-    this.intervals = intervals
+    this.intervals = Seq(qscript.intervals)
 
     this.scatterCount = nContigs
     this.analysisName = outRecalFile + ".covariates"
