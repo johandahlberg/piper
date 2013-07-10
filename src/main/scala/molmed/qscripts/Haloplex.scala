@@ -23,6 +23,7 @@ import net.sf.samtools.SAMFileHeader.SortOrder
 import net.sf.samtools.SAMFileReader
 import molmed.utils.Resources
 import org.broadinstitute.sting.queue.extensions.gatk.VcfGatherFunction
+import org.broadinstitute.sting.queue.extensions.gatk.BamGatherFunction
 
 class Haloplex extends QScript {
   
@@ -523,7 +524,7 @@ class Haloplex extends QScript {
     this.jobName = outRecalFile + ".covariates"
   }
 
-  case class clip(@Input inBam: File, @Output outBam: File, covariates: File, reference: File) extends ClipReads with CommandLineGATKArgs {
+  case class clip(@Input inBam: File, @Output @Gather(classOf[BamGatherFunction]) outBam: File, covariates: File, reference: File) extends ClipReads with CommandLineGATKArgs {
     this.isIntermediate = false
     this.reference_sequence = reference
     this.input_file = Seq(inBam)
