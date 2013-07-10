@@ -103,7 +103,9 @@ object SetupFileCreator extends App {
     project.setInputs(new Inputs)
 
     def getReference: String = {
-        val reference = new File(getSingleInput("Reference")).getAbsolutePath()
+        val reference = new File(withDefaultValue("Reference", 
+            defaultValue = "/proj/b2010028/references/piper_references/gatk_bundle/2.2/b37/human_g1k_v37.fasta")
+            (getSingleInput)).getAbsolutePath()
 
         try {
             require(new File(reference).exists(), "Cannot find reference: " + reference)
