@@ -24,7 +24,7 @@
 function haloplex {
     source piper -S ${SCRIPTS_DIR}/Haloplex.scala \
 			    --input $1 \
-			    --resources ${GATK_BUNDLE} \
+			    --resources ${GATK_BUNDLE_HG19} \
 			    -intervals ${INTERVALS} \
 			    -outputDir ${OUTPUT_DIR}/ \
 			    -bwa ${PATH_TO_BWA} \
@@ -57,8 +57,7 @@ function haloplex {
 source globalConfig.sh
 
 PIPELINE_SETUP_XML="pipelineSetup.xml"
-INTERVALS="interval.list"
-GENOME_REFERENCE=${GATK_BUNDLE}"/human_g1k_v37.fasta"
+INTERVALS="" # Your design bed-file
 QOS="" # e.g. --qos=seqver
 OUTPUT_DIR="pipeline_output/haloplex"
 
