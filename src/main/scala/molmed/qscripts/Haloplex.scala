@@ -22,6 +22,7 @@ import molmed.utils.Resources
 import net.sf.samtools.SAMFileHeader.SortOrder
 import net.sf.samtools.SAMFileReader
 import molmed.utils.Resources
+import org.broadinstitute.sting.queue.extensions.gatk.VcfGatherFunction
 
 class Haloplex extends QScript {
   
@@ -442,7 +443,7 @@ class Haloplex extends QScript {
     }
   }
 
-  case class genotype(@Input bam: Seq[File], reference: File, @Output vcf: File, isSecondPass: Boolean) extends UnifiedGenotyper with CommandLineGATKArgs {
+  case class genotype(@Input bam: Seq[File], reference: File, @Output @Gather(classOf[VcfGatherFunction]) vcf: File, isSecondPass: Boolean) extends UnifiedGenotyper with CommandLineGATKArgs {
 
     this.isIntermediate = false
 
