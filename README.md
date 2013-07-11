@@ -7,7 +7,7 @@
 </pre>
 -----------------------------
 
-A pipeline project for the SNP&SEQ platform built on top of GATK Queue. Note that this project is under heavy development and might not be entirely stable. It's also worth noting that this project has the primary goal of analyzing sequencing data from the SNP&SEQ platform and therefore has dependencies on metadata files which are unique created in the workflow of the platform, such as the `report.xml` which are delivered with sequencing data from our facility. I'd however be more than happy to support anyone interested in extending the pipeline to other contexts, if there is any interest.
+A pipeline project for the [SNP&SEQ platform](http://www.molmed.medsci.uu.se/SNP+SEQ+Technology+Platform/) built on top of [GATK Queue](http://www.broadinstitute.org/gatk/guide/topic?name=intro#intro1306). Note that this project is under heavy development and might not be entirely stable at this point. It's also worth noting that this project has the primary goal of analyzing sequencing data from the SNP&SEQ platform and therefore has dependencies on metadata files which are unique created in the workflow of the platform, such as the `report.xml` which are delivered with sequencing data from our facility. I'd however be more than happy to support anyone interested in extending the pipeline to other contexts.
 
 Piper builds on the concept of standardized workflows for different next-generation sequencing applications. At the moment Piper supports the following workflows:
 
@@ -82,7 +82,7 @@ Run
 ---
 
 Pick the workflow that you want to run, e.g. haloplex. Open the corresponding file in the `workflow` directory with your favorite text editor and edit the run template part (it's located towards the end of the file) with the parameters you want to use. Then start the correponding workflow script with for example:
-	./workflow/haloplex.sh # OR sbatch workflow/haloplex.sh to sending it to a node
+    ./workflow/haloplex.sh # OR sbatch workflow/haloplex.sh to sending it to a node
 
 Development
 ===========
@@ -92,21 +92,21 @@ The heavy lifting in Piper is primarilly done in Scala, with Bash glueing togeth
 Coding
 ------
 To work on the Piper project I recommend using the [Scala IDE](http://scala-ide.org/). To start developing follow the installation procedure outlined above. When you have finised the installation you can set the project up for you IDE by running:
-	sbt eclipse
+    sbt eclipse
 This will create the necessary project file for you to be able to import the project into the Scala IDE and start developing away.
 
 Although the Scala IDE will compile the code as you type away, you will probably also want to get the hang of a few basic SBT commands (which you can either run from the interactive sbt console which you start by typing `sbt` in the project root folder, or by typing `sbt <command>` to run it straight from the CLI):
 
-	compile
+    compile
 Will compile your project.
 
-	package
+    package
 Will produce you jars (look under the `target` dir and in the dir for the Scala version that you build targets)
 
-	clean
+    clean
 If something looks strange it's probably a good idea to run this. It deletes all of your class files so that you can create be sure you have a totally clean build.
 
-	test
+    test
 Run the tests (for more on testing, see the testing chapter) - note that by default this only dry runs the qscript integration tests, which (basically making sure that they compile, but giving you no guarantees for runtime functionality).
 
 ### Making Piper generate graph files
@@ -120,12 +120,22 @@ Testing
 -------
 
 ### Running pipeline tests
+TODO
  
+### Writing pipeline tests
+
 ### Continious integration using Travis:
 TODO
 
 Troubleshooting
 ===============
+
+Old projects
+------------
+In projects where data was generated before the spring of 2013, the report.xml files do not fulfill the current specification. To fix this you need to find the following row in the `report.xml`:
+    <SequencingReport>
+and substitute it for:
+    <SequencingReport  xmlns="illuminareport.xml.molmed">
 
 Licence
 =======
