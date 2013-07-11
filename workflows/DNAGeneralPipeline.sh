@@ -153,6 +153,12 @@ module load R/2.15.0
 # Run template - setup which files to run etc
 #---------------------------------------------
 
+# WARNING
+# This script is mainly keept as a template for creating new 
+# pipelines for specific protocols.
+# That means that there might be additional setup required to
+# run this script.
+
 PIPELINE_SETUP_XML="src/test/resources/testdata/pipelineSetup.xml"
 PROJECT_NAME="TestProject"
 PROJECT_ID="a2009002"
