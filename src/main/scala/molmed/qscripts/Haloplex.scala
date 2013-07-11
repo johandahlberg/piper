@@ -555,7 +555,7 @@ class Haloplex extends QScript {
       "QUAL > 30.0 && QUAL < 50.0",
       "QD < 1.5")
 
-    this.filterName = Seq("HARD_TO_VALIDATE", "LowCoverage", "VeryLowQual", "LowQual")
+    this.filterName = Seq("HARD_TO_VALIDATE", "LowCoverage", "VeryLowQual", "LowQual", "LowQD")
 
   }
 }
