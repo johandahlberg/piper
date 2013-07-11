@@ -69,33 +69,10 @@ RAW_BAM_OUTPUT=$PIPELINE_OUTPUT"/bam_files_raw"
 ALIGNMENT_QC_OUTPUT=$PIPELINE_OUTPUT"/alignment_qc"
 PROCESSED_BAM_OUTPUT=$PIPELINE_OUTPUT"/bam_files_processed"
 CUFFLINKS_OUTPUT=$PIPELINE_OUTPUT"/cufflinks"
+CUFFDIFF_OUTPUT=$PIPELINE_OUTPUT"/cuffdiff"
 VCF_OUTPUT=$PIPELINE_OUTPUT"/vcf_files"
 LOGS=$PIPELINE_OUTPUT"/logs"
 RNA_QC_OUTPUT=$PIPELINE_OUTPUT"/RNA_QC"
-
-if [ ! -d "${LOGS}" ]; then
-   mkdir -p ${LOGS}
-fi
-
-if [ ! -d "${RAW_BAM_OUTPUT}" ]; then
-   mkdir -p ${RAW_BAM_OUTPUT}
-fi
-
-if [ ! -d "${ALIGNMENT_QC_OUTPUT}" ]; then
-   mkdir -p ${ALIGNMENT_QC_OUTPUT}
-fi
-
-if [ ! -d "${RNA_QC_OUTPUT}" ]; then
-   mkdir -p ${RNA_QC_OUTPUT}
-fi
-
-if [ ! -d "${PROCESSED_BAM_OUTPUT}" ]; then
-   mkdir -p ${PROCESSED_BAM_OUTPUT}
-fi
-
-if [ ! -d "${VCF_OUTPUT}" ]; then
-   mkdir -p ${VCF_OUTPUT}
-fi
 
 # -----------------
 # Utility functions
