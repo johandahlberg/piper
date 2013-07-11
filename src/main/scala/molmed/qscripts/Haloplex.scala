@@ -26,8 +26,8 @@ import org.broadinstitute.sting.queue.extensions.gatk.VcfGatherFunction
 import org.broadinstitute.sting.queue.extensions.gatk.BamGatherFunction
 
 class Haloplex extends QScript {
-  
-  qscript => 
+
+  qscript =>
 
   /**
    * Arguments
@@ -265,6 +265,14 @@ class Haloplex extends QScript {
     bam
   }
 
+  // Override the normal swapExt metod by adding the outputDir to the file path by default if it is defined.
+  override def swapExt(file: File, oldExtension: String, newExtension: String) = {
+    if (outputDir.isEmpty())
+      new File(file.getName.stripSuffix(oldExtension) + newExtension)
+    else
+      swapExt(outputDir, file, oldExtension, newExtension);
+  }
+
   /**
    * The actual script
    */
@@ -461,13 +469,12 @@ class Haloplex extends QScript {
 
     // Depending on if this is used to call preliminary or final variations different
     // parameters should be used.
-    if (!isSecondPass) {
+    if (isSecondPass) {
       this.dt = DownsampleType.NONE
       this.annotation = Seq("AlleleBalance")
       this.filterMBQ = true
     } else {
       this.downsample_to_coverage = 30
-      this.dt = DownsampleType.ALL_READS
     }
 
     this.output_mode = org.broadinstitute.sting.gatk.walkers.genotyper.UnifiedGenotyperEngine.OUTPUT_MODE.EMIT_VARIANTS_ONLY
