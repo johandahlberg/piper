@@ -138,11 +138,10 @@ class Haloplex extends QScript {
 
   // Takes a list of processed BAM files and realign them using the BWA option requested  (bwase or bwape).
   // Returns a list of realigned BAM files.
-  def performAlignment(fastqs: ReadPairContainer, readGroupInfo: String, reference: File, isIntermediateAlignment: Boolean = false): File = {
+  def performAlignment(fastqs: ReadPairContainer, readGroupInfo: String, reference: File, isIntermediateAlignment: Boolean = false, outputDir: File): File = {
 
     val saiFile1 = new File(outputDir + fastqs.sampleName + ".1.sai")
     val saiFile2 = new File(outputDir + fastqs.sampleName + ".2.sai")
-    //var alignedSamFile = new File(outputDir + fastqs.sampleName)
     val alignedBamFile = new File(outputDir + fastqs.sampleName + ".bam")
 
     // Check that there is actually a mate pair in the container.
@@ -168,7 +167,7 @@ class Haloplex extends QScript {
     }
   }
 
-  private def alignSingleSample(sample: SampleAPI): File = {
+  private def alignSingleSample(sample: SampleAPI, outputDir: File): File = {
     val fastqs = sample.getFastqs()
     val readGroupInfo = sample.getBwaStyleReadGroupInformationString()
     val reference = sample.getReference()
@@ -177,13 +176,13 @@ class Haloplex extends QScript {
     checkReferenceIsBwaIndexed(reference)
 
     // Run the alignment
-    performAlignment(fastqs, readGroupInfo, reference)
+    performAlignment(fastqs, readGroupInfo, reference, false, outputDir)
   }
 
   /**
    * @TODO Write docs
    */
-  private def alignMultipleSamples(sampleName: String, sampleList: Seq[SampleAPI]): File = {
+  private def alignMultipleSamples(sampleName: String, sampleList: Seq[SampleAPI], outputDir: File): File = {
 
     val expression = (".*" + sampleName + "\\.ver\\.(\\d)\\.bam$").r
     def getVersionOfPreviousAlignment(bam: File): Int = {
@@ -222,7 +221,7 @@ class Haloplex extends QScript {
       checkReferenceIsBwaIndexed(reference)
 
       // Run the alignment
-      performAlignment(fastqs, readGroupInfo, reference, asIntermidate)
+      performAlignment(fastqs, readGroupInfo, reference, asIntermidate, outputDir)
     }
 
     val bam =
@@ -281,6 +280,14 @@ class Haloplex extends QScript {
 
     resources = new Resources(resourcesPath, testMode)
 
+    // Create output dirs
+    val vcfOutputDir = new File(outputDir + "/vcf_files")
+    vcfOutputDir.mkdirs()
+    val miscOutputDir = new File(outputDir + "/misc")
+    miscOutputDir.mkdirs()
+    val bamOutputDir = new File(outputDir + "/bam_files")
+    bamOutputDir.mkdirs()
+    
     // Get and setup input files
     val setupReader: SetupXMLReaderAPI = new SetupXMLReader(input)
     val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
@@ -297,21 +304,21 @@ class Haloplex extends QScript {
         // One sample can be sequenced in multiple lanes. This handles that scenario.
         val bam: File =
           if (sampleList.size == 1)
-            alignSingleSample(sampleList(0))
+            alignSingleSample(sampleList(0), bamOutputDir)
           else
-            alignMultipleSamples(sampleName, sampleList)
+            alignMultipleSamples(sampleName, sampleList, bamOutputDir)
 
         // Add the resulting file of the alignment to the output list
         bam
       }
-
+    
     // Make raw variation calls
-    val preliminaryVariantCalls = new File(outputDir + "/" + projectName + ".pre.vcf")
+    val preliminaryVariantCalls = new File(vcfOutputDir + "/" + projectName + ".pre.vcf")
     val reference = samples.values.flatten.toList(0).getReference
     add(genotype(cohortList.toSeq, reference, preliminaryVariantCalls, false))
 
     // Create realignment targets
-    val targets = new File(outputDir + "/" + projectName + ".targets.intervals")
+    val targets = new File(miscOutputDir + "/" + projectName + ".targets.intervals")
     add(target(preliminaryVariantCalls, targets, reference))
 
     // Do indel realignment
@@ -325,7 +332,7 @@ class Haloplex extends QScript {
       }
 
     // BQSR
-    val covariates = new File(outputDir + "/bqsr.grp")
+    val covariates = new File(miscOutputDir + "/" + outputDir + "/bqsr.grp")
     add(cov(postCleaningBamList.toSeq, covariates, reference))
 
     // Clip reads and apply BQSR
@@ -342,7 +349,6 @@ class Haloplex extends QScript {
 
     // Filter variant calls
     val filteredCallSet = swapExt(afterCleanupVariants, ".vcf", ".filtered.vcf")
-    //case class filterVariations(inVcf: File, outVcf: File, reference: File) extends VariantFiltration with CommandLineGATKArgs {
     add(filterVariations(afterCleanupVariants, filteredCallSet, reference))
 
   }
