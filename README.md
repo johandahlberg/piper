@@ -87,7 +87,7 @@ Pick the workflow that you want to run, e.g. haloplex. Open the corresponding fi
 Development
 ===========
 
-The heavy lifting in Piper is primarilly done in Scala, with Bash glueing together the different scripts to into workflows. Some additional Java and the occational Perl component is used, but the main body of the code is 
+The heavy lifting in Piper is primarilly done in Scala, with Bash glueing together the different scripts to into workflows. Some additional Java and the occational Perl component is used, but the main body of the code is written in Scala.
 
 Coding
 ------
@@ -133,8 +133,11 @@ Troubleshooting
 Old projects
 ------------
 In projects where data was generated before the spring of 2013, the report.xml files do not fulfill the current specification. To fix this you need to find the following row in the `report.xml`:
+    
     <SequencingReport>
+
 and substitute it for:
+
     <SequencingReport  xmlns="illuminareport.xml.molmed">
 
 Licence
