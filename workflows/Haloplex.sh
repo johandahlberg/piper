@@ -70,7 +70,9 @@ OUTPUT_DIR="pipeline_output/haloplex"
 # in a different way.
 #---------------------------------------------
 
-mkdir $OUTPUT_DIR
+mkdir -p $OUTPUT_DIR
+mkdir -p ${LOGS}
+
 PIPELINE_OUTPUT=$(haloplex ${PIPELINE_SETUP_XML})
 
 # Perform final clean up
