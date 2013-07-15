@@ -24,6 +24,7 @@ import net.sf.samtools.SAMFileReader
 import molmed.utils.Resources
 import org.broadinstitute.sting.queue.extensions.gatk.VcfGatherFunction
 import org.broadinstitute.sting.queue.extensions.gatk.BamGatherFunction
+import molmed.queue.extensions.picard.CollectTargetedPcrMetrics
 
 class Haloplex extends QScript {
 
@@ -47,6 +48,9 @@ class Haloplex extends QScript {
 
   @Input(doc = "bed files with haloplex intervals to be analyzed.", fullName = "gatk_interval_file", shortName = "intervals", required = true)
   var intervals: File = _
+  
+  @Input(doc = "Haloplex amplicons file", fullName = "amplicons", shortName = "amp", required = true)
+  var amplicons: File = _
 
   /**
    * **************************************************************************
@@ -140,9 +144,9 @@ class Haloplex extends QScript {
   // Returns a list of realigned BAM files.
   def performAlignment(fastqs: ReadPairContainer, readGroupInfo: String, reference: File, isIntermediateAlignment: Boolean = false, outputDir: File): File = {
 
-    val saiFile1 = new File(outputDir + fastqs.sampleName + ".1.sai")
-    val saiFile2 = new File(outputDir + fastqs.sampleName + ".2.sai")
-    val alignedBamFile = new File(outputDir + fastqs.sampleName + ".bam")
+    val saiFile1 = new File(outputDir + "/" + fastqs.sampleName + ".1.sai")
+    val saiFile2 = new File(outputDir + "/" +fastqs.sampleName + ".2.sai")
+    val alignedBamFile = new File(outputDir + "/" + fastqs.sampleName + ".bam")
 
     // Check that there is actually a mate pair in the container.
     assert(fastqs.isMatePaired())
@@ -343,6 +347,11 @@ class Haloplex extends QScript {
         clippedBam
       }
 
+    // Collect targetedPCRMetrics
+    // case class collectTargetedPCRMetrics(bam: File, generalStatisticsOutput: File, perTargetStat: File, ampliconIntervalFile: File, targetIntevalFile: File, ref: File) extends CollectTargetedPcrMetrics with ExternalCommonArgs {
+    // @TODO
+    //add(collectTargetedPCRMetrics())
+    
     // Make variant calls
     val afterCleanupVariants = swapExt(preliminaryVariantCalls, ".pre.vcf", ".vcf")
     add(genotype(clippedAndRecalibratedBams.toSeq, reference, afterCleanupVariants, true))
@@ -516,7 +525,7 @@ class Haloplex extends QScript {
     this.scatterCount = nContigs
     this.analysisName = outBam + ".clean"
     this.jobName = outBam + ".clean"
-  }
+  }  
 
   case class cov(inBam: Seq[File], outRecalFile: File, reference: File) extends BaseRecalibrator with CommandLineGATKArgs {
 
@@ -564,4 +573,19 @@ class Haloplex extends QScript {
     this.filterName = Seq("HARD_TO_VALIDATE", "LowCoverage", "VeryLowQual", "LowQual", "LowQD")
 
   }
+  
+  case class collectTargetedPCRMetrics(bam: File, generalStatisticsOutput: File, perTargetStat: File, ampliconIntervalFile: File, targetIntevalFile: File, ref: File) extends CollectTargetedPcrMetrics with ExternalCommonArgs {
+    
+    this.isIntermediate = false
+    
+    this.input = Seq(bam)
+    this.output = generalStatisticsOutput
+    this.perTargetOutputFile = perTargetStat        
+    this.amplicons = ampliconIntervalFile
+    this.targets = targetIntevalFile
+    this.reference = ref
+    
+  }
+  
+
 }
