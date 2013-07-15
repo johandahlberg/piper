@@ -46,7 +46,7 @@ class Haloplex extends QScript {
   @Input(doc = "Location of resource files such as dbSnp, hapmap, etc.", fullName = "resources", shortName = "res", required = true)
   var resourcesPath: File = _
 
-  @Input(doc = "bed files with haloplex intervals to be analyzed.", fullName = "gatk_interval_file", shortName = "intervals", required = true)
+  @Input(doc = "bed files with haloplex intervals to be analyzed. (Covered from design package)", fullName = "gatk_interval_file", shortName = "intervals", required = true)
   var intervals: File = _
   
   @Input(doc = "Haloplex amplicons file", fullName = "amplicons", shortName = "amp", required = true)
@@ -348,9 +348,19 @@ class Haloplex extends QScript {
       }
 
     // Collect targetedPCRMetrics
-    // case class collectTargetedPCRMetrics(bam: File, generalStatisticsOutput: File, perTargetStat: File, ampliconIntervalFile: File, targetIntevalFile: File, ref: File) extends CollectTargetedPcrMetrics with ExternalCommonArgs {
+    // case class collectTargetedPCRMetrics(bam: File, 
+    //generalStatisticsOutput: File,
+    //perTargetStat: File,
+    //ampliconIntervalFile: File,
+    //targetIntevalFile: File, ref: File) extends CollectTargetedPcrMetrics with ExternalCommonArgs {
     // @TODO
-    //add(collectTargetedPCRMetrics())
+    for(bam <- clippedAndRecalibratedBams) {
+      val generalStatisticsOutputFile = swapExt(bam, ".bam", ".statistics")
+      val perAmpliconStatisticsOutputFile = swapExt(bam, ".bam", ".amplicon.statistics")
+    	add(collectTargetedPCRMetrics(bam, generalStatisticsOutputFile, perAmpliconStatisticsOutputFile,
+    	    qscript.amplicons, qscript.intervals, reference))
+    }
+    
     
     // Make variant calls
     val afterCleanupVariants = swapExt(preliminaryVariantCalls, ".pre.vcf", ".vcf")
