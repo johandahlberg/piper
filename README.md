@@ -92,21 +92,27 @@ The heavy lifting in Piper is primarilly done in Scala, with Bash glueing togeth
 Coding
 ------
 To work on the Piper project I recommend using the [Scala IDE](http://scala-ide.org/). To start developing follow the installation procedure outlined above. When you have finised the installation you can set the project up for you IDE by running:
+
     sbt eclipse
+
 This will create the necessary project file for you to be able to import the project into the Scala IDE and start developing away.
 
 Although the Scala IDE will compile the code as you type away, you will probably also want to get the hang of a few basic SBT commands (which you can either run from the interactive sbt console which you start by typing `sbt` in the project root folder, or by typing `sbt <command>` to run it straight from the CLI):
 
     compile
+
 Will compile your project.
 
     package
+
 Will produce you jars (look under the `target` dir and in the dir for the Scala version that you build targets)
 
     clean
+
 If something looks strange it's probably a good idea to run this. It deletes all of your class files so that you can create be sure you have a totally clean build.
 
     test
+
 Run the tests (for more on testing, see the testing chapter) - note that by default this only dry runs the qscript integration tests, which (basically making sure that they compile, but giving you no guarantees for runtime functionality).
 
 ### Making Piper generate graph files
