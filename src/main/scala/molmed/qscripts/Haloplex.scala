@@ -1,8 +1,13 @@
 package molmed.qscripts
 
-import scala.collection.JavaConversions.asScalaBuffer
+import java.io.PrintWriter
+
+import scala.collection.JavaConversions._
+import scala.io.Source
+
 import org.broadinstitute.sting.gatk.downsampling.DownsampleType
 import org.broadinstitute.sting.queue.QScript
+import org.broadinstitute.sting.queue.extensions.gatk.BamGatherFunction
 import org.broadinstitute.sting.queue.extensions.gatk.BaseRecalibrator
 import org.broadinstitute.sting.queue.extensions.gatk.ClipReads
 import org.broadinstitute.sting.queue.extensions.gatk.CommandLineGATK
@@ -10,24 +15,23 @@ import org.broadinstitute.sting.queue.extensions.gatk.IndelRealigner
 import org.broadinstitute.sting.queue.extensions.gatk.RealignerTargetCreator
 import org.broadinstitute.sting.queue.extensions.gatk.UnifiedGenotyper
 import org.broadinstitute.sting.queue.extensions.gatk.VariantFiltration
+import org.broadinstitute.sting.queue.extensions.gatk.VcfGatherFunction
 import org.broadinstitute.sting.queue.extensions.picard.MergeSamFiles
 import org.broadinstitute.sting.queue.extensions.picard.SortSam
 import org.broadinstitute.sting.queue.function.ListWriterFunction
+
+import molmed.queue.extensions.picard.CollectTargetedPcrMetrics
 import molmed.queue.setup.ReadPairContainer
 import molmed.queue.setup.Sample
 import molmed.queue.setup.SampleAPI
 import molmed.queue.setup.SetupXMLReader
 import molmed.queue.setup.SetupXMLReaderAPI
 import molmed.utils.Resources
+import molmed.utils.Resources
+import net.sf.samtools.SAMFileHeader
 import net.sf.samtools.SAMFileHeader.SortOrder
 import net.sf.samtools.SAMFileReader
-import molmed.utils.Resources
-import org.broadinstitute.sting.queue.extensions.gatk.VcfGatherFunction
-import org.broadinstitute.sting.queue.extensions.gatk.BamGatherFunction
-import molmed.queue.extensions.picard.CollectTargetedPcrMetrics
-import net.sf.samtools.SAMFileHeader
-import java.io.PrintWriter
-import scala.io.Source
+import net.sf.samtools.SAMTextHeaderCodec
 
 class Haloplex extends QScript {
 
@@ -484,7 +488,7 @@ class Haloplex extends QScript {
           logger.error("Failed deleted intermediate file: " + f.getAbsoluteFile())
       })
     }
-  }
+  }  
 
   def intervalFormatString(contig: String, start: String, end: String, strand: String, intervalName: String): String =
     "%s\t%s\t%s\t%s\t%s".format(contig, start, end, strand, intervalName)
@@ -499,9 +503,14 @@ class Haloplex extends QScript {
 
   def writeIntervals(bed: File, intervalFile: File, bam: File, formatFrom: Array[String] => String): Unit = {
     val header = getSamHeader(bam)
+    header.setProgramRecords(List())
+    header.setReadGroups(List())
 
     val writer = new PrintWriter(intervalFile)
-    writer.println(header)
+
+    val codec = new SAMTextHeaderCodec();
+    codec.encode(writer, header)
+
     for (row <- Source.fromFile(bed).getLines.drop(2)) {
       val split = row.split("\t")
       val intervalEntry = formatFrom(split)
