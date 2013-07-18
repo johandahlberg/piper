@@ -341,7 +341,7 @@ class Haloplex extends QScript {
       for (bam <- cohortList) yield {
 
         // Indel realignment
-        val indelRealignedBam = swapExt(bam, ".bam", ".clean.bam")
+        val indelRealignedBam = swapExt(bamOutputDir, bam, ".bam", ".clean.bam")
         add(clean(Seq(bam), targets, indelRealignedBam, reference))
         indelRealignedBam
       }
@@ -353,15 +353,15 @@ class Haloplex extends QScript {
     // Clip reads and apply BQSR
     val clippedAndRecalibratedBams =
       for (bam <- postCleaningBamList) yield {
-        val clippedBam = swapExt(bam, ".bam", ".clipped.recal.bam")
+        val clippedBam = swapExt(bamOutputDir, bam, ".bam", ".clipped.recal.bam")
         add(clip(bam, clippedBam, covariates, reference))
         clippedBam
       }
 
     // Convert intervals and amplicons from bed files to
     // picard metric files.
-    val intervalsAsPicardIntervalFile = new File(miscOutputDir + "/" + swapExt(qscript.intervals, ".bed", ".intervals"))
-    val ampliconsAsPicardIntervalFile = new File(miscOutputDir + "/" + swapExt(qscript.amplicons, ".bed", ".intervals"))
+    val intervalsAsPicardIntervalFile = new File(swapExt(miscOutputDir, qscript.intervals, ".bed", ".intervals"))
+    val ampliconsAsPicardIntervalFile = new File(swapExt(miscOutputDir, qscript.amplicons, ".bed", ".intervals"))
 
     add(convertCoveredToIntervals(qscript.intervals, intervalsAsPicardIntervalFile, clippedAndRecalibratedBams.toList(0)))
     add(convertAmpliconsToIntervals(qscript.amplicons, ampliconsAsPicardIntervalFile, clippedAndRecalibratedBams.toList(0)))
@@ -369,18 +369,18 @@ class Haloplex extends QScript {
     // Collect targetedPCRMetrics
     // @TODO
     for (bam <- clippedAndRecalibratedBams) {
-      val generalStatisticsOutputFile = swapExt(bam, ".bam", ".statistics")
-      val perAmpliconStatisticsOutputFile = swapExt(bam, ".bam", ".amplicon.statistics")
+      val generalStatisticsOutputFile = swapExt(bamOutputDir, bam, ".bam", ".statistics")
+      val perAmpliconStatisticsOutputFile = swapExt(bamOutputDir, bam, ".bam", ".amplicon.statistics")
       add(collectTargetedPCRMetrics(bam, generalStatisticsOutputFile, perAmpliconStatisticsOutputFile,
         ampliconsAsPicardIntervalFile, intervalsAsPicardIntervalFile, reference))
     }
 
     // Make variant calls
-    val afterCleanupVariants = swapExt(preliminaryVariantCalls, ".pre.vcf", ".vcf")
+    val afterCleanupVariants = swapExt(vcfOutputDir, preliminaryVariantCalls, ".pre.vcf", ".vcf")
     add(genotype(clippedAndRecalibratedBams.toSeq, reference, afterCleanupVariants, true))
 
     // Filter variant calls
-    val filteredCallSet = swapExt(afterCleanupVariants, ".vcf", ".filtered.vcf")
+    val filteredCallSet = swapExt(vcfOutputDir, afterCleanupVariants, ".vcf", ".filtered.vcf")
     add(filterVariations(afterCleanupVariants, filteredCallSet, reference))
 
   }
