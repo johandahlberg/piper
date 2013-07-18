@@ -28,6 +28,9 @@ class CollectTargetedPcrMetrics extends org.broadinstitute.sting.queue.function.
   @Argument(doc = "Reference file", shortName = "reference", fullName = "reference", required = true)
   var reference: File = _
 
+  @Argument(doc = "Metrics acumulation level", shortName = "mal", fullName = "metricsAccumulationLevel", required = false)
+  val metricsAccumulationLevel: String = "ALL_READS"
+  
   val level = MetricAccumulationLevel.SAMPLE
 
   override def inputBams = input
@@ -36,6 +39,7 @@ class CollectTargetedPcrMetrics extends org.broadinstitute.sting.queue.function.
     required("AMPLICON_INTERVALS=" + amplicons) +
     required("TARGET_INTERVALS=" + targets) +
     required("REFERENCE_SEQUENCE=" + reference) +
+    optional("METRIC_ACCUMULATION_LEVEL=" + metricsAccumulationLevel) + 
     optional("METRIC_ACCUMULATION_LEVEL=" + level) +
     optional("PER_TARGET_COVERAGE=" + perTargetOutputFile)
 

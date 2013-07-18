@@ -25,6 +25,9 @@ import molmed.utils.Resources
 import org.broadinstitute.sting.queue.extensions.gatk.VcfGatherFunction
 import org.broadinstitute.sting.queue.extensions.gatk.BamGatherFunction
 import molmed.queue.extensions.picard.CollectTargetedPcrMetrics
+import net.sf.samtools.SAMFileHeader
+import java.io.PrintWriter
+import scala.io.Source
 
 class Haloplex extends QScript {
 
@@ -48,7 +51,7 @@ class Haloplex extends QScript {
 
   @Input(doc = "bed files with haloplex intervals to be analyzed. (Covered from design package)", fullName = "gatk_interval_file", shortName = "intervals", required = true)
   var intervals: File = _
-  
+
   @Input(doc = "Haloplex amplicons file", fullName = "amplicons", shortName = "amp", required = true)
   var amplicons: File = _
 
@@ -145,7 +148,7 @@ class Haloplex extends QScript {
   def performAlignment(fastqs: ReadPairContainer, readGroupInfo: String, reference: File, isIntermediateAlignment: Boolean = false, outputDir: File): File = {
 
     val saiFile1 = new File(outputDir + "/" + fastqs.sampleName + ".1.sai")
-    val saiFile2 = new File(outputDir + "/" +fastqs.sampleName + ".2.sai")
+    val saiFile2 = new File(outputDir + "/" + fastqs.sampleName + ".2.sai")
     val alignedBamFile = new File(outputDir + "/" + fastqs.sampleName + ".bam")
 
     // Check that there is actually a mate pair in the container.
@@ -183,6 +186,17 @@ class Haloplex extends QScript {
     performAlignment(fastqs, readGroupInfo, reference, false, outputDir)
   }
 
+  def getSamHeader(bam: File): SAMFileHeader = {
+    val samReader = new SAMFileReader(bam)
+    samReader.getFileHeader
+  }
+
+  def findPlatformIds(bam: File): List[String] = {
+    val header = getSamHeader(bam)
+    val readGroups = header.getReadGroups
+    readGroups.map(f => f.getPlatformUnit()).toList
+  }
+
   /**
    * @TODO Write docs
    */
@@ -204,13 +218,6 @@ class Haloplex extends QScript {
           file.matches(expression.toString)).getOrElse(throw new Exception("Did not find file."))))
       else
         (false, null)
-    }
-
-    def findPlatformIds(bam: File): List[String] = {
-      val samReader = new SAMFileReader(bam)
-      val header = samReader.getFileHeader
-      val readGroups = header.getReadGroups
-      readGroups.map(f => f.getPlatformUnit()).toList
     }
 
     def align(sample: SampleAPI, asIntermidate: Boolean): File = {
@@ -291,7 +298,7 @@ class Haloplex extends QScript {
     miscOutputDir.mkdirs()
     val bamOutputDir = new File(outputDir + "/bam_files")
     bamOutputDir.mkdirs()
-    
+
     // Get and setup input files
     val setupReader: SetupXMLReaderAPI = new SetupXMLReader(input)
     val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
@@ -315,7 +322,7 @@ class Haloplex extends QScript {
         // Add the resulting file of the alignment to the output list
         bam
       }
-    
+
     // Make raw variation calls
     val preliminaryVariantCalls = new File(vcfOutputDir + "/" + projectName + ".pre.vcf")
     val reference = samples.values.flatten.toList(0).getReference
@@ -347,21 +354,23 @@ class Haloplex extends QScript {
         clippedBam
       }
 
+    // Convert intervals and amplicons from bed files to
+    // picard metric files.
+    val intervalsAsPicardIntervalFile = new File(miscOutputDir + "/" + swapExt(qscript.intervals, ".bed", ".intervals"))
+    val ampliconsAsPicardIntervalFile = new File(miscOutputDir + "/" + swapExt(qscript.amplicons, ".bed", ".intervals"))
+
+    add(convertCoveredToIntervals(qscript.intervals, intervalsAsPicardIntervalFile, clippedAndRecalibratedBams.toList(0)))
+    add(convertAmpliconsToIntervals(qscript.amplicons, ampliconsAsPicardIntervalFile, clippedAndRecalibratedBams.toList(0)))
+
     // Collect targetedPCRMetrics
-    // case class collectTargetedPCRMetrics(bam: File, 
-    //generalStatisticsOutput: File,
-    //perTargetStat: File,
-    //ampliconIntervalFile: File,
-    //targetIntevalFile: File, ref: File) extends CollectTargetedPcrMetrics with ExternalCommonArgs {
     // @TODO
-    for(bam <- clippedAndRecalibratedBams) {
+    for (bam <- clippedAndRecalibratedBams) {
       val generalStatisticsOutputFile = swapExt(bam, ".bam", ".statistics")
       val perAmpliconStatisticsOutputFile = swapExt(bam, ".bam", ".amplicon.statistics")
-    	add(collectTargetedPCRMetrics(bam, generalStatisticsOutputFile, perAmpliconStatisticsOutputFile,
-    	    qscript.amplicons, qscript.intervals, reference))
+      add(collectTargetedPCRMetrics(bam, generalStatisticsOutputFile, perAmpliconStatisticsOutputFile,
+        ampliconsAsPicardIntervalFile, intervalsAsPicardIntervalFile, reference))
     }
-    
-    
+
     // Make variant calls
     val afterCleanupVariants = swapExt(preliminaryVariantCalls, ".pre.vcf", ".vcf")
     add(genotype(clippedAndRecalibratedBams.toSeq, reference, afterCleanupVariants, true))
@@ -477,6 +486,42 @@ class Haloplex extends QScript {
     }
   }
 
+  def intervalFormatString(contig: String, start: String, end: String, strand: String, intervalName: String): String =
+    "%s\t%s\t%s\t%s\t%s".format(contig, start, end, strand, intervalName)
+
+  def formatFromCovered(split: Array[String]): String = {
+    intervalFormatString(split(0), (split(1).toInt + 1).toString, split(2), "+", split(3))
+  }
+
+  def formatFromAmplicons(split: Array[String]): String = {
+    intervalFormatString(split(0), (split(1).toInt + 1).toString, split(2), split(5), split(3))
+  }
+
+  def writeIntervals(bed: File, intervalFile: File, bam: File, formatFrom: Array[String] => String): Unit = {
+    val header = getSamHeader(bam)
+
+    val writer = new PrintWriter(intervalFile)
+    writer.println(header)
+    for (row <- Source.fromFile(bed).getLines.drop(2)) {
+      val split = row.split("\t")
+      val intervalEntry = formatFrom(split)
+      writer.println(intervalEntry)
+    }
+    writer.close()
+  }
+
+  case class convertCoveredToIntervals(@Input bed: File, @Output intervalFile: File, @Input bam: File) extends InProcessFunction {
+    def run(): Unit = {
+      writeIntervals(bed, intervalFile, bam, formatFromCovered)
+    }
+  }
+
+  case class convertAmpliconsToIntervals(@Input bed: File, @Output intervalFile: File, @Input bam: File) extends InProcessFunction {
+    def run(): Unit = {
+      writeIntervals(bed, intervalFile, bam, formatFromAmplicons)
+    }
+  }
+
   case class genotype(@Input bam: Seq[File], reference: File, @Output @Gather(classOf[VcfGatherFunction]) vcf: File, isSecondPass: Boolean) extends UnifiedGenotyper with CommandLineGATKArgs {
 
     this.isIntermediate = false
@@ -535,7 +580,7 @@ class Haloplex extends QScript {
     this.scatterCount = nContigs
     this.analysisName = outBam + ".clean"
     this.jobName = outBam + ".clean"
-  }  
+  }
 
   case class cov(inBam: Seq[File], outRecalFile: File, reference: File) extends BaseRecalibrator with CommandLineGATKArgs {
 
@@ -583,19 +628,18 @@ class Haloplex extends QScript {
     this.filterName = Seq("HARD_TO_VALIDATE", "LowCoverage", "VeryLowQual", "LowQual", "LowQD")
 
   }
-  
+
   case class collectTargetedPCRMetrics(bam: File, generalStatisticsOutput: File, perTargetStat: File, ampliconIntervalFile: File, targetIntevalFile: File, ref: File) extends CollectTargetedPcrMetrics with ExternalCommonArgs {
-    
+
     this.isIntermediate = false
-    
+
     this.input = Seq(bam)
     this.output = generalStatisticsOutput
-    this.perTargetOutputFile = perTargetStat        
+    this.perTargetOutputFile = perTargetStat
     this.amplicons = ampliconIntervalFile
     this.targets = targetIntevalFile
     this.reference = ref
-    
+
   }
-  
 
 }
