@@ -26,6 +26,7 @@ function haloplex {
 			    --input $1 \
 			    --resources ${GATK_BUNDLE_HG19} \
 			    -intervals ${INTERVALS} \
+			    --amplicons ${AMPLICONS} \
 			    -outputDir ${OUTPUT_DIR}/ \
 			    -bwa ${PATH_TO_BWA} \
 			    -samtools ${PATH_TO_SAMTOOLS} \
@@ -61,6 +62,7 @@ source globalConfig.sh
 
 PIPELINE_SETUP_XML="pipelineSetup.xml"
 INTERVALS="" # Your design bed-file
+AMPLICONS="" # The amplicon design file
 QOS="" # e.g. --qos=seqver
 OUTPUT_DIR="pipeline_output/haloplex"
 
