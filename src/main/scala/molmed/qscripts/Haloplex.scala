@@ -347,7 +347,7 @@ class Haloplex extends QScript {
       }
 
     // BQSR
-    val covariates = new File(miscOutputDir + "/" + outputDir + "/bqsr.grp")
+    val covariates = new File(miscOutputDir + "/bqsr.grp")
     add(cov(postCleaningBamList.toSeq, covariates, reference))
 
     // Clip reads and apply BQSR
