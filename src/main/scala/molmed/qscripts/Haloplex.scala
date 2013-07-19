@@ -577,6 +577,7 @@ class Haloplex extends QScript {
 
   case class clean(inBams: Seq[File], tIntervals: File, outBam: File, reference: File) extends IndelRealigner with CommandLineGATKArgs {
 
+    this.isIntermediate = true
     this.reference_sequence = reference
     this.input_file = inBams
     this.targetIntervals = tIntervals
