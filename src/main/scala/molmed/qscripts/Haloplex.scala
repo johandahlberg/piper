@@ -1,10 +1,8 @@
 package molmed.qscripts
 
 import java.io.PrintWriter
-
 import scala.collection.JavaConversions._
 import scala.io.Source
-
 import org.broadinstitute.sting.commandline.Hidden
 import org.broadinstitute.sting.gatk.downsampling.DownsampleType
 import org.broadinstitute.sting.queue.QScript
@@ -20,7 +18,6 @@ import org.broadinstitute.sting.queue.extensions.gatk.VcfGatherFunction
 import org.broadinstitute.sting.queue.extensions.picard.MergeSamFiles
 import org.broadinstitute.sting.queue.extensions.picard.SortSam
 import org.broadinstitute.sting.queue.function.ListWriterFunction
-
 import molmed.queue.extensions.picard.CollectTargetedPcrMetrics
 import molmed.queue.setup.ReadPairContainer
 import molmed.queue.setup.Sample
@@ -33,6 +30,7 @@ import net.sf.samtools.SAMFileHeader
 import net.sf.samtools.SAMFileHeader.SortOrder
 import net.sf.samtools.SAMFileReader
 import net.sf.samtools.SAMTextHeaderCodec
+import java.io.FileNotFoundException
 
 class Haloplex extends QScript {
 
@@ -309,10 +307,20 @@ class Haloplex extends QScript {
     bamOutputDir.mkdirs()
 
     // Get and setup input files
-    val setupReader: SetupXMLReaderAPI = new SetupXMLReader(input)
-    val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
-    uppmaxProjId = setupReader.getUppmaxProjectId()
-    projectName = setupReader.getProjectName
+    val samples: Map[String, Seq[SampleAPI]] =
+      try {
+        val setupReader: SetupXMLReaderAPI = new SetupXMLReader(input)
+        uppmaxProjId = setupReader.getUppmaxProjectId()
+        projectName = setupReader.getProjectName
+        setupReader.getSamples()
+      } catch {
+        case e: FileNotFoundException => {
+          if (testMode)
+            Map.empty
+          else
+            throw e
+        }
+      }
 
     // Run cutadapt       
     val cutAndSyncedSamples = cutSamples(samples)
