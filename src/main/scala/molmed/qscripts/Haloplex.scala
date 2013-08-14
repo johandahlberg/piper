@@ -5,6 +5,7 @@ import java.io.PrintWriter
 import scala.collection.JavaConversions._
 import scala.io.Source
 
+import org.broadinstitute.sting.commandline.Hidden
 import org.broadinstitute.sting.gatk.downsampling.DownsampleType
 import org.broadinstitute.sting.queue.QScript
 import org.broadinstitute.sting.queue.extensions.gatk.BamGatherFunction
@@ -85,6 +86,10 @@ class Haloplex extends QScript {
 
   @Argument(doc = "Number of threads to use in thread enabled walkers. Default: 1", fullName = "nbr_of_threads", shortName = "nt", required = false)
   var nbrOfThreads: Int = 8
+
+  @Hidden
+  @Input(doc = "Path to the sync script", fullName = "path_to_sync", shortName = "sync", required = false)
+  var pathToSyncScript: File = "resources/FixEmptyReads.pl"
 
   /**
    * Private variables
@@ -408,7 +413,7 @@ class Haloplex extends QScript {
     this.memoryLimit = 6
 
     // Run cutadapt and sync via perl script by adding N's in all empty reads.  
-    def commandLine = cutadaptPath + " -a " + adaptor + " " + fastq + " | perl resources/FixEmptyReads.pl -o " + cutFastq
+    def commandLine = cutadaptPath + " -a " + adaptor + " " + fastq + " | perl " + pathToSyncScript + " -o " + cutFastq
 
   }
 
@@ -488,7 +493,7 @@ class Haloplex extends QScript {
           logger.error("Failed deleted intermediate file: " + f.getAbsoluteFile())
       })
     }
-  }  
+  }
 
   def intervalFormatString(contig: String, start: String, end: String, strand: String, intervalName: String): String =
     "%s\t%s\t%s\t%s\t%s".format(contig, start, end, strand, intervalName)
