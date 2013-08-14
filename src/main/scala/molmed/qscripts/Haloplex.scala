@@ -30,7 +30,7 @@ import net.sf.samtools.SAMFileHeader
 import net.sf.samtools.SAMFileHeader.SortOrder
 import net.sf.samtools.SAMFileReader
 import net.sf.samtools.SAMTextHeaderCodec
-import java.io.FileNotFoundException
+import molmed.queue.setup.ReadGroupInformation
 
 class Haloplex extends QScript {
 
@@ -291,6 +291,21 @@ class Haloplex extends QScript {
   }
 
   /**
+   * Ugly hack help method to handle if there are no input files found (as when running the travis CI builds), in which
+   * case we create a fake sample map for the script to compile.
+   */
+  private def createFakeSamples(): Map[String, Seq[SampleAPI]] = {
+    uppmaxProjId = "fakeprojid"
+    projectName = "TestProject"
+    Map(
+      "1" -> List(
+        Sample("1", new File("src/test/resources/testdata/exampleFASTA.fasta"),
+          ReadGroupInformation("1", "C0HNDACXX.1.1", "SNP_SEQ_PLATFORM", "CEP_C13-NA11992", "Illumina", "C0HNDACXX.1.1"),
+          ReadPairContainer(new File("src/test/resources/testdata/smallTestFastqDataFolder/Sample_1/exampleFASTQ_L001_R1_file.fastq").getAbsoluteFile(),
+            new File("src/test/resources/testdata/smallTestFastqDataFolder/Sample_1/exampleFASTQ_L001_R2_file.fastq").getAbsoluteFile(), "1"))))
+  }
+
+  /**
    * The actual script
    */
 
@@ -307,20 +322,14 @@ class Haloplex extends QScript {
     bamOutputDir.mkdirs()
 
     // Get and setup input files
-    val samples: Map[String, Seq[SampleAPI]] =
-      try {
-        val setupReader: SetupXMLReaderAPI = new SetupXMLReader(input)
-        uppmaxProjId = setupReader.getUppmaxProjectId()
-        projectName = setupReader.getProjectName
-        setupReader.getSamples()
-      } catch {
-        case e: FileNotFoundException => {
-          if (testMode)
-            Map.empty
-          else
-            throw e
-        }
-      }
+    val samples: Map[String, Seq[SampleAPI]] = if (!testMode) {
+      val setupReader: SetupXMLReaderAPI = new SetupXMLReader(input)
+      uppmaxProjId = setupReader.getUppmaxProjectId()
+      projectName = setupReader.getProjectName
+      setupReader.getSamples()
+    } else {
+      createFakeSamples()
+    }
 
     // Run cutadapt       
     val cutAndSyncedSamples = cutSamples(samples)
