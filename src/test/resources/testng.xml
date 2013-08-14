@@ -9,7 +9,7 @@
 		</packages>
 	</test>
 	<test name="PipelineTests">
-		<parameter name="runpipeline" value="false" />
+		<parameter name="runpipeline" value="true" />
 
 		<classes>
 			<class name="molmed.qscripts.AlignWithBWASnpSeqPipelineTest" />
@@ -17,6 +17,7 @@
 			<class name="molmed.qscripts.VariantCallingSnpSeqPipelineTest" />
 			<class name="molmed.qscripts.AlignWithTophatSnpSeqPipelineTest" />
 			<class name="molmed.qscripts.AlignmentQCSnpSeqPipelineTest" />
+			<class name="molmed.qscripts.HaloplexSnpSeqPipelineTest" />
 		</classes>
 	</test>
 </suite>
