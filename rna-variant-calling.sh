@@ -70,10 +70,10 @@ module load R/2.15.0
 
 COHORT_FILE="cohort.list"
 PROJECT_NAME="rna_all"
-PROJECT_ID="a2009002"
+PROJECT_ID="b2011214"
 GENOME_REFERENCE=${GATK_BUNDLE}"/human_g1k_v37.fasta"
 # Note that it's important that the last / is included in the root dir path
-QOS="--qos=seqver" # e.g. --qos=seqver
+QOS="" # e.g. --qos=seqver
 
 #---------------------------------------------
 # The actual running of the script
@@ -87,9 +87,9 @@ source globalConfig.sh
 # -----------------------
 # Pers custom annotations
 # -----------------------
-VEP=/lynx/cvol/v24/b2012073/private/bin/VEP
-TABIX=/bubo/home/h2/anderslu/b2012073/private/bin/tabix-0.2.6/
-VCFTOOLS=/bubo/home/h2/anderslu/b2012073/private/bin/vcftools_0.1.10/perl/
+VEP=/proj/b2010028/programs/vep/variant_effect_predictor
+TABIX=/proj/b2010028/programs/tabix/tabix-0.2.6
+VCFTOOLS=/bubo/sw/apps/bioinfo/vcftools/0.1.8a/kalkyl/bin/vcftools
 
 export PERL5LIB=$VCFTOOLS
 
