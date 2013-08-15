@@ -120,7 +120,9 @@ TODO
 
 
 ### Using the XML binding compiler (xjc):
-TODO
+To generate the xml read classes I use xjc, which uses a xml schema in xsd format to generate the a number of java classes, which can then be used to interact with the setup and report xml files. These classes are used by the SetupXMLReader and the SetupFileCreator. An example of how to generate the classes can be seen below:
+
+	 xjc -d src/main/java/ src/main/resources/PipelineSetupSchema.xsd
 
 Testing
 -------
