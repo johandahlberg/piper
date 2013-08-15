@@ -65,6 +65,7 @@ class AlignWithBWA extends QScript {
   @Hidden
   @Argument(doc = "Uppmax qos flag", fullName = "quality_of_service", shortName = "qos", required = false)
   var uppmaxQoSFlag: String = ""
+  def getUppmaxQosFlag(): String = if(uppmaxQoSFlag.isEmpty()) "" else " --qos=" + uppmaxQoSFlag
   
   /**
    * **************************************************************************
