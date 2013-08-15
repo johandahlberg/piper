@@ -9,7 +9,7 @@ import java.io.FileNotFoundException
 
 class SampleSnpSeqUnitTest {
 
-    val baseTest = new SnpSeqBaseTest()
+    val baseTest = SnpSeqBaseTest
 
     // Setup
     val readGroupId = "C0HNDACXX.1.1"

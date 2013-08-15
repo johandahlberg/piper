@@ -9,7 +9,7 @@ import java.io.FileNotFoundException
 
 class LegacySampleSnpSeqUnitTest {
 
-    val baseTest = new SnpSeqBaseTest()
+    val baseTest = SnpSeqBaseTest
 
     var sampleName = "TestSample"
     var setupXMLReader = new SetupXMLReaderStub()

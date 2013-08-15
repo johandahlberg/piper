@@ -10,7 +10,7 @@ class IlluminaXMLReportReaderSnpSeqUnitTest {
     /*
      * Note the these tests are dependent on the report.xml file, so if that is changed the tests need to be updated.
      */
-    val baseTest = new SnpSeqBaseTest()
+    val baseTest = SnpSeqBaseTest
     val reportFile: File = new File(baseTest.pathToReportXML)
     val illuminaXMLReportReader = new IlluminaXMLReportReader(reportFile)
     val sampleName = "1" 

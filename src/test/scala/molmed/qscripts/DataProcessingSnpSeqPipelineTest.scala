@@ -37,7 +37,7 @@ class DataProcessingSnpSeqPipelineTest {
 
     val pathToScript = "-S src/main/scala/molmed/qscripts/DataProcessingPipeline.scala"
 
-    val snpSeqBaseTest = new SnpSeqBaseTest()
+    val snpSeqBaseTest = SnpSeqBaseTest
 
     var run: Boolean = false
 

@@ -37,7 +37,7 @@ class VariantCallingSnpSeqPipelineTest {
 
     val pathToScript = "-S src/main/scala/molmed/qscripts/VariantCalling.scala"
 
-    val snpSeqBaseTest = new SnpSeqBaseTest()
+    val snpSeqBaseTest = SnpSeqBaseTest
 
     var run: Boolean = false
 
@@ -61,7 +61,7 @@ class VariantCallingSnpSeqPipelineTest {
             " -res " + "/local/data/gatk_bundle/b37/",
             " -i " + snpSeqBaseTest.chromosome20Bam,
             " -intervals " + "/local/data/gatk_bundle/b37/first1000SNPsonChr20.intervals",
-            " -outputDir " + "target/pipelinetests/VariantCallingPipeline/Shell/run/",
+            //" -outputDir " + "target/pipelinetests/VariantCallingPipeline/Shell/run/",
             " --nbr_of_threads 1 ",
             " --scatter_gather 1 ",
             " -noRecal ",

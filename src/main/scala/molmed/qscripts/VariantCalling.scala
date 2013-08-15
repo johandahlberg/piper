@@ -107,7 +107,7 @@ class VariantCalling extends QScript {
     val isExome: Boolean,
     val nSamples: Int) {
 
-    val name = qscript.outputDir.getAbsolutePath() + "/" + baseName
+    val name = if(qscript.outputDir.isEmpty()) baseName else qscript.outputDir + "/" + baseName
     val clusterFile = new File(name + ".clusters")
     val rawSnpVCF = new File(name + ".raw.snv.vcf")
     val rawIndelVCF = new File(name + ".raw.indel.vcf")

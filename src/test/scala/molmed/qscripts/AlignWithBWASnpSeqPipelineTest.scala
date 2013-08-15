@@ -16,7 +16,7 @@ class AlignWithBWASnpSeqPipelineTest {
     // If these tests are to run with the drmaa jobrunner, etc, specify -Dpipline.uppmax=true on the command line
     val runOnUppmax = System.getProperty("pipeline.uppmax") == "true"
 
-    val snpSeqBaseTest: SnpSeqBaseTest = new SnpSeqBaseTest()
+    val snpSeqBaseTest = SnpSeqBaseTest
     val pathToScript: String = " -S src/main/scala/molmed/qscripts/AlignWithBWA.scala"
 
     val walltime = 600

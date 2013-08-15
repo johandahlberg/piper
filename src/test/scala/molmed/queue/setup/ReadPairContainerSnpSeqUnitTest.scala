@@ -7,7 +7,7 @@ import molmed.queue.SnpSeqBaseTest
 
 class ReadPairContainerSnpSeqUnitTest{
     
-    val baseTest = new SnpSeqBaseTest()
+    val baseTest = SnpSeqBaseTest
     
     @Test
     def testIsMatePaired() {    

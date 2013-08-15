@@ -13,7 +13,7 @@ class LegacySetupXMLReaderSnpSeqUnitTest {
      /*
      * Note the these tests are dependent on the report.xml file, so if that is changed the tests need to be updated.
      */
-    val baseTest = new SnpSeqBaseTest()
+    val baseTest = SnpSeqBaseTest
     val setupFile: File = new File(baseTest.pathLegacySetupFile)
     val setupXMLReader = new LegacySetupXMLReader(setupFile)
     val sampleName = "1"
@@ -22,7 +22,7 @@ class LegacySetupXMLReaderSnpSeqUnitTest {
         
     @BeforeMethod
     def beforeTest() {        
-	    val baseTest = new SnpSeqBaseTest()
+	    val baseTest = SnpSeqBaseTest
 	    val setupFile: File = new File(baseTest.pathLegacySetupFile)
 	    val setupXMLReader = new LegacySetupXMLReader(setupFile)
 	    val sampleName = "1"               

@@ -14,7 +14,7 @@ class SetupXMLReaderSnpSeqUnitTest {
     /*
      * Note the these tests are dependent on the report.xml file, so if that is changed the tests need to be updated.
      */
-    val baseTest = new SnpSeqBaseTest()
+    val baseTest = SnpSeqBaseTest
     val setupFile: File = new File(baseTest.pathSetupFile)
     val setupXMLReader = new SetupXMLReader(setupFile)
     val sampleName = "1"
@@ -22,7 +22,7 @@ class SetupXMLReaderSnpSeqUnitTest {
 
     @BeforeMethod
     def beforeTest() {
-        val baseTest = new SnpSeqBaseTest()
+        val baseTest = SnpSeqBaseTest
         val setupFile: File = new File("src/test/resources/testdata/exampleForNewSetupXML.xml")
         val setupXMLReader = new SetupXMLReader(setupFile)
         val sampleName = "1"

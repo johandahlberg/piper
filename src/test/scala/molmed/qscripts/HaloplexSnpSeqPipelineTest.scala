@@ -12,7 +12,7 @@ import org.broadinstitute.sting.queue.pipeline._
 class HaloplexSnpSeqPipelineTest {
 
     val pathToScript = "-S src/main/scala/molmed/qscripts/Haloplex.scala"
-    val snpSeqBaseTest = new SnpSeqBaseTest()
+    val snpSeqBaseTest = SnpSeqBaseTest
     var run: Boolean = false
 
     @BeforeClass
@@ -23,9 +23,8 @@ class HaloplexSnpSeqPipelineTest {
 
     @Test
     def testBasicHaloplex {
-        val projectName = "test1"
-        val testRawSNV = projectName + ".raw.snv.vcf"
-        val testRawINDEL = projectName + ".raw.indel.vcf"
+        val testRawVcf = "vcf_files/TestProject.vcf"
+        val testRawFilteredVcf = "vcf_files/TestProject.filtered.vcf"
         
         val spec = new PipelineTestSpec
         spec.jobRunners = Seq("Shell")
@@ -36,16 +35,15 @@ class HaloplexSnpSeqPipelineTest {
             " -i " + snpSeqBaseTest.pathHaloplexSetupFile,
             " -intervals " + "/local/data/haloplex_test_data/design_files/test.roi.bed",
             " --amplicons " + "/local/data/haloplex_test_data/design_files/test.selection.bed",
-            " -outputDir " + "target/pipelinetests/HaloplexPipeline/Shell/run/",
             " -bwa " + "/usr/bin/bwa",
             " -cutadapt " + "/usr/local/bin/cutadapt",
             " --path_to_sync " + "$HOME/workspace/piper/resources/FixEmptyReads.pl",
-            " --nbr_of_threads 8 ",
+            " --nbr_of_threads 1 ",
             " --scatter_gather 1 ",
             " --test_mode ",
             " -startFromScratch ").mkString
-        spec.fileMD5s += testRawSNV -> ""
-        spec.fileMD5s += testRawINDEL -> ""
+        spec.fileMD5s += testRawVcf -> "442f5b2bf28dda15e63ec6b969b59366"
+        spec.fileMD5s += testRawFilteredVcf -> "1ecaac655d86626f9c28d677dc3f86fb"
         
         PipelineTest.executeTest(spec, run)
     }

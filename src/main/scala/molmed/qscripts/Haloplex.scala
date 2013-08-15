@@ -1,8 +1,11 @@
 package molmed.qscripts
 
+import java.io.FileNotFoundException
 import java.io.PrintWriter
+
 import scala.collection.JavaConversions._
 import scala.io.Source
+
 import org.broadinstitute.sting.commandline.Hidden
 import org.broadinstitute.sting.gatk.downsampling.DownsampleType
 import org.broadinstitute.sting.queue.QScript
@@ -18,7 +21,9 @@ import org.broadinstitute.sting.queue.extensions.gatk.VcfGatherFunction
 import org.broadinstitute.sting.queue.extensions.picard.MergeSamFiles
 import org.broadinstitute.sting.queue.extensions.picard.SortSam
 import org.broadinstitute.sting.queue.function.ListWriterFunction
+
 import molmed.queue.extensions.picard.CollectTargetedPcrMetrics
+import molmed.queue.setup.ReadGroupInformation
 import molmed.queue.setup.ReadPairContainer
 import molmed.queue.setup.Sample
 import molmed.queue.setup.SampleAPI
@@ -30,7 +35,6 @@ import net.sf.samtools.SAMFileHeader
 import net.sf.samtools.SAMFileHeader.SortOrder
 import net.sf.samtools.SAMFileReader
 import net.sf.samtools.SAMTextHeaderCodec
-import molmed.queue.setup.ReadGroupInformation
 
 class Haloplex extends QScript {
 
@@ -101,13 +105,17 @@ class Haloplex extends QScript {
    * Helper methods
    */
 
+  def getOutputDir(): File = {
+    if(outputDir.isEmpty()) "" else outputDir + "/"
+  }
+  
   def cutSamples(sampleMap: Map[String, Seq[SampleAPI]]): Map[String, Seq[SampleAPI]] = {
 
     // Standard Illumina adaptors    
     val adaptor1 = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC"
     val adaptor2 = "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT"
 
-    val cutadaptOutputDir = new File(outputDir + "/cutadapt")
+    val cutadaptOutputDir = getOutputDir() + "cutadapt"
     cutadaptOutputDir.mkdirs()
 
     // Run cutadapt & sync    
@@ -149,14 +157,14 @@ class Haloplex extends QScript {
 
     cutSamples
   }
-
+  
   // Takes a list of processed BAM files and realign them using the BWA option requested  (bwase or bwape).
   // Returns a list of realigned BAM files.
   def performAlignment(fastqs: ReadPairContainer, readGroupInfo: String, reference: File, isIntermediateAlignment: Boolean = false, outputDir: File): File = {
 
-    val saiFile1 = new File(outputDir + "/" + fastqs.sampleName + ".1.sai")
-    val saiFile2 = new File(outputDir + "/" + fastqs.sampleName + ".2.sai")
-    val alignedBamFile = new File(outputDir + "/" + fastqs.sampleName + ".bam")
+    val saiFile1: File = outputDir + "/" + fastqs.sampleName + ".1.sai"
+    val saiFile2: File = outputDir + "/" + fastqs.sampleName + ".2.sai"
+    val alignedBamFile: File = outputDir + "/" + fastqs.sampleName + ".bam"
 
     // Check that there is actually a mate pair in the container.
     assert(fastqs.isMatePaired())
@@ -219,9 +227,9 @@ class Haloplex extends QScript {
     }
 
     lazy val hasBeenSequenced: (Boolean, File) = {
-      val listOfOutputFiles = new File(outputDir).list().toList
+      val listOfOutputFiles = getOutputDir().list().toList
       if (listOfOutputFiles.exists(file => file.matches(expression.toString)))
-        (true, new File(outputDir + "/" + listOfOutputFiles.find(file =>
+        (true, new File(getOutputDir + listOfOutputFiles.find(file =>
           file.matches(expression.toString)).getOrElse(throw new Exception("Did not find file."))))
       else
         (false, null)
@@ -251,8 +259,8 @@ class Haloplex extends QScript {
 
         // Construct based on version of previous file
         val versionOfJoinedBam = getVersionOfPreviousAlignment(previouslyJoinedBam) + 1
-        val newJoinedBam = new File(outputDir + "/" + sampleName + ".ver." + versionOfJoinedBam + ".bam")
-        val newJoinedBamIndex = new File(outputDir + "/" + sampleName + ".ver." + versionOfJoinedBam + ".bai")
+        val newJoinedBam = new File(getOutputDir() + sampleName + ".ver." + versionOfJoinedBam + ".bam")
+        val newJoinedBamIndex = new File(getOutputDir() + sampleName + ".ver." + versionOfJoinedBam + ".bai")
 
         if (nonRunSamples.length > 0) {
           val sampleSams: Seq[File] = for (sample <- nonRunSamples) yield {
@@ -272,8 +280,8 @@ class Haloplex extends QScript {
           align(sample, true)
         }
 
-        val joinedBam = new File(outputDir + "/" + sampleName + ".ver.1.bam")
-        val joinedBamIndex = new File(outputDir + "/" + sampleName + ".ver.1.bai")
+        val joinedBam = new File(getOutputDir() + sampleName + ".ver.1.bam")
+        val joinedBamIndex = new File(getOutputDir() + sampleName + ".ver.1.bai")
 
         // Join and sort the sample bam files.
         add(joinBams(sampleSams, joinedBam, joinedBamIndex))
@@ -314,21 +322,30 @@ class Haloplex extends QScript {
     resources = new Resources(resourcesPath, testMode)
 
     // Create output dirs
-    val vcfOutputDir = new File(outputDir + "/vcf_files")
+    val vcfOutputDir = new File(getOutputDir() + "vcf_files")
     vcfOutputDir.mkdirs()
-    val miscOutputDir = new File(outputDir + "/misc")
+    val miscOutputDir = new File(getOutputDir() + "misc")
     miscOutputDir.mkdirs()
-    val bamOutputDir = new File(outputDir + "/bam_files")
+    val bamOutputDir = new File(getOutputDir() + "bam_files")
     bamOutputDir.mkdirs()
 
-    // Get and setup input files
-    val samples: Map[String, Seq[SampleAPI]] = if (!testMode) {
+    def setupSamples(): Map[String, Seq[SampleAPI]] = {
       val setupReader: SetupXMLReaderAPI = new SetupXMLReader(input)
       uppmaxProjId = setupReader.getUppmaxProjectId()
       projectName = setupReader.getProjectName
       setupReader.getSamples()
+    }
+
+    // Get and setup input files
+    val samples: Map[String, Seq[SampleAPI]] = if (!testMode) {
+      setupSamples()
     } else {
-      createFakeSamples()
+      try {
+        setupSamples()
+      } catch {
+        //case e: FileNotFoundException => createFakeSamples()
+        case e: Throwable => throw e
+      }
     }
 
     // Run cutadapt       

@@ -37,7 +37,7 @@ class AlignWithTophatSnpSeqPipelineTest {
 
     val pathToScript = "-S src/main/scala/molmed/qscripts/AlignWithTophat.scala"
 
-    val snpSeqBaseTest = new SnpSeqBaseTest()
+    val snpSeqBaseTest = SnpSeqBaseTest
 
     var run: Boolean = false
 
