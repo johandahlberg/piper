@@ -13,6 +13,7 @@ class SetupXMLReaderStub extends SetupXMLReaderAPI{
     var samples:  Map[String, Seq[SampleAPI]] = null
     var reference: File = null
     var uppmaxProjectId = null
+    var uppmaxQoS = null
     
     def getSampleFolder(sampleName: String, runFolderName: String): File  = {sampleFolder}  
     def getPlatform(): String = {platform}
@@ -20,6 +21,7 @@ class SetupXMLReaderStub extends SetupXMLReaderAPI{
     def getProjectName(): String = {projectName}
     def getSamples():  Map[String, Seq[SampleAPI]] = {samples} 
     def getReference(sampleName: String): File = {reference}
-    def getUppmaxProjectId() = {uppmaxProjectId}    
+    def getUppmaxProjectId() = {uppmaxProjectId}  
+    def getUppmaxQoSFlag() = uppmaxQoS
     
 }

@@ -139,7 +139,13 @@ class SetupXMLReaderSnpSeqUnitTest {
         val expected: String = "a2009002"
         val actual: String = setupXMLReader.getUppmaxProjectId()
         assert(actual.equals(expected))
-
+    }
+    
+    @Test
+    def testGetUppmaxQoSFlag() = {
+        val expected: String = "seqver"
+        val actual: String = setupXMLReader.getUppmaxQoSFlag()
+        assert(actual.equals(expected))
     }
 
 }
