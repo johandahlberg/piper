@@ -343,7 +343,7 @@ class Haloplex extends QScript {
       try {
         setupSamples()
       } catch {
-        //case e: FileNotFoundException => createFakeSamples()
+        case e: FileNotFoundException => createFakeSamples()
         case e: Throwable => throw e
       }
     }
