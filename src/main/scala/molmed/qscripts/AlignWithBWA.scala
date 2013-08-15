@@ -273,13 +273,13 @@ class AlignWithBWA extends QScript {
   // General arguments to non-GATK tools
   trait ExternalCommonArgs extends CommandLineFunction {
 
-    this.jobNativeArgs +:= "-p node -A " + projId + " " + uppmaxQoSFlag
+    this.jobNativeArgs +:= "-p node -A " + projId + " " + getUppmaxQosFlag()
     this.memoryLimit = 24
     this.isIntermediate = false
   }
 
   trait SixGbRamJobs extends ExternalCommonArgs {
-    this.jobNativeArgs +:= "-p core -n 2 -A " + projId + " " + uppmaxQoSFlag
+    this.jobNativeArgs +:= "-p core -n 2 -A " + projId + " " + getUppmaxQosFlag()
     this.memoryLimit = 6
   }
 
