@@ -62,7 +62,7 @@ class AlignWithBWASnpSeqPipelineTest {
         spec.name = "AlignPairedEndWithBwa"
         spec.args = Array(envSetup.commandline,
             " -bwa " + envSetup.pathToBwa,
-            " -i " + snpSeqBaseTest.pathLegacySetupFile,
+            " -i " + snpSeqBaseTest.pathSetupFile,
             " -bwape ",
             " -wallTime " + walltime,
             " -startFromScratch ").mkString
@@ -121,7 +121,7 @@ class AlignWithBWASnpSeqPipelineTest {
         spec.name = "AlignSingleEndWithBwa"
         spec.args = Array(envSetup.commandline,
             " -bwa " + envSetup.pathToBwa,
-            " -i " + snpSeqBaseTest.pathLegacySetupFile,
+            " -i " + snpSeqBaseTest.pathSetupFile,
             " -bwase ",
             " -wallTime " + walltime,
             " -startFromScratch ").mkString
@@ -160,7 +160,7 @@ class AlignWithBWASnpSeqPipelineTest {
         spec.name = "AlignSWWithBwa"
         spec.args = Array(envSetup.commandline,
             " -bwa " + envSetup.pathToBwa,
-            " -i " + snpSeqBaseTest.pathLegacySetupFile,
+            " -i " + snpSeqBaseTest.pathSetupFile,
             " -bwasw ",
             " -wallTime " + walltime,
             " -startFromScratch ").mkString
