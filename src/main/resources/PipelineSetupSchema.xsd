@@ -20,6 +20,7 @@
 				<xs:element name="sequenceingcenter" type="xs:string" />
 				<xs:element name="platfrom" type="xs:string" />
 				<xs:element name="uppmaxprojectid" type="xs:string" />
+				<xs:element name="uppmaxqos" type="xs:string" />
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
