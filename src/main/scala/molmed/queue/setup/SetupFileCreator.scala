@@ -93,12 +93,14 @@ object SetupFileCreator extends App {
     val seqencingPlatform = withDefaultValue("Sequencing platform", defaultValue = "Illumina")(getSingleInput)
     val sequencingCenter = withDefaultValue("Sequencing center", defaultValue = "SNP_SEQ_PLATFORM")(getSingleInput)
     val uppmaxProjectId = withDefaultValue("Uppmax project id", defaultValue = "a2009002")(getSingleInput)
+    val uppmaxQoSFlag = withDefaultValue("Uppmax QoS flag (default is no flag)", defaultValue = "")(getSingleInput)
 
     projectMetaData.setName(projectName)
     projectMetaData.setPlatfrom(seqencingPlatform)
     projectMetaData.setSequenceingcenter(sequencingCenter)
     projectMetaData.setUppmaxprojectid(uppmaxProjectId)
-    project.setMetadata(projectMetaData)
+    projectMetaData.setUppmaxqos(uppmaxQoSFlag)
+    project.setMetadata(projectMetaData)    
 
     project.setInputs(new Inputs)
 

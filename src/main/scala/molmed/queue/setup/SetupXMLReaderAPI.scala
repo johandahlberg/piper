@@ -31,4 +31,6 @@ trait SetupXMLReaderAPI {
     def getReference(sampleName: String): File
 
     def getUppmaxProjectId(): String
+    
+    def getUppmaxQoSFlag(): String
 }

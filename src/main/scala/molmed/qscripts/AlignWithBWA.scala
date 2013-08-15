@@ -62,6 +62,10 @@ class AlignWithBWA extends QScript {
   @Argument(doc = "Perform validation on the BAM files", fullName = "validation", shortName = "vs", required = false)
   var validation: Boolean = false
 
+  @Hidden
+  @Argument(doc = "Uppmax qos flag", fullName = "quality_of_service", shortName = "qos", required = false)
+  var uppmaxQoSFlag: String = ""
+  
   /**
    * **************************************************************************
    * Private variables
@@ -239,6 +243,7 @@ class AlignWithBWA extends QScript {
 
     val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
     projId = setupReader.getUppmaxProjectId()
+    uppmaxQoSFlag = setupReader.getUppmaxQoSFlag()
 
     for ((sampleName, sampleList) <- samples) {
 
@@ -267,13 +272,13 @@ class AlignWithBWA extends QScript {
   // General arguments to non-GATK tools
   trait ExternalCommonArgs extends CommandLineFunction {
 
-    this.jobNativeArgs +:= "-p node -A " + projId
+    this.jobNativeArgs +:= "-p node -A " + projId + " " + uppmaxQoSFlag
     this.memoryLimit = 24
     this.isIntermediate = false
   }
 
   trait SixGbRamJobs extends ExternalCommonArgs {
-    this.jobNativeArgs +:= "-p core -n 2 -A " + projId
+    this.jobNativeArgs +:= "-p core -n 2 -A " + projId + " " + uppmaxQoSFlag
     this.memoryLimit = 6
   }
 

@@ -4,6 +4,7 @@ import scala.collection.Seq
 import scala.xml._
 import collection.JavaConversions._
 import java.io.FileNotFoundException
+import org.apache.commons.lang.NotImplementedException
 
 class LegacySetupXMLReader(setupXML: File) extends SetupXMLReaderAPI{
 
@@ -82,4 +83,6 @@ class LegacySetupXMLReader(setupXML: File) extends SetupXMLReaderAPI{
         val sampleFolderNode = xml.\\("SampleFolder").find(node => node.attribute("Name").get.text.equalsIgnoreCase(sampleName))
         new File(sampleFolderNode.get.attribute("Reference").get.text).getAbsoluteFile()
     }    
+    
+    def getUppmaxQoSFlag = throw new NotImplementedException()
 }
