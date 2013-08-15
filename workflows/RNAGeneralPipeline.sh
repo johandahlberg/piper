@@ -56,7 +56,7 @@ function cufflinks {
 	    --mask ${RRNA_TARGETS} \
 	    --findNovel \
 	    --merge \
-	    -tophat ${PATH_TO_CUFFLINKS} \
+	    --path_to_cufflinks ${PATH_TO_CUFFLINKS} \
 	    -outputDir ${CUFFLINKS_OUTPUT}/ \
 	    --threads ${NBR_OF_THREADS} \
 	    -jobRunner ${JOB_RUNNER} \
