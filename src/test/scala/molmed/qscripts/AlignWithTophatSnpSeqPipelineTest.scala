@@ -60,7 +60,7 @@ class AlignWithTophatSnpSeqPipelineTest {
             " -tophat " + "/usr/local/bin/tophat2",
             " -samtools " + "/usr/bin/samtools",
             " -startFromScratch ").mkString
-        spec.fileMD5s += testBam -> "aed0de7c2733890028d0368da0653186"
+        spec.fileMD5s += testBam -> "3cb50b0cf1d39c303eccfd74bfff62dc"
         PipelineTest.executeTest(spec, run)
     }
 }

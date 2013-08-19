@@ -51,24 +51,6 @@ class AlignWithBWASnpSeqPipelineTest {
         }
     }
 
-    @Test(dataProvider = "testPairEndAlignmentDataProvider")
-    def testPairedEndAlignmentWithLegacySetup(envSetup: EnvironmentSetup, md5sum: String) = {
-        val projectName = "test"
-        val testOut = "1.bam"
-        val spec = new PipelineTestSpec()
-
-        spec.jobRunners = envSetup.jobrunner
-
-        spec.name = "AlignPairedEndWithBwa"
-        spec.args = Array(envSetup.commandline,
-            " -bwa " + envSetup.pathToBwa,
-            " -i " + snpSeqBaseTest.pathSetupFile,
-            " -bwape ",
-            " -wallTime " + walltime,
-            " -startFromScratch ").mkString
-        spec.fileMD5s += testOut -> md5sum
-        PipelineTest.executeTest(spec, run)
-    }
 
     @Test(dataProvider = "testPairEndAlignmentDataProvider")
     def testPairedEndAlignment(envSetup: EnvironmentSetup, md5sum: String) = {
@@ -104,7 +86,7 @@ class AlignWithBWASnpSeqPipelineTest {
             }
             case _ => {
                 val envSetup = EnvironmentSetup(pathToScript, Seq("Shell"), "/usr/bin/bwa");
-                val md5 = "2de23711aac1a82639c6c827a7e500dd"
+                val md5 = "531cde10c0612b8d51357b76dc7194ca"
                 Array(Array(envSetup, md5)).asInstanceOf[Array[Array[Object]]]
             }
         }
