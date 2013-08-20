@@ -126,10 +126,11 @@ function variantCalling {
 			      --project ${PROJECT_NAME} \
 			      -i $1 \
 			      -intervals ${INTERVALS} \
+			      -isExome \
 			      -outputDir ${VCF_OUTPUT}/ \
 			      -run \
 		          -jobRunner ${JOB_RUNNER} \
-                  -jobNative "${JOB_NATIVE_ARGS}" \
+                  -jobNative "${JOB_NATIVE_ARGS}" \		
 			      --job_walltime 36000 \
 			      -nt  ${NBR_OF_THREADS} \
 			      -retry 2 \

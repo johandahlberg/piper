@@ -127,6 +127,7 @@ function variantCalling {
 			      -i $1 \
 			      -intervals ${INTERVALS} \
 			      -outputDir ${VCF_OUTPUT}/ \
+			      --isExome \
 			      -run \
 		          -jobRunner ${JOB_RUNNER} \
                   -jobNative "${JOB_NATIVE_ARGS}" \
