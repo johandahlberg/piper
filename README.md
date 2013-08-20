@@ -84,6 +84,13 @@ Run
 Pick the workflow that you want to run, e.g. haloplex. Open the corresponding file in the `workflow` directory with your favorite text editor and edit the run template part (it's located towards the end of the file) with the parameters you want to use. Then start the correponding workflow script with for example:
     ./workflow/haloplex.sh # OR sbatch workflow/haloplex.sh to sending it to a node
 
+
+Monitoring progress
+-------------------
+
+To follow the progress of the run look in the `pipeline_output/logs` folder. There you will find the logs for the different scripts. By searching the file for "Run", you can see how many jobs are currently running, how many have finished, and how many have failed. A tip is to use e.g. `less -S` to view the file with unwrapped lines, as it is quite difficult to read otherwise.
+
+
 Development
 ===========
 
@@ -91,6 +98,9 @@ The heavy lifting in Piper is primarilly done in Scala, with Bash glueing togeth
 
 Coding
 ------
+
+For an introduction to Queue, on which Piper is build, see: http://gatkforums.broadinstitute.org/discussion/1306/overview-of-queue
+
 To work on the Piper project I recommend using the [Scala IDE](http://scala-ide.org/). To start developing follow the installation procedure outlined above. When you have finised the installation you can set the project up for you IDE by running:
 
     sbt eclipse
@@ -115,8 +125,36 @@ If something looks strange it's probably a good idea to run this. It deletes all
 
 Run the tests (for more on testing, see the testing chapter) - note that by default this only dry runs the qscript integration tests, which (basically making sure that they compile, but giving you no guarantees for runtime functionality).
 
+### Project organization
+
+This is an (incomplete) overview of Pipers project organization, describing the most important parts of the setup.
+
+<pre>
+|-.travis.yml       # Travis setup file
+|-.gitignore        # file which git should ignore
+|-build.sbt         # The primary build definition file for sbt (there is additional build info under project)
+|-globalConfig.sh   # Global setup with e.g. paths to programs etc.
+|-piper             # Basic runscript
+|-README.md         # This readme
+|----lib            # Unmanaged dependecencies
+|----project        # Build stuff for sbt
+|----resources      # Unmanaged additional dependecencies which are manually downloaded by setup script, and a perl hack which is currently used to sync reads
+|----src            # The source of piper
+    |----main
+        |----java
+        |----resources
+        |----scala
+    |----test
+        |----java
+        |----resources
+        |----scala
+|----target         # Generated build files
+|----workflows      # The workflow file which are used to actually run piper
+</pre>
+
+
 ### Making Piper generate graph files
-TODO
+Queue includes functionallity to generate dot files to visualize the jobs graph. This is highly useful when debugging new qscripts as it lets you see how the jobs connect to one another, so if you have made some mistake in the chaining of the dependencies it easy to spot. ".dot" files can be opened with e.g. [xdot](https://github.com/jrfonseca/xdot.py).
 
 
 ### Using the XML binding compiler (xjc):
@@ -128,12 +166,13 @@ Testing
 -------
 
 ### Running pipeline tests
-TODO
- 
+Running the tests is done by `sbt test`. However there are some things which need to be noted. As the pipeline tests take long time and have dependencies on outside programs (such as bwa for alignment, etc.) these can only be run on machine which have all the required programs installed, and which have all the correct resources. This means that by default the tests are setup to just compile the qscripts, but not run them. If you want to run the qscripts you need to go into `src/test/resources/testng.xml` and set the value of the runpipeline parameter to 'true'.
+
 ### Writing pipeline tests
+TODO
 
 ### Continious integration using Travis:
-TODO
+Piper uses [Travis](https://travis-ci.org/) for continious integration. For instruction on how to set this up with a github repository see: http://about.travis-ci.org/docs/user/getting-started/
 
 Troubleshooting
 ===============
@@ -151,3 +190,24 @@ and substitute it for:
 Licence
 =======
 
+The MIT License (MIT)
+
+Copyright (c) 2013  The SNP&SEQ Technology Platform, Uppsala
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
