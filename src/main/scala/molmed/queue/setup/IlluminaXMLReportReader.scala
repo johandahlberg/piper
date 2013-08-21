@@ -40,20 +40,23 @@ class IlluminaXMLReportReader(file: File) extends IlluminaXMLReportReaderAPI {
     val matchingSamples = getMatchingSamples(sampleName)
 
     // Get the one with the correct lane
-    val sampleForLane = for (
+    val sampleAndTagForLane = for (
       sample <- matchingSamples;
       tag <- sample.getTag();
       lanes <- tag.getLane();
-      if lanes.getId() == lane        
+      if lanes.getId() == lane
     ) yield {
-      sample
+      (sample, tag)
     }
 
-    require(sampleForLane.size == 1, "sample: " + sampleName + " sequenced more than once in the same lane. Right now this is not supported." +
-      "Sample was: " + sampleForLane.map(f => println(f)) + "Size was: " + sampleForLane.size)
+    require(sampleAndTagForLane.size == 1, "sample: " + sampleName + " sequenced more than once in the same lane. Right now this is not supported." +
+      "Sample was: " + sampleAndTagForLane.map(f => println(f)) + "Size was: " + sampleAndTagForLane.size)
 
     // Get's library id
-    val libraryName = getReadForSamples(sampleForLane).map(f => f.getLibraryName()).get(0)
+    val libraryName = sampleAndTagForLane.flatMap(f =>
+      f._2.getLane().flatMap(g =>
+        g.getRead().map(h =>
+          h.getLibraryName()))).get(0)
 
     // Catch the cases where no library id has been given (for example in MiSeq runs)
     if (libraryName.isEmpty())
