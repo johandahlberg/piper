@@ -40,7 +40,7 @@ class IlluminaXMLReportReaderSnpSeqUnitTest {
     @Test
     def testGetReadLibrary() {        
         val expected: String = "CEP_C13-NA11992"
-        val actual: String = illuminaXMLReportReader.getReadLibrary(sampleName)
+        val actual: String = illuminaXMLReportReader.getReadLibrary(sampleName, lane)
     	assert(actual.equals(expected))
     }
     

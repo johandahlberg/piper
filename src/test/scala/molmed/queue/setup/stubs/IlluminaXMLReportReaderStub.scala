@@ -12,7 +12,7 @@ class IlluminaXMLReportReaderStub extends IlluminaXMLReportReaderAPI{
     var lanes: List[Int] = null
     
     
-    def getReadLibrary(sampleName: String): String = readLibrary
+    def getReadLibrary(sampleName: String, lane: Int): String = readLibrary
     def getFlowcellId(): String = flowCellId
     def getPlatformUnitID(sampleName: String, lane:Int): String = platformUnitId
     def getReadGroupID(sampleName: String, lane: Int): String  = readGroupId

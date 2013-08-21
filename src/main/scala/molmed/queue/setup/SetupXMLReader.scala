@@ -146,7 +146,7 @@ class SetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
 
         val readGroupId = illuminaXMLReportReader.getReadGroupID(sampleName, lane)
         val sequencingCenter = this.getSequencingCenter()
-        val readLibrary = illuminaXMLReportReader.getReadLibrary(sampleName)
+        val readLibrary = illuminaXMLReportReader.getReadLibrary(sampleName, lane)
         val platform = this.getPlatform()
         val platformUnitId = illuminaXMLReportReader.getPlatformUnitID(sampleName, lane)
 
@@ -181,7 +181,7 @@ class SetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
             new ReadPairContainer(fastq1.get(0), null, sampleName)
         else
             throw new FileNotFoundException("Problem with read pairs in folder: " + folder.getAbsolutePath() + " could not find suitable files. \n" +
-                "the sample name was: " + sampleName + " and the sample lane: " + lane)
+                "the sample name was: " + sampleName + " and the sample lane: " + lane + "fastq1: " + fastq1 + "fastq2: " + fastq2)
     }
 }
     
