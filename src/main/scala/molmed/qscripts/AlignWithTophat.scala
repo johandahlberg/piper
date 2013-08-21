@@ -172,13 +172,7 @@ class AlignWithTophat extends QScript {
 
     // Temporary solution to handle the case where there is a legacy setup file
     // which does not fulfill the xml-schema.
-    val setupReader: SetupXMLReaderAPI =
-      try {
-        new SetupXMLReader(input)
-      } catch {
-        case e: Exception => new LegacySetupXMLReader(input)
-
-      }
+    val setupReader: SetupXMLReaderAPI = new SetupXMLReader(input)
 
     val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
     projId = setupReader.getUppmaxProjectId()
