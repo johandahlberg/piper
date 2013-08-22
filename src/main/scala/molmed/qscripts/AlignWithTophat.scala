@@ -9,6 +9,7 @@ import molmed.queue.setup._
 import java.io.File
 import java.io.PrintWriter
 import java.util.regex.Pattern
+import org.broadinstitute.sting.commandline.Hidden
 
 class AlignWithTophat extends QScript {
 
@@ -59,7 +60,10 @@ class AlignWithTophat extends QScript {
   @Argument(doc = "Run cutadapt", fullName = "cutadapt", shortName = "ca", required = false)
   var runCutadapt: Boolean = false
 
-  //TODO Add tophat specific stuff
+  @Hidden
+  @Argument(doc = "Uppmax qos flag", fullName = "quality_of_service", shortName = "qos", required = false)
+  var uppmaxQoSFlag: String = ""
+  def getUppmaxQosFlag(): String = if (uppmaxQoSFlag.isEmpty()) "" else " --qos=" + uppmaxQoSFlag
 
   /**
    * **************************************************************************
@@ -132,8 +136,8 @@ class AlignWithTophat extends QScript {
       def addSamples(sample: SampleAPI): SampleAPI = {
 
         def constructTrimmedName(name: String): String = {
-          if(name.matches("fastq.gz"))
-        		name.replace("fastq.gz", "trimmed.fastq.gz")
+          if (name.matches("fastq.gz"))
+            name.replace("fastq.gz", "trimmed.fastq.gz")
           else
             name.replace("fastq", "trimmed.fastq.gz")
         }
@@ -194,7 +198,7 @@ class AlignWithTophat extends QScript {
   // General arguments to non-GATK tools
   trait ExternalCommonArgs extends CommandLineFunction {
 
-    this.jobNativeArgs +:= "-p node -A " + projId
+    this.jobNativeArgs +:= "-p node -A " + projId + " " + getUppmaxQosFlag()
     this.memoryLimit = 24
     this.isIntermediate = false
   }
