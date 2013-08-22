@@ -180,6 +180,7 @@ class AlignWithTophat extends QScript {
 
     val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
     projId = setupReader.getUppmaxProjectId()
+    uppmaxQoSFlag = setupReader.getUppmaxQoSFlag()
 
     val (cohortList: Seq[File], placeHolderList: Seq[File]) = if (runCutadapt) alignSamples(cutSamples(samples)) else alignSamples(samples)
 
