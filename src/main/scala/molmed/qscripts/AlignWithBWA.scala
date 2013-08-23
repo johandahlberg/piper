@@ -65,8 +65,8 @@ class AlignWithBWA extends QScript {
   @Hidden
   @Argument(doc = "Uppmax qos flag", fullName = "quality_of_service", shortName = "qos", required = false)
   var uppmaxQoSFlag: String = ""
-  def getUppmaxQosFlag(): String = if(uppmaxQoSFlag.isEmpty()) "" else " --qos=" + uppmaxQoSFlag
-  
+  def getUppmaxQosFlag(): String = if (uppmaxQoSFlag.isEmpty()) "" else " --qos=" + uppmaxQoSFlag
+
   /**
    * **************************************************************************
    * Private variables
@@ -87,7 +87,6 @@ class AlignWithBWA extends QScript {
 
     val saiFile1 = new File(outputDir + fastqs.sampleName + ".1.sai")
     val saiFile2 = new File(outputDir + fastqs.sampleName + ".2.sai")
-    //var alignedSamFile = new File(outputDir + fastqs.sampleName)
     val alignedBamFile = new File(outputDir + fastqs.sampleName + ".bam")
 
     // Align for single end reads
@@ -125,101 +124,21 @@ class AlignWithBWA extends QScript {
     }
   }
 
-  private def alignSingleSample(sample: SampleAPI): File = {
+  def align(sample: SampleAPI, asIntermidate: Boolean): File = {
+
+    val sampleName = sample.getSampleName()
     val fastqs = sample.getFastqs()
     val readGroupInfo = sample.getBwaStyleReadGroupInformationString()
     val reference = sample.getReference()
+
+    // Add uniq name for run
+    fastqs.sampleName = sampleName + "." + sample.getReadGroupInformation.platformUnitId
 
     // Check that the reference is indexed
     checkReferenceIsBwaIndexed(reference)
 
     // Run the alignment
-    performAlignment(fastqs, readGroupInfo, reference)
-  }
-
-  /**
-   * @TODO Write docs
-   */
-  private def alignMultipleSamples(sampleName: String, sampleList: Seq[SampleAPI]): File = {
-
-    val expression = (".*" + sampleName + "\\.ver\\.(\\d)\\.bam$").r
-    def getVersionOfPreviousAlignment(bam: File): Int = {
-      val matches = expression.findAllIn(bam.getName())
-      if(matches.isEmpty)
-        throw new Exception("Couldn't find match for version regexp." + expression)
-      else
-        matches.group(1).toInt
-    }
-
-    lazy val hasBeenSequenced: (Boolean, File) = {
-      val listOfOutputFiles = new File(outputDir).list().toList
-      if (listOfOutputFiles.exists(file => file.matches(expression.toString)))
-        (true, new File(outputDir + "/" + listOfOutputFiles.find(file => 
-          file.matches(expression.toString)).getOrElse(throw new Exception("Did not find file."))))
-      else
-        (false, null)
-    }
-
-    def findPlatformIds(bam: File): List[String] = {
-      val samReader = new SAMFileReader(bam)
-      val header = samReader.getFileHeader
-      val readGroups = header.getReadGroups
-      readGroups.map(f => f.getPlatformUnit()).toList
-    }
-
-    def align(sample: SampleAPI, asIntermidate: Boolean): File = {
-      val fastqs = sample.getFastqs()
-      val readGroupInfo = sample.getBwaStyleReadGroupInformationString()
-      val reference = sample.getReference()
-
-      // Add temporary run name
-      fastqs.sampleName = sampleName + "." + sample.getReadGroupInformation.platformUnitId
-
-      // Check that the reference is indexed
-      checkReferenceIsBwaIndexed(reference)
-
-      // Run the alignment
-      performAlignment(fastqs, readGroupInfo, reference, asIntermidate)
-    }
-
-    val bam =
-      if (hasBeenSequenced._1) {
-
-        val previouslyJoinedBam = hasBeenSequenced._2
-        val previouslyRunPlatformIds = findPlatformIds(previouslyJoinedBam)
-        val nonRunSamples = sampleList.filter(p => previouslyRunPlatformIds.contains(p.getReadGroupInformation.platformUnitId))
-
-        // Construct based on version of previous file
-        val versionOfJoinedBam = getVersionOfPreviousAlignment(previouslyJoinedBam) + 1
-        val newJoinedBam = new File(outputDir + "/" + sampleName + ".ver." + versionOfJoinedBam + ".bam")
-        val newJoinedBamIndex = new File(outputDir + "/" + sampleName + ".ver." + versionOfJoinedBam + ".bai")
-
-        if (nonRunSamples.length > 0) {
-          val sampleSams: Seq[File] = for (sample <- nonRunSamples) yield {
-            align(sample, false)
-          }
-
-          val filesToJoin = sampleSams :+ previouslyJoinedBam
-
-          add(joinBams(filesToJoin, newJoinedBam, newJoinedBamIndex))
-          add(removeIntermeditateFiles(Seq(previouslyJoinedBam), newJoinedBam))
-          newJoinedBam
-        } else
-          previouslyJoinedBam
-      } else {
-
-        val sampleSams: Seq[File] = for (sample <- sampleList) yield {
-          align(sample, true)
-        }
-
-        val joinedBam = new File(outputDir + "/" + sampleName + ".ver.1.bam")
-        val joinedBamIndex = new File(outputDir + "/" + sampleName + ".ver.1.bai")
-
-        // Join and sort the sample bam files.
-        add(joinBams(sampleSams, joinedBam, joinedBamIndex))
-        joinedBam
-      }
-    bam
+    performAlignment(fastqs, readGroupInfo, reference, asIntermidate)
   }
 
   /**
@@ -229,29 +148,16 @@ class AlignWithBWA extends QScript {
    */
 
   def script() {
-    // final output list of bam files
-    var cohortList: Seq[File] = Seq()
 
-    // Temporary solution to handle the case where there is a legacy setup file
-    // which does not fulfill the xml-schema.
+    // Load the setup
     val setupReader: SetupXMLReaderAPI = new SetupXMLReader(input)
 
     val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
     projId = setupReader.getUppmaxProjectId()
     uppmaxQoSFlag = setupReader.getUppmaxQoSFlag()
 
-    for ((sampleName, sampleList) <- samples) {
-
-      // One sample can be sequenced in multiple lanes. This handles that scenario.
-      val bam: File =
-        if (sampleList.size == 1)
-          alignSingleSample(sampleList.get(0))
-        else
-          alignMultipleSamples(sampleName, sampleList)
-
-      // Add the resulting file of the alignment to the output list
-      cohortList :+= bam
-    }
+    // final output list of bam files
+    var cohortList: Seq[File] = samples.values.flatten.map(sample => align(sample, false)).toSeq
 
     // output a BAM list with all the processed files
     val cohortFile = new File(qscript.outputDir + setupReader.getProjectName() + ".cohort.list")
