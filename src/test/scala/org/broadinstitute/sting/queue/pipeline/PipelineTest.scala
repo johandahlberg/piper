@@ -75,7 +75,7 @@ object PipelineTest extends BaseTest with Logging {
    * @param jobRunner The name of the job manager to run the jobs.
    * @return the directory where relative output files will be written for this test.
    */
-  private def runDir(testName: String, jobRunner: String) = testDir(testName, jobRunner) + "run/"
+  def runDir(testName: String, jobRunner: String) = testDir(testName, jobRunner) + "run/"
 
   /**
    * Returns the directory where temp files will be written for this test.
