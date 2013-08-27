@@ -193,11 +193,11 @@ class Haloplex extends QScript {
     resources = new Resources(resourcesPath, testMode)
 
     // Create output dirs
-    val vcfOutputDir = new File(getOutputDir() + "vcf_files")
+    val vcfOutputDir = new File(getOutputDir() + "/vcf_files")
     vcfOutputDir.mkdirs()
-    val miscOutputDir = new File(getOutputDir() + "misc")
+    val miscOutputDir = new File(getOutputDir() + "/misc")
     miscOutputDir.mkdirs()
-    val bamOutputDir = new File(getOutputDir() + "bam_files")
+    val bamOutputDir = new File(getOutputDir() + "/bam_files")
     bamOutputDir.mkdirs()
 
     def setupSamples(): Map[String, Seq[SampleAPI]] = {
