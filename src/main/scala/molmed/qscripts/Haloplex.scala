@@ -30,11 +30,13 @@ import molmed.queue.setup.SampleAPI
 import molmed.queue.setup.SetupXMLReader
 import molmed.queue.setup.SetupXMLReaderAPI
 import molmed.utils.Resources
-import molmed.utils.Resources
+import molmed.utils.GeneralUtils._
+
 import net.sf.samtools.SAMFileHeader
 import net.sf.samtools.SAMFileHeader.SortOrder
 import net.sf.samtools.SAMFileReader
 import net.sf.samtools.SAMTextHeaderCodec
+
 
 class Haloplex extends QScript {
 
@@ -175,18 +177,6 @@ class Haloplex extends QScript {
       bwa_sam_pe(fastqs.mate1, fastqs.mate2, saiFile1, saiFile2, alignedBamFile, readGroupInfo, reference, isIntermediateAlignment))
 
     return alignedBamFile
-  }
-
-  /**
-   * Check that all the files that make up bwa index exist for the reference.
-   */
-  private def checkReferenceIsBwaIndexed(reference: File): Unit = {
-    assert(reference.exists(), "Could not find reference.")
-
-    val referenceBasePath: String = reference.getAbsolutePath()
-    for (fileEnding <- Seq("amb", "ann", "bwt", "pac", "sa")) {
-      assert(new File(referenceBasePath + "." + fileEnding).exists(), "Could not find index file with file ending: " + fileEnding)
-    }
   }
 
   private def alignSingleSample(sample: SampleAPI, outputDir: File): File = {

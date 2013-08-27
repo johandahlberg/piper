@@ -12,6 +12,7 @@ import org.broadinstitute.sting.commandline.Hidden
 import molmed.queue.setup._
 import org.broadinstitute.sting.queue.function.InProcessFunction
 import org.broadinstitute.sting.utils.io.IOUtils
+import molmed.utils.GeneralUtils._
 
 /**
  * TODO
@@ -110,18 +111,6 @@ class AlignWithBWA extends QScript {
       add(bwa_sw(fastqs.mate1, alignedBamFile, reference, isIntermediateAlignment))
     }
     return alignedBamFile
-  }
-
-  /**
-   * Check that all the files that make up bwa index exist for the reference.
-   */
-  private def checkReferenceIsBwaIndexed(reference: File): Unit = {
-    assert(reference.exists(), "Could not find reference.")
-
-    val referenceBasePath: String = reference.getAbsolutePath()
-    for (fileEnding <- Seq("amb", "ann", "bwt", "pac", "sa")) {
-      assert(new File(referenceBasePath + "." + fileEnding).exists(), "Could not find index file with file ending: " + fileEnding)
-    }
   }
 
   def align(sample: SampleAPI, asIntermidate: Boolean): File = {
