@@ -27,7 +27,6 @@ function alignWithBwa {
 			    -outputDir ${RAW_BAM_OUTPUT}/ \
 			    -bwa ${PATH_TO_BWA} \
 			    -samtools ${PATH_TO_SAMTOOLS} \
-			    -bwape \
 			    --bwa_threads ${NBR_OF_THREADS} \
 	            -jobRunner ${JOB_RUNNER} \
         		-jobNative "${JOB_NATIVE_ARGS}" \

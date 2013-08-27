@@ -226,7 +226,7 @@ class Haloplex extends QScript {
 
     // Align with bwa
     val cohortList =
-      cutAndSyncedSamples.values.flatten.map(sample => alignmentHelper.align(sample, outputDir, false)).toSeq
+      cutAndSyncedSamples.values.flatten.map(sample => alignmentHelper.align(sample, bamOutputDir, false)).toSeq
 
     // Make raw variation calls
     val preliminaryVariantCalls = new File(vcfOutputDir + "/" + projectName + ".pre.vcf")
