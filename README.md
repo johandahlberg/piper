@@ -7,6 +7,8 @@
 </pre>
 -----------------------------
 
+[![Build Status](https://travis-ci.org/johandahlberg/piper.png?branch=master)](https://travis-ci.org/johandahlberg/piper)
+
 A pipeline project for the [SNP&SEQ platform](http://www.molmed.medsci.uu.se/SNP+SEQ+Technology+Platform/) built on top of [GATK Queue](http://www.broadinstitute.org/gatk/guide/topic?name=intro#intro1306). Note that this project is under heavy development and might not be entirely stable at this point. It's also worth noting that this project has the primary goal of analyzing sequencing data from the SNP&SEQ platform and therefore has dependencies on metadata files which are unique created in the workflow of the platform, such as the `report.xml` which are delivered with sequencing data from our facility. I'd however be more than happy to support anyone interested in extending the pipeline to other contexts.
 
 Piper builds on the concept of standardized workflows for different next-generation sequencing applications. At the moment Piper supports the following workflows:
