@@ -27,7 +27,6 @@ function alignWithBwa {
 			    -outputDir ${RAW_BAM_OUTPUT}/ \
 			    -bwa ${PATH_TO_BWA} \
 			    -samtools ${PATH_TO_SAMTOOLS} \
-			    -bwape \
 			    --bwa_threads ${NBR_OF_THREADS} \
 	            -jobRunner ${JOB_RUNNER} \
         		-jobNative "${JOB_NATIVE_ARGS}" \
@@ -55,10 +54,10 @@ function alignWithBwa {
 # Merge bam files by sample name in read group
 #------------------------------------------------------------------------------------------
 function mergeBySampleName {
-    source piper -S ${SCRIPTS_DIR}/MergeBySample.scala \
+    source piper -S ${SCRIPTS_DIR}/MergeBamsBySample.scala \
                             -i $1 \
                             -outputDir ${RAW_MERGED_BAM_OUTPUT}/ \
-			    --project_id ${PROJECT_ID} \
+			    --project ${PROJECT_NAME} \
                     -jobRunner ${JOB_RUNNER} \
                         -jobNative "${JOB_NATIVE_ARGS}" \
                             --job_walltime 86400 \
@@ -185,7 +184,7 @@ module load R/2.15.0
 # That means that there might be additional setup required to
 # run this script.
 
-PIPELINE_SETUP_XML="src/test/resources/testdata/pipelineSetup.xml"
+PIPELINE_SETUP_XML="src/test/resources/testdata/newPipelineSetupSameSampleAcrossMultipleLanes.xml"
 PROJECT_NAME="TestProject"
 PROJECT_ID="a2009002"
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
@@ -232,7 +231,7 @@ fi
 ALIGN_OUTPUT=$(alignWithBwa ${PIPELINE_SETUP_XML})
 MERGED_BAMS_OUTPUT=$(mergeBySampleName ${ALIGN_OUTPUT})
 ALIGN_QC_OUTPUT=$(alignmentQC ${MERGED_BAMS_OUTPUT})
-DATAPROCESSING_OUTPUT=$(dataPreprocessing ${ALIGN_OUTPUT})
+DATAPROCESSING_OUTPUT=$(dataPreprocessing ${MERGED_BAMS_OUTPUT})
 VARIANTCALLING_OUTPUT=$(variantCalling ${DATAPROCESSING_OUTPUT})
 
 # Perform final clean up
