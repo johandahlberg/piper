@@ -66,6 +66,7 @@ NBR_OF_THREADS=8
 # Setup directory structure
 PIPELINE_OUTPUT="pipeline_output"
 RAW_BAM_OUTPUT=$PIPELINE_OUTPUT"/bam_files_raw"
+RAW_MERGED_BAM_OUTPUT=$PIPELINE_OUTPUT"/bam_files_raw_merged"
 ALIGNMENT_QC_OUTPUT=$PIPELINE_OUTPUT"/alignment_qc"
 PROCESSED_BAM_OUTPUT=$PIPELINE_OUTPUT"/bam_files_processed"
 CUFFLINKS_OUTPUT=$PIPELINE_OUTPUT"/cufflinks"

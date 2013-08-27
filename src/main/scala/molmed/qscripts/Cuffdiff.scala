@@ -54,7 +54,7 @@ class Cuffdiff extends QScript {
    *  Help methods
    */
       
-  import molmed.utils.BamUtils._    
+  import molmed.utils.AlignmentUtils._    
 
   def getReplicatesFromFile(file: File): Map[String, List[String]] = {
     val lines = scala.io.Source.fromFile(file).getLines

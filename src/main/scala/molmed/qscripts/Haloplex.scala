@@ -2,10 +2,8 @@ package molmed.qscripts
 
 import java.io.FileNotFoundException
 import java.io.PrintWriter
-
 import scala.collection.JavaConversions._
 import scala.io.Source
-
 import org.broadinstitute.sting.commandline.Hidden
 import org.broadinstitute.sting.gatk.downsampling.DownsampleType
 import org.broadinstitute.sting.queue.QScript
@@ -21,7 +19,6 @@ import org.broadinstitute.sting.queue.extensions.gatk.VcfGatherFunction
 import org.broadinstitute.sting.queue.extensions.picard.MergeSamFiles
 import org.broadinstitute.sting.queue.extensions.picard.SortSam
 import org.broadinstitute.sting.queue.function.ListWriterFunction
-
 import molmed.queue.extensions.picard.CollectTargetedPcrMetrics
 import molmed.queue.setup.ReadGroupInformation
 import molmed.queue.setup.ReadPairContainer
@@ -30,11 +27,12 @@ import molmed.queue.setup.SampleAPI
 import molmed.queue.setup.SetupXMLReader
 import molmed.queue.setup.SetupXMLReaderAPI
 import molmed.utils.Resources
-import molmed.utils.Resources
+import molmed.utils.GeneralUtils._
 import net.sf.samtools.SAMFileHeader
 import net.sf.samtools.SAMFileHeader.SortOrder
 import net.sf.samtools.SAMFileReader
 import net.sf.samtools.SAMTextHeaderCodec
+import molmed.utils.AlignmentUtils
 
 class Haloplex extends QScript {
 
@@ -93,6 +91,11 @@ class Haloplex extends QScript {
   @Input(doc = "Path to the sync script", fullName = "path_to_sync", shortName = "sync", required = false)
   var pathToSyncScript: File = "resources/FixEmptyReads.pl"
 
+  @Hidden
+  @Argument(doc = "Uppmax qos flag", fullName = "quality_of_service", shortName = "qos", required = false)
+  var uppmaxQoSFlag: String = ""
+  def getUppmaxQosFlag(): String = if (uppmaxQoSFlag.isEmpty()) "" else " --qos=" + uppmaxQoSFlag
+
   /**
    * Private variables
    */
@@ -106,9 +109,9 @@ class Haloplex extends QScript {
    */
 
   def getOutputDir(): File = {
-    if(outputDir.isEmpty()) "" else outputDir + "/"
+    if (outputDir.isEmpty()) "" else outputDir + "/"
   }
-  
+
   def cutSamples(sampleMap: Map[String, Seq[SampleAPI]]): Map[String, Seq[SampleAPI]] = {
 
     // Standard Illumina adaptors    
@@ -157,138 +160,6 @@ class Haloplex extends QScript {
 
     cutSamples
   }
-  
-  // Takes a list of processed BAM files and realign them using the BWA option requested  (bwase or bwape).
-  // Returns a list of realigned BAM files.
-  def performAlignment(fastqs: ReadPairContainer, readGroupInfo: String, reference: File, isIntermediateAlignment: Boolean = false, outputDir: File): File = {
-
-    val saiFile1: File = outputDir + "/" + fastqs.sampleName + ".1.sai"
-    val saiFile2: File = outputDir + "/" + fastqs.sampleName + ".2.sai"
-    val alignedBamFile: File = outputDir + "/" + fastqs.sampleName + ".bam"
-
-    // Check that there is actually a mate pair in the container.
-    assert(fastqs.isMatePaired())
-
-    // Add jobs to the qgraph
-    add(bwa_aln_se(fastqs.mate1, saiFile1, reference),
-      bwa_aln_se(fastqs.mate2, saiFile2, reference),
-      bwa_sam_pe(fastqs.mate1, fastqs.mate2, saiFile1, saiFile2, alignedBamFile, readGroupInfo, reference, isIntermediateAlignment))
-
-    return alignedBamFile
-  }
-
-  /**
-   * Check that all the files that make up bwa index exist for the reference.
-   */
-  private def checkReferenceIsBwaIndexed(reference: File): Unit = {
-    assert(reference.exists(), "Could not find reference.")
-
-    val referenceBasePath: String = reference.getAbsolutePath()
-    for (fileEnding <- Seq("amb", "ann", "bwt", "pac", "sa")) {
-      assert(new File(referenceBasePath + "." + fileEnding).exists(), "Could not find index file with file ending: " + fileEnding)
-    }
-  }
-
-  private def alignSingleSample(sample: SampleAPI, outputDir: File): File = {
-    val fastqs = sample.getFastqs()
-    val readGroupInfo = sample.getBwaStyleReadGroupInformationString()
-    val reference = sample.getReference()
-
-    // Check that the reference is indexed
-    checkReferenceIsBwaIndexed(reference)
-
-    // Run the alignment
-    performAlignment(fastqs, readGroupInfo, reference, false, outputDir)
-  }
-
-  def getSamHeader(bam: File): SAMFileHeader = {
-    val samReader = new SAMFileReader(bam)
-    samReader.getFileHeader
-  }
-
-  def findPlatformIds(bam: File): List[String] = {
-    val header = getSamHeader(bam)
-    val readGroups = header.getReadGroups
-    readGroups.map(f => f.getPlatformUnit()).toList
-  }
-
-  /**
-   * @TODO Write docs
-   */
-  private def alignMultipleSamples(sampleName: String, sampleList: Seq[SampleAPI], outputDir: File): File = {
-
-    val expression = (".*" + sampleName + "\\.ver\\.(\\d)\\.bam$").r
-    def getVersionOfPreviousAlignment(bam: File): Int = {
-      val matches = expression.findAllIn(bam.getName())
-      if (matches.isEmpty)
-        throw new Exception("Couldn't find match for version regexp." + expression)
-      else
-        matches.group(1).toInt
-    }
-
-    lazy val hasBeenSequenced: (Boolean, File) = {
-      val listOfOutputFiles = getOutputDir().list().toList
-      if (listOfOutputFiles.exists(file => file.matches(expression.toString)))
-        (true, new File(getOutputDir + listOfOutputFiles.find(file =>
-          file.matches(expression.toString)).getOrElse(throw new Exception("Did not find file."))))
-      else
-        (false, null)
-    }
-
-    def align(sample: SampleAPI, asIntermidate: Boolean): File = {
-      val fastqs = sample.getFastqs()
-      val readGroupInfo = sample.getBwaStyleReadGroupInformationString()
-      val reference = sample.getReference()
-
-      // Add temporary run name
-      fastqs.sampleName = sampleName + "." + sample.getReadGroupInformation.platformUnitId
-
-      // Check that the reference is indexed
-      checkReferenceIsBwaIndexed(reference)
-
-      // Run the alignment
-      performAlignment(fastqs, readGroupInfo, reference, asIntermidate, outputDir)
-    }
-
-    val bam =
-      if (hasBeenSequenced._1) {
-
-        val previouslyJoinedBam = hasBeenSequenced._2
-        val previouslyRunPlatformIds = findPlatformIds(previouslyJoinedBam)
-        val nonRunSamples = sampleList.filter(p => previouslyRunPlatformIds.contains(p.getReadGroupInformation.platformUnitId))
-
-        // Construct based on version of previous file
-        val versionOfJoinedBam = getVersionOfPreviousAlignment(previouslyJoinedBam) + 1
-        val newJoinedBam = new File(getOutputDir() + sampleName + ".ver." + versionOfJoinedBam + ".bam")
-        val newJoinedBamIndex = new File(getOutputDir() + sampleName + ".ver." + versionOfJoinedBam + ".bai")
-
-        if (nonRunSamples.length > 0) {
-          val sampleSams: Seq[File] = for (sample <- nonRunSamples) yield {
-            align(sample, false)
-          }
-
-          val filesToJoin = sampleSams :+ previouslyJoinedBam
-
-          add(joinBams(filesToJoin, newJoinedBam, newJoinedBamIndex))
-          add(removeIntermeditateFiles(Seq(previouslyJoinedBam), newJoinedBam))
-          newJoinedBam
-        } else
-          previouslyJoinedBam
-      } else {
-
-        val sampleSams: Seq[File] = for (sample <- sampleList) yield {
-          align(sample, true)
-        }
-
-        val joinedBam = new File(getOutputDir() + sampleName + ".ver.1.bam")
-        val joinedBamIndex = new File(getOutputDir() + sampleName + ".ver.1.bai")
-
-        // Join and sort the sample bam files.
-        add(joinBams(sampleSams, joinedBam, joinedBamIndex))
-        joinedBam
-      }
-    bam
-  }
 
   // Override the normal swapExt metod by adding the outputDir to the file path by default if it is defined.
   override def swapExt(file: File, oldExtension: String, newExtension: String) = {
@@ -322,11 +193,11 @@ class Haloplex extends QScript {
     resources = new Resources(resourcesPath, testMode)
 
     // Create output dirs
-    val vcfOutputDir = new File(getOutputDir() + "vcf_files")
+    val vcfOutputDir = new File(getOutputDir() + "/vcf_files")
     vcfOutputDir.mkdirs()
-    val miscOutputDir = new File(getOutputDir() + "misc")
+    val miscOutputDir = new File(getOutputDir() + "/misc")
     miscOutputDir.mkdirs()
-    val bamOutputDir = new File(getOutputDir() + "bam_files")
+    val bamOutputDir = new File(getOutputDir() + "/bam_files")
     bamOutputDir.mkdirs()
 
     def setupSamples(): Map[String, Seq[SampleAPI]] = {
@@ -351,20 +222,11 @@ class Haloplex extends QScript {
     // Run cutadapt       
     val cutAndSyncedSamples = cutSamples(samples)
 
+    val alignmentHelper = new AlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, uppmaxProjId, getUppmaxQosFlag)
+
     // Align with bwa
     val cohortList =
-      for ((sampleName, sampleList) <- cutAndSyncedSamples) yield {
-
-        // One sample can be sequenced in multiple lanes. This handles that scenario.
-        val bam: File =
-          if (sampleList.size == 1)
-            alignSingleSample(sampleList(0), bamOutputDir)
-          else
-            alignMultipleSamples(sampleName, sampleList, bamOutputDir)
-
-        // Add the resulting file of the alignment to the output list
-        bam
-      }
+      cutAndSyncedSamples.values.flatten.map(sample => alignmentHelper.align(sample, outputDir, false)).toSeq
 
     // Make raw variation calls
     val preliminaryVariantCalls = new File(vcfOutputDir + "/" + projectName + ".pre.vcf")
@@ -406,7 +268,6 @@ class Haloplex extends QScript {
     add(convertAmpliconsToIntervals(qscript.amplicons, ampliconsAsPicardIntervalFile, clippedAndRecalibratedBams.toList(0)))
 
     // Collect targetedPCRMetrics
-    // @TODO
     for (bam <- clippedAndRecalibratedBams) {
       val generalStatisticsOutputFile = swapExt(bamOutputDir, bam, ".bam", ".statistics")
       val perAmpliconStatisticsOutputFile = swapExt(bamOutputDir, bam, ".bam", ".amplicon.statistics")
@@ -431,7 +292,7 @@ class Haloplex extends QScript {
   // General arguments to non-GATK tools
   trait ExternalCommonArgs extends CommandLineFunction {
 
-    this.jobNativeArgs +:= "-p node -A " + uppmaxProjId
+    this.jobNativeArgs +:= "-p node -A " + uppmaxProjId + " " + getUppmaxQosFlag()
     this.memoryLimit = 24
     this.isIntermediate = false
   }
@@ -443,7 +304,7 @@ class Haloplex extends QScript {
 
     this.isIntermediate = true
 
-    this.jobNativeArgs +:= "-p core -n 2 -A " + uppmaxProjId
+    this.jobNativeArgs +:= "-p core -n 2 -A " + uppmaxProjId + " " + getUppmaxQosFlag()
     this.memoryLimit = 6
 
     // Run cutadapt and sync via perl script by adding N's in all empty reads.  
@@ -451,10 +312,6 @@ class Haloplex extends QScript {
 
   }
 
-  trait SixGbRamJobs extends ExternalCommonArgs {
-    this.jobNativeArgs +:= "-p core -n 2 -A " + uppmaxProjId
-    this.memoryLimit = 6
-  }
 
   case class joinBams(inBams: Seq[File], outBam: File, index: File) extends MergeSamFiles with ExternalCommonArgs {
     this.input = inBams
@@ -464,42 +321,6 @@ class Haloplex extends QScript {
     this.analysisName = "joinBams"
     this.jobName = "joinBams"
     this.isIntermediate = false
-  }
-
-  // Find suffix array coordinates of single end reads
-  case class bwa_aln_se(fastq1: File, outSai: File, reference: File) extends SixGbRamJobs {
-    @Input(doc = "fastq file to be aligned") var fastq = fastq1
-    @Input(doc = "reference") var ref = reference
-    @Output(doc = "output sai file") var sai = outSai
-
-    this.isIntermediate = true
-
-    def commandLine = bwaPath + " aln -t " + nbrOfThreads + " " + ref + " " + fastq + " > " + sai
-    this.analysisName = projectName + "bwa_aln"
-    this.jobName = projectName + "bwa_aln"
-  }
-
-  // Help function to create samtools sorting and indexing paths
-  def sortAndIndex(alignedBam: File): String = " | " + samtoolsPath + " view -Su - | " + samtoolsPath + " sort - " + alignedBam.getAbsoluteFile().replace(".bam", "") + ";" +
-    samtoolsPath + " index " + alignedBam.getAbsoluteFile()
-
-  // Perform alignment of paired end reads
-  case class bwa_sam_pe(fastq1: File, fastq2: File, inSai1: File, inSai2: File, outBam: File, readGroupInfo: String, reference: File, intermediate: Boolean = false) extends SixGbRamJobs {
-    @Input(doc = "fastq file with mate 1 to be aligned") var mate1 = fastq1
-    @Input(doc = "fastq file with mate 2 file to be aligned") var mate2 = fastq2
-    @Input(doc = "bwa alignment index file for 1st mating pair") var sai1 = inSai1
-    @Input(doc = "bwa alignment index file for 2nd mating pair") var sai2 = inSai2
-    @Input(doc = "reference") var ref = reference
-    @Output(doc = "output aligned bam file") var alignedBam = outBam
-
-    // The output from this is a samfile, which can be removed later
-    this.isIntermediate = intermediate
-
-    def commandLine = bwaPath + " sampe -A -P -s " + ref + " " + sai1 + " " + sai2 + " " + mate1 + " " + mate2 +
-      " -r " + readGroupInfo +
-      sortAndIndex(alignedBam)
-    this.analysisName = "bwa_sam_pe"
-    this.jobName = "bwa_sam_pe"
   }
 
   case class writeList(inBams: Seq[File], outBamList: File) extends ListWriterFunction {
@@ -541,6 +362,12 @@ class Haloplex extends QScript {
   }
 
   def writeIntervals(bed: File, intervalFile: File, bam: File, formatFrom: Array[String] => String): Unit = {
+    
+    def getSamHeader(bam: File): SAMFileHeader = {
+      val samReader = new SAMFileReader(bam)
+      samReader.getFileHeader
+    }
+
     val header = getSamHeader(bam)
     header.setProgramRecords(List())
     header.setReadGroups(List())

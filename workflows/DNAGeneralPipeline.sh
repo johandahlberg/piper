@@ -27,7 +27,6 @@ function alignWithBwa {
 			    -outputDir ${RAW_BAM_OUTPUT}/ \
 			    -bwa ${PATH_TO_BWA} \
 			    -samtools ${PATH_TO_SAMTOOLS} \
-			    -bwape \
 			    --bwa_threads ${NBR_OF_THREADS} \
 	            -jobRunner ${JOB_RUNNER} \
         		-jobNative "${JOB_NATIVE_ARGS}" \
@@ -50,6 +49,32 @@ function alignWithBwa {
 # NOTE: These parts of the analysis does not yet suport the xml based setup.
 #       Running them will require manually setting up path etc.
 #------------------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------------------
+# Merge bam files by sample name in read group
+#------------------------------------------------------------------------------------------
+function mergeBySampleName {
+    source piper -S ${SCRIPTS_DIR}/MergeBamsBySample.scala \
+                            -i $1 \
+                            -outputDir ${RAW_MERGED_BAM_OUTPUT}/ \
+			    --project ${PROJECT_NAME} \
+                    -jobRunner ${JOB_RUNNER} \
+                        -jobNative "${JOB_NATIVE_ARGS}" \
+                            --job_walltime 86400 \
+                            -run \
+                            ${DEBUG} >> ${LOGS}/mergeBySampleName.log  2>&1
+
+
+    # Check the script exit status, and if it did not finish, clean up and exit
+    if [ $? -ne 0 ]; then
+            echo "Caught non-zero exit status from merge by sample. Cleaning up and exiting..."
+            clean_up
+            exit 1
+    fi
+
+    echo "${RAW_MERGED_BAM_OUTPUT}/${PROJECT_NAME}.cohort.list"
+}
+
 
 
 #------------------------------------------------------------------------------------------
@@ -159,7 +184,7 @@ module load R/2.15.0
 # That means that there might be additional setup required to
 # run this script.
 
-PIPELINE_SETUP_XML="src/test/resources/testdata/pipelineSetup.xml"
+PIPELINE_SETUP_XML="src/test/resources/testdata/newPipelineSetupSameSampleAcrossMultipleLanes.xml"
 PROJECT_NAME="TestProject"
 PROJECT_ID="a2009002"
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
@@ -178,6 +203,10 @@ fi
 
 if [ ! -d "${RAW_BAM_OUTPUT}" ]; then
    mkdir -p ${RAW_BAM_OUTPUT}
+fi
+
+if [ ! -d "${RAW_MERGED_BAM_OUTPUT}" ]; then
+   mkdir -p ${RAW_MERGED_BAM_OUTPUT}
 fi
 
 if [ ! -d "${ALIGNMENT_QC_OUTPUT}" ]; then
@@ -200,8 +229,9 @@ fi
 #---------------------------------------------
 
 ALIGN_OUTPUT=$(alignWithBwa ${PIPELINE_SETUP_XML})
-ALIGN_QC_OUTPUT=$(alignmentQC ${ALIGN_OUTPUT})
-DATAPROCESSING_OUTPUT=$(dataPreprocessing ${ALIGN_OUTPUT})
+MERGED_BAMS_OUTPUT=$(mergeBySampleName ${ALIGN_OUTPUT})
+ALIGN_QC_OUTPUT=$(alignmentQC ${MERGED_BAMS_OUTPUT})
+DATAPROCESSING_OUTPUT=$(dataPreprocessing ${MERGED_BAMS_OUTPUT})
 VARIANTCALLING_OUTPUT=$(variantCalling ${DATAPROCESSING_OUTPUT})
 
 # Perform final clean up
