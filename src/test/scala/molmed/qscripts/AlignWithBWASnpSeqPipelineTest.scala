@@ -64,8 +64,8 @@ class AlignWithBWASnpSeqPipelineTest {
         spec.args = Array(envSetup.commandline,
             " -bwa " + envSetup.pathToBwa,
             " -i " + snpSeqBaseTest.pathSetupFile,
-            " -bwape ",
-            " -wallTime " + walltime,
+            " -wallTime " + walltime,      
+            " -outputDir " + PipelineTest.runDir(spec.name, spec.jobRunners(0)),
             " -startFromScratch ").mkString
         spec.fileMD5s += testOut -> "562c1bd0541264fa7fee1f5864c8c452"
         PipelineTest.executeTest(spec, run)
@@ -104,46 +104,7 @@ class AlignWithBWASnpSeqPipelineTest {
         spec.args = Array(envSetup.commandline,
             " -bwa " + envSetup.pathToBwa,
             " -i " + snpSeqBaseTest.pathSetupFile,
-            " -bwase ",
-            " -wallTime " + walltime,
-            " -startFromScratch ").mkString
-        spec.fileMD5s += testOut -> md5sum
-        PipelineTest.executeTest(spec, run)
-    }
-
-    /**
-     * testBwaSWAlignment
-     */
-
-    @DataProvider(name = "testBwaSWAlignmentDataProvider")
-    def testBwaSWAlignmentDataProvider: Array[Array[Object]] = {
-        runOnUppmax match {
-            case true => {
-                val envSetup = EnvironmentSetup(pathToScript, Seq("Drmaa"), "/bubo/sw/apps/bioinfo/bwa/0.6.2/kalkyl/bwa");
-                val md5 = "d5300404fde12c139a9e9e8b1c09b304"
-                Array(Array(envSetup, md5)).asInstanceOf[Array[Array[Object]]]
-            }
-            case _ => {
-                val envSetup = EnvironmentSetup(pathToScript, Seq("Shell"), "/usr/bin/bwa");
-                val md5 = "d5300404fde12c139a9e9e8b1c09b304"
-                Array(Array(envSetup, md5)).asInstanceOf[Array[Array[Object]]]
-            }
-        }
-    }
-
-    @Test(dataProvider = "testBwaSWAlignmentDataProvider")
-    def testBwaSWAlignment(envSetup: EnvironmentSetup, md5sum: String) {
-        val projectName = "test"
-        val testOut = "1.bam"
-        val spec = new PipelineTestSpec()
-
-        spec.jobRunners = envSetup.jobrunner
-
-        spec.name = "AlignSWWithBwa"
-        spec.args = Array(envSetup.commandline,
-            " -bwa " + envSetup.pathToBwa,
-            " -i " + snpSeqBaseTest.pathSetupFile,
-            " -bwasw ",
+            " -outputDir " + PipelineTest.runDir(spec.name, spec.jobRunners(0)),
             " -wallTime " + walltime,
             " -startFromScratch ").mkString
         spec.fileMD5s += testOut -> md5sum

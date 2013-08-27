@@ -3,7 +3,7 @@ package molmed.qscripts
 import org.broadinstitute.sting.queue.QScript
 import org.broadinstitute.sting.queue.util.QScriptUtils
 import org.broadinstitute.sting.queue.extensions.picard.MergeSamFiles
-import molmed.utils.BamUtils._
+import molmed.utils.AlignmentUtils._
 import org.broadinstitute.sting.queue.function.ListWriterFunction
 
 class MergeBamsBySample extends QScript {

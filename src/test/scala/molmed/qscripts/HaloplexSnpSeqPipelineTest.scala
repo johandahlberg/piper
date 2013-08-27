@@ -38,6 +38,7 @@ class HaloplexSnpSeqPipelineTest {
             " -bwa " + "/usr/bin/bwa",
             " -cutadapt " + "/usr/local/bin/cutadapt",
             " --path_to_sync " + "$HOME/workspace/piper/resources/FixEmptyReads.pl",
+            " -outputDir " + PipelineTest.runDir(spec.name, spec.jobRunners(0)),
             " --nbr_of_threads 1 ",
             " --scatter_gather 1 ",
             " --test_mode ",
