@@ -60,7 +60,7 @@ Setup for run
 
 All workflows start with a xml file, for example: `pipelineSetup.xml`. This contains information about the raw data (run folders) that you want to run in the project. This is created using the `createSetupXml.sh` script. Before running this make sure that are you run folders are located (or linked) from a common folder (e.g. the runfolders directory under you project), then run this: 
 
-    ./createSetupXML.sh pipelineSetup.xml
+    ./createSetupXml.sh pipelineSetup.xml
 
 and answer the questions. This will create you setup file, which should look something like this:
 
