@@ -1,5 +1,9 @@
 #!/bin/bash
 
+#Load needed module for build on uppmax
+module load java/sun_jdk1.6.0_04
+module load ant
+
 check_errs()
 {
   # Function. Parameter 1 is the return code
