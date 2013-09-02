@@ -123,7 +123,7 @@ PROJECT_NAME="TestRNA"
 PROJECT_ID="b2010028"
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
 source globalConfig.sh
-GENOME_REFERENCE=${GATK_BUNDLE}"/human_g1k_v37.fasta"
+GENOME_REFERENCE=${GATK_BUNDLE_B37}"/human_g1k_v37.fasta"
 ANNOTATIONS="/proj/b2010028/references/piper_references/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf"
 RRNA_TARGETS="/proj/b2010028/references/piper_references/rRNA_targets/rRNA.sorted.1-based.intervals.list"
 LIBRARY_TYPE="" # Depends on the protocol, e.g. fr-secondstrand for ScriptSeq
