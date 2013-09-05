@@ -7,6 +7,8 @@ import org.broadinstitute.sting.queue.util.QScriptUtils
 import org.broadinstitute.sting.commandline.Hidden
 import java.io.IOException
 import org.broadinstitute.sting.commandline.ArgumentException
+import molmed.utils.Resources
+import molmed.utils.Resources
 
 /**
  * TODO
@@ -28,17 +30,20 @@ class VariantCalling extends QScript {
   @Input(doc = "Reference fasta file", fullName = "reference", shortName = "R", required = true)
   var reference: File = _
 
-  @Input(doc = "Location of resource files such as dbSnp, hapmap, etc.", fullName = "resources", shortName = "res", required = true)
-  var resources: File = _
-
   /**
    * **************************************************************************
    * Optional Parameters
    * **************************************************************************
    */
 
+  @Argument(doc = "Location of resource files such as dbSnp, hapmap, etc.", fullName = "resources", shortName = "res", required = false)
+  var resourcesPath: File = _
+
   @Argument(doc = "the project name determines the final output (vcf file) base name. Example NA12878 yields NA12878.vcf", fullName = "project", shortName = "p", required = false)
   var projectName: String = "project"
+
+  @Argument(doc = "If the project is a non-human project - which means that there are normally no resources available.", fullName = "not_human", shortName = "nh", required = false)
+  var notHuman: Boolean = false
 
   @Argument(doc = "If the project is a low pass project", fullName = "lowpass", shortName = "lp", required = false)
   var isLowpass: Boolean = false
@@ -91,6 +96,9 @@ class VariantCalling extends QScript {
 
   @Argument(doc = "Test mode", fullName = "test_mode", shortName = "test", required = false)
   var testMode: Boolean = false
+  
+  
+  private var resources: Resources = null
 
   /**
    * Help class handling each variant calling target. Storing input files, creating output filenames etc.
@@ -107,7 +115,7 @@ class VariantCalling extends QScript {
     val isExome: Boolean,
     val nSamples: Int) {
 
-    val name = if(qscript.outputDir.isEmpty()) baseName else qscript.outputDir + "/" + baseName
+    val name = if (qscript.outputDir.isEmpty()) baseName else qscript.outputDir + "/" + baseName
     val clusterFile = new File(name + ".clusters")
     val rawSnpVCF = new File(name + ".raw.snv.vcf")
     val rawIndelVCF = new File(name + ".raw.indel.vcf")
@@ -129,71 +137,21 @@ class VariantCalling extends QScript {
     val goldStandardClusterFile = new File(goldStandardName + ".clusters")
   }
 
-  
-  // @TODO There is now a class for this in molmed.utils. This should be refactored to use that instead
-  // when this script is cleaned up for real.
-  object Resources {
-
-    logger.debug("Determining paths to resource files...")
-
-    //TODO When xml setup is implemented, get the path to the resource files from there.
-    def allFilesInResourceFiles: Array[File] = {
-      try {
-        if (resources.exists())
-          resources.getAbsolutePath().listFiles()
-        else
-          throw new ArgumentException("Could not locate GATK bundle at: " + resources.getAbsolutePath())
-      } catch {
-        case e: ArgumentException => if (testMode) Array[File]() else throw e
-      }
-    }
-
-    // For each resource get the matching file
-    val dbsnp = getResourceFile(""".*dbsnp_137\.\w+\.vcf""")
-    val hapmap = getResourceFile(""".*hapmap_3.3\.\w+\.vcf""")
-    val omni = getResourceFile(""".*1000G_omni2.5\.\w+\.vcf""")
-    val mills = getResourceFile(""".*Mills_and_1000G_gold_standard.indels\.\w+\.vcf""")
-
-    logger.debug("Mapped dbsnp to: " + dbsnp)
-    logger.debug("Mapped hapmap to: " + hapmap)
-    logger.debug("Mapped omni to: " + omni)
-    logger.debug("Mapped mills to: " + mills)
-
-    def getResourceFile(regexp: String): File = {
-      val resourceFile: Array[File] = allFilesInResourceFiles.filter(file => file.getName().matches(regexp))
-
-      try {
-        if (resourceFile.length == 1)
-          resourceFile(0)
-        else if (resourceFile.length > 1)
-          throw new IOException("Found more than one file matching regular expression: " + regexp + " found files: " + resourceFile.mkString(", "))
-        else
-          throw new IOException("Found no file matching regular expression: " + regexp)
-      } catch {
-        case e: IOException => if (testMode) new File("") else throw e
-      }
-
-    }
-  }
-
-  //    val lowPass: Boolean = true
-  //    val exome: Boolean = true
-  //    val indels: Boolean = true
-
-  val queueLogDir = ".qlog/"
 
   def script = {
 
     val bams = QScriptUtils.createSeqFromFile(input)
-
+    resources = new Resources(resourcesPath, testMode)
+    
     // By default scatter over the contigs
     if (nContigs < 0)
       nContigs = QScriptUtils.getNumberOfContigs(bams(0))
 
-    val targets = if (!runSeparatly)
-      Seq(new Target(projectName, reference, Resources.dbsnp, Resources.hapmap, input, Resources.mills, intervals, isLowpass, isExome, bams.size))
-    else {
-      bams.map(bam => new Target(bam.getName(), reference, Resources.dbsnp, Resources.hapmap, bam, Resources.mills, intervals, isLowpass, isExome, 1))
+    val targets = (runSeparatly, notHuman) match {
+      case (true, false) => bams.map(bam => new Target(bam.getName(), reference, resources.dbsnp, resources.hapmap, bam, resources.mills, intervals, isLowpass, isExome, 1))
+      case (true, true) => bams.map(bam => new Target(bam.getName(), reference, "", "", bam, "", intervals, isLowpass, false, 1))
+      case (false, true) => Seq(new Target(projectName, reference, "", "", input, "", intervals, isLowpass, false, bams.size))
+      case (false, false) => Seq(new Target(projectName, reference, resources.dbsnp, resources.hapmap, input, resources.mills, intervals, isLowpass, isExome, bams.size))
     }
 
     for (target <- targets) {
@@ -244,7 +202,8 @@ class VariantCalling extends QScript {
     this.stand_call_conf = if (t.isLowpass) { 4.0 } else { 30.0 }
     this.stand_emit_conf = if (t.isLowpass) { 4.0 } else { 30.0 }
     this.input_file :+= t.bamList
-    this.D = new File(t.dbsnpFile)
+    if (!t.dbsnpFile.isEmpty())
+      this.D = new File(t.dbsnpFile)
   }
 
   // 1a.) Call SNPs with UG
@@ -258,7 +217,7 @@ class VariantCalling extends QScript {
     this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.SNP
     this.baq = if (noBAQ || t.isExome) { org.broadinstitute.sting.utils.baq.BAQ.CalculationMode.OFF } else { org.broadinstitute.sting.utils.baq.BAQ.CalculationMode.CALCULATE_AS_NECESSARY }
     this.analysisName = t.name + "_UGs"
-    this.jobName = queueLogDir + t.name + ".snpcall"
+    this.jobName = t.name + ".snpcall"
   }
 
   // 1b.) Call Indels with UG
@@ -267,7 +226,7 @@ class VariantCalling extends QScript {
     this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.INDEL
     this.baq = org.broadinstitute.sting.utils.baq.BAQ.CalculationMode.OFF
     this.analysisName = t.name + "_UGi"
-    this.jobName = queueLogDir + t.name + ".indelcall"
+    this.jobName = t.name + ".indelcall"
   }
 
   // 2.) Hard Filtering for indels
@@ -275,8 +234,10 @@ class VariantCalling extends QScript {
     this.reference_sequence = t.reference
     if (t.intervals != null) this.intervals :+= t.intervals
     this.scatterCount = nContigs
-    this.V = t.rawIndelVCF
-    this.out = t.filteredIndelVCF
+    if (!t.rawIndelVCF.isEmpty())
+      this.V = t.rawIndelVCF
+    if (!t.filteredIndelVCF.isEmpty())
+      this.out = t.filteredIndelVCF
     this.filterName ++= List("IndelQD", "IndelReadPosRankSum", "IndelFS")
     this.filterExpression ++= List("QD < 2.0", "ReadPosRankSum < -20.0", "FS > 200.0")
 
@@ -286,7 +247,7 @@ class VariantCalling extends QScript {
     }
 
     this.analysisName = t.name + "_VF"
-    this.jobName = queueLogDir + t.name + ".indelfilter"
+    this.jobName = t.name + ".indelfilter"
   }
 
   class VQSRBase(t: Target) extends VariantRecalibrator with UNIVERSAL_GATK_ARGS {
@@ -301,10 +262,12 @@ class VariantCalling extends QScript {
 
     this.input :+= t.rawSnpVCF
 
-    // Whole Genome sequencing
-    this.resource :+= new TaggedFile(Resources.hapmap, "known=false,training=true,truth=true,prior=15.0")
-    this.resource :+= new TaggedFile(Resources.omni, "known=false,training=true,truth=true,prior=12.0")
-    this.resource :+= new TaggedFile(Resources.dbsnp, "known=true,training=false,truth=false,prior=6.0")
+    // Whole Genome sequencing    
+    if (!resources.hapmap.isEmpty() && !resources.omni.isHidden() && !resources.dbsnp.isEmpty()) {
+      this.resource :+= new TaggedFile(resources.hapmap, "known=false,training=true,truth=true,prior=15.0")
+      this.resource :+= new TaggedFile(resources.omni, "known=false,training=true,truth=true,prior=12.0")
+      this.resource :+= new TaggedFile(resources.dbsnp, "known=true,training=false,truth=false,prior=6.0")
+    }
 
     //  From best practice: -an QD -an MQRankSum -an ReadPosRankSum -an FS -an DP
     this.use_annotation ++= List("QD", "HaplotypeScore", "MQRankSum", "ReadPosRankSum", "MQ", "FS", "DP")
@@ -317,9 +280,11 @@ class VariantCalling extends QScript {
 
       this.mG = 6
 
-      this.resource :+= new TaggedFile(Resources.hapmap, "known=false,training=true,truth=true,prior=15.0")
-      this.resource :+= new TaggedFile(Resources.omni, "known=false,training=true,truth=false,prior=12.0")
-      this.resource :+= new TaggedFile(Resources.dbsnp, "known=true,training=false,truth=false,prior=6.0")
+      if (!resources.hapmap.isEmpty() && !resources.omni.isHidden() && !resources.dbsnp.isEmpty()) {
+        this.resource :+= new TaggedFile(resources.hapmap, "known=false,training=true,truth=true,prior=15.0")
+        this.resource :+= new TaggedFile(resources.omni, "known=false,training=true,truth=false,prior=12.0")
+        this.resource :+= new TaggedFile(resources.dbsnp, "known=true,training=false,truth=false,prior=6.0")
+      }
 
       if (t.nSamples <= 30) { // very few exome samples means very few variants
         this.mG = 4
@@ -333,7 +298,7 @@ class VariantCalling extends QScript {
     this.rscript_file = t.vqsrSnpRscript
     this.mode = org.broadinstitute.sting.gatk.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.SNP
     this.analysisName = t.name + "_VQSRs"
-    this.jobName = queueLogDir + t.name + ".snprecal"
+    this.jobName = t.name + ".snprecal"
   }
 
   class indelRecal(t: Target) extends VQSRBase(t) with UNIVERSAL_GATK_ARGS {
@@ -341,8 +306,9 @@ class VariantCalling extends QScript {
     // Note that for indel recalication the same settings are used both for WGS and Exome Seq.
 
     this.input :+= t.rawIndelVCF
-    this.resource :+= new TaggedFile(Resources.mills, "known=true,training=true,truth=true,prior=12.0")
-    
+    if (!resources.mills.isEmpty())
+      this.resource :+= new TaggedFile(resources.mills, "known=true,training=true,truth=true,prior=12.0")
+
     // From best practice: -an DP -an FS -an ReadPosRankSum -an MQRankSum
     this.use_annotation ++= List("QD", "ReadPosRankSum", "FS", "DP", "MQRankSum")
 
@@ -358,7 +324,7 @@ class VariantCalling extends QScript {
     this.rscript_file = t.vqsrIndelRscript
     this.mode = org.broadinstitute.sting.gatk.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.INDEL
     this.analysisName = t.name + "_VQSRi"
-    this.jobName = queueLogDir + t.name + ".indelrecal"
+    this.jobName = t.name + ".indelrecal"
   }
 
   // 4.) Apply the recalibration table to the appropriate tranches
@@ -378,7 +344,7 @@ class VariantCalling extends QScript {
     this.mode = org.broadinstitute.sting.gatk.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.SNP
     this.out = t.recalibratedSnpVCF
     this.analysisName = t.name + "_AVQSRs"
-    this.jobName = queueLogDir + t.name + ".snpcut"
+    this.jobName = t.name + ".snpcut"
   }
 
   class indelCut(t: Target) extends applyVQSRBase(t) {
@@ -391,13 +357,15 @@ class VariantCalling extends QScript {
     this.mode = org.broadinstitute.sting.gatk.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.INDEL
     this.out = t.recalibratedIndelVCF
     this.analysisName = t.name + "_AVQSRi"
-    this.jobName = queueLogDir + t.name + ".indelcut"
+    this.jobName = t.name + ".indelcut"
   }
 
   // 5.) Variant Evaluation Base(OPTIONAL)
   class EvalBase(t: Target) extends VariantEval with UNIVERSAL_GATK_ARGS {
-    this.comp :+= new TaggedFile(t.hapmapFile, "hapmap")
-    this.D = new File(t.dbsnpFile)
+    if (!t.hapmapFile.isEmpty())
+      this.comp :+= new TaggedFile(t.hapmapFile, "hapmap")
+    if (!t.dbsnpFile.isEmpty())
+      this.D = new File(t.dbsnpFile)
     this.reference_sequence = t.reference
     if (t.intervals != null) this.intervals :+= t.intervals
     this.sample = samples
@@ -410,7 +378,7 @@ class VariantCalling extends QScript {
     this.eval :+= t.recalibratedSnpVCF
     this.out = t.evalFile
     this.analysisName = t.name + "_VEs"
-    this.jobName = queueLogDir + t.name + ".snpeval"
+    this.jobName = t.name + ".snpeval"
   }
 
   // 5b.) Indel Evaluation (OPTIONAL)
@@ -424,7 +392,7 @@ class VariantCalling extends QScript {
     //this.evalModule = List("CompOverlap", "CountVariants", "TiTvVariantEvaluator", "ValidationReport", "IndelStatistics")
     this.out = t.evalIndelFile
     this.analysisName = t.name + "_VEi"
-    this.jobName = queueLogDir + queueLogDir + t.name + ".indeleval"
+    this.jobName = t.name + ".indeleval"
   }
 
 }
