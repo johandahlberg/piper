@@ -28,18 +28,21 @@ object SnpSeqBaseTest {
   val pathLegacySetupFile: String = pathToBaseDir + "pipelineSetup.xml"
   val pathToSetupFileForSameSampleAcrossMultipleRunFolders = pathToBaseDir + "pipelineSetupSameSampleAcrossMultipleRunFolders.xml"
   val pathToSetupFileForSameSampleAcrossMultipleLanes = pathToBaseDir + "pipelineSetupSameSampleAcrossMultipleLanes.xml"
+  
+  val differentRgsCohortList = pathToBaseDir + "bam.cohort.list"
 
   val pathToReportXML: String = pathToBaseDir + "smallTestFastqDataFolder/report.xml"
   val pathToReportXMLForSameSampleAcrossMultipleLanes = pathToBaseDir + "runFolderWithSameSampleInMultipleLanes/report.xml"
   val pathToReportWithMultipleLibraries = pathToBaseDir + "reportWithMultipleLibraryNames.xml"
 
   val rnaSetBaseDir = "/local/data/rna_seq_test_data/"
-  val pathToRNAtestBam = rnaSetBaseDir + "Pairend_StrandSpecific_51mer_Human_hg19.bam"
+  val pathToRNAtestBam = rnaSetBaseDir + "Pairend_StrandSpecific_51mer_Human_hg19.with.rg.bam"
+  val pathToCuffdiffCohortFile = pathToBaseDir + "cuffdiff.cohort.list"
   val hg19_rRNA = "" // @TODO
   val pathToReplicatesFile = "" // @TODO
   val hg19annotations = rnaSetBaseDir + "Homo_sapiens/UCSC/hg19/Annotation/Archives/archive-2013-03-06-11-23-03/Genes/genes.gtf"
 
-  val pathToCuffdiff = "/home/MOLMED/dahljo/Bin/cufflinks/cuffdiff"
-  val pathToCufflinks = "/home/MOLMED/dahljo/Bin/cufflinks/cufflinks"
+  val pathToCuffdiff = "/home/MOLMED/dahljo/Bin/cufflinks"
+  val pathToCufflinks = "/home/MOLMED/dahljo/Bin/cufflinks"
 
 }

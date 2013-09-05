@@ -8,17 +8,22 @@
 			<package name="molmed.queue.setup" />
 		</packages>
 	</test>
+
 	<test name="PipelineTests">
 		<parameter name="runpipeline" value="false" />
 
 		<classes>
 			<class name="molmed.qscripts.AlignWithBWASnpSeqPipelineTest" />
-			<class name="molmed.qscripts.DataProcessingSnpSeqPipelineTest" />  
-			<class name="molmed.qscripts.VariantCallingSnpSeqPipelineTest" />						
+			<class name="molmed.qscripts.DataProcessingSnpSeqPipelineTest" />
+			<class name="molmed.qscripts.VariantCallingSnpSeqPipelineTest" />
 			<class name="molmed.qscripts.AlignWithTophatSnpSeqPipelineTest" />
 			<class name="molmed.qscripts.AlignmentQCSnpSeqPipelineTest" />
 			<class name="molmed.qscripts.HaloplexSnpSeqPipelineTest" />
+			<class name="molmed.qscripts.CufflinksSnpSeqPipelineTest" />
+			<class name="molmed.qscripts.CuffdiffSnpSeqPipelineTest" />
+			<class name="molmed.qscripts.MergeBamsBySampleSnpSeqPipelineTest" />
 		</classes>
 	</test>
+
 </suite>
 
