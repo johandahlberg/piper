@@ -15,6 +15,7 @@ class MergeBamsBySample extends QScript {
 
   @Argument(doc = "Output path for the processed BAM files.", fullName = "output_directory", shortName = "outputDir", required = false)
   var outputDir: String = ""
+  def getOutputDir: String = if(outputDir.isEmpty()) "" else outputDir + "/"
 
   @Argument(doc = "the project name determines the final output (BAM file) base name. Example NA12878 yields NA12878.processed.bam", fullName = "project", shortName = "p", required = false)
   var projectName: String = ""
@@ -34,7 +35,7 @@ class MergeBamsBySample extends QScript {
       for (sampleNamesAndFiles <- filesGroupedBySampleName) yield {
 
         val sampleName = sampleNamesAndFiles._1
-        val mergedFile: File = outputDir + "/" + sampleName + ".bam"
+        val mergedFile: File = getOutputDir + sampleName + ".bam"
         val files = sampleNamesAndFiles._2
 
         add(joinBams(files, mergedFile))
@@ -42,7 +43,7 @@ class MergeBamsBySample extends QScript {
       }
 
     // output a BAM list with all the processed files
-    val cohortFile = new File(outputDir + "/" + projectName + ".cohort.list")
+    val cohortFile = new File(getOutputDir + projectName + ".cohort.list")
     add(writeList(cohortList.toSeq, cohortFile))
 
   }

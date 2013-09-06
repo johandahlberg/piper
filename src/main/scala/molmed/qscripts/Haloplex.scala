@@ -84,7 +84,7 @@ class Haloplex extends QScript {
   @Argument(doc = "How many ways to scatter/gather", fullName = "scatter_gather", shortName = "sg", required = false)
   var nContigs: Int = 23
 
-  @Argument(doc = "Number of threads to use in thread enabled walkers. Default: 1", fullName = "nbr_of_threads", shortName = "nt", required = false)
+  @Argument(doc = "Number of threads to use in thread enabled walkers. Default: 8", fullName = "nbr_of_threads", shortName = "nt", required = false)
   var nbrOfThreads: Int = 8
 
   @Hidden

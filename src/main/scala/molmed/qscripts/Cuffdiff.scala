@@ -37,6 +37,7 @@ class Cuffdiff extends QScript {
 
   @Argument(doc = "Output path for the processed files.", fullName = "output_directory", shortName = "outputDir", required = false)
   var outputDir: String = ""
+  def getOutputDir: String = if(outputDir.isEmpty()) "" else outputDir + "/"  
 
   @Argument(doc = "Number of threads to use", fullName = "threads", shortName = "nt", required = false)
   var threads: Int = 1
@@ -83,7 +84,7 @@ class Cuffdiff extends QScript {
 
     val samplesAndLables = bams.map(file => (file, getSampleNameFromReadGroups(file))).toMap
 
-    val placeHolderFile = new File(outputDir + "/qscript_cufflinks.stdout.log")
+    val placeHolderFile = new File(getOutputDir +  "qscript_cufflinks.stdout.log")
     add(cuffdiff(samplesAndLables, replicates, placeHolderFile))
 
   }
@@ -145,10 +146,10 @@ class Cuffdiff extends QScript {
     require(!labelsString.isEmpty(), "Lables string in empty. Something went wrong!")
     require(!inputFilesString.isEmpty(), "Input file string in empty. Something went wrong!")
 
-    def commandLine = cuffdiffPath +
+    def commandLine = cuffdiffPath + "/cuffdiff" +
       " --library-type " + libraryType + " " +
       " -p " + threads +
-      " -o " + outputDir + " " +
+      (if(!getOutputDir.isEmpty) " -o " + getOutputDir + " "  else "" )+
       " --labels " + labelsString + " " +
       annotations.get.getAbsolutePath() + " " +
       inputFilesString +
