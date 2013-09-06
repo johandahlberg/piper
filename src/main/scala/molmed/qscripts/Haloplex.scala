@@ -87,6 +87,9 @@ class Haloplex extends QScript {
   @Argument(doc = "Number of threads to use in thread enabled walkers. Default: 8", fullName = "nbr_of_threads", shortName = "nt", required = false)
   var nbrOfThreads: Int = 8
 
+  @Argument(doc = "Downsample BQSR to x coverage (can get stuck in high coverage regions).", fullName = "downsample_bsqr", shortName = "dbsqr", required = false)
+  var downsampleBQSR: Int = -1
+
   @Hidden
   @Input(doc = "Path to the sync script", fullName = "path_to_sync", shortName = "sync", required = false)
   var pathToSyncScript: File = "resources/FixEmptyReads.pl"
@@ -312,7 +315,6 @@ class Haloplex extends QScript {
 
   }
 
-
   case class joinBams(inBams: Seq[File], outBam: File, index: File) extends MergeSamFiles with ExternalCommonArgs {
     this.input = inBams
     this.output = outBam
@@ -362,7 +364,7 @@ class Haloplex extends QScript {
   }
 
   def writeIntervals(bed: File, intervalFile: File, bam: File, formatFrom: Array[String] => String): Unit = {
-    
+
     def getSamHeader(bam: File): SAMFileHeader = {
       val samReader = new SAMFileReader(bam)
       samReader.getFileHeader
@@ -465,6 +467,8 @@ class Haloplex extends QScript {
 
     this.num_cpu_threads_per_data_thread = nbrOfThreads
 
+    if(qscript.downsampleBQSR != -1)
+    	this.downsample_to_coverage = qscript.downsampleBQSR
     this.knownSites :+= resources.dbsnp
     this.covariate ++= Seq("ReadGroupCovariate", "QualityScoreCovariate", "CycleCovariate", "ContextCovariate")
     this.input_file = inBam
