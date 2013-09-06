@@ -51,9 +51,6 @@ class Cuffdiff extends QScript {
   @Argument(doc = "Project id fom cluster.", fullName = "project_id", shortName = "pid", required = false)
   var projId: String = ""
 
-  @Argument(doc = "Use for testing on Travis", fullName = "test_mode", shortName = "test", required = false)
-  var testMode: Boolean = false
-
   /**
    *  Help methods
    */
@@ -85,7 +82,7 @@ class Cuffdiff extends QScript {
     val bams = QScriptUtils.createSeqFromFile(input)
     val replicates: Map[String, List[String]] = if (replicatesFile.isDefined) getReplicatesFromFile(replicatesFile.get) else Map.empty
 
-    val samplesAndLables = bams.map(file => (file, if(!testMode) getSampleNameFromReadGroups(file) else file.getName())).toMap
+    val samplesAndLables = bams.map(file => (file, getSampleNameFromReadGroups(file))).toMap
 
     val placeHolderFile = new File(getOutputDir + "qscript_cufflinks.stdout.log")
     add(cuffdiff(samplesAndLables, replicates, placeHolderFile))

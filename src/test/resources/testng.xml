@@ -19,9 +19,16 @@
 			<class name="molmed.qscripts.AlignWithTophatSnpSeqPipelineTest" />
 			<class name="molmed.qscripts.AlignmentQCSnpSeqPipelineTest" />
 			<class name="molmed.qscripts.HaloplexSnpSeqPipelineTest" />
+
+			<!-- The following test will fail without their resoruce files. Uncomment 
+				them to run these tests. -->
+			<!--
 			<class name="molmed.qscripts.CufflinksSnpSeqPipelineTest" />
 			<class name="molmed.qscripts.CuffdiffSnpSeqPipelineTest" />
 			<class name="molmed.qscripts.MergeBamsBySampleSnpSeqPipelineTest" />
+			-->
+			
+			<class name="molmed.qscripts.RNAQCSnpSeqPipelineTest" />
 		</classes>
 	</test>
 
