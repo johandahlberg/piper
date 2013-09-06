@@ -37,7 +37,7 @@ class Cuffdiff extends QScript {
 
   @Argument(doc = "Output path for the processed files.", fullName = "output_directory", shortName = "outputDir", required = false)
   var outputDir: String = ""
-  def getOutputDir: String = if(outputDir.isEmpty()) "" else outputDir + "/"  
+  def getOutputDir: String = if (outputDir.isEmpty()) "" else outputDir + "/"
 
   @Argument(doc = "Number of threads to use", fullName = "threads", shortName = "nt", required = false)
   var threads: Int = 1
@@ -51,11 +51,14 @@ class Cuffdiff extends QScript {
   @Argument(doc = "Project id fom cluster.", fullName = "project_id", shortName = "pid", required = false)
   var projId: String = ""
 
+  @Argument(doc = "Use for testing on Travis", fullName = "test_mode", shortName = "test", required = false)
+  var testMode: Boolean = false
+
   /**
    *  Help methods
    */
-      
-  import molmed.utils.AlignmentUtils._    
+
+  import molmed.utils.AlignmentUtils._
 
   def getReplicatesFromFile(file: File): Map[String, List[String]] = {
     val lines = scala.io.Source.fromFile(file).getLines
@@ -82,13 +85,12 @@ class Cuffdiff extends QScript {
     val bams = QScriptUtils.createSeqFromFile(input)
     val replicates: Map[String, List[String]] = if (replicatesFile.isDefined) getReplicatesFromFile(replicatesFile.get) else Map.empty
 
-    val samplesAndLables = bams.map(file => (file, getSampleNameFromReadGroups(file))).toMap
+    val samplesAndLables = bams.map(file => (file, if(!testMode) getSampleNameFromReadGroups(file) else file.getName())).toMap
 
-    val placeHolderFile = new File(getOutputDir +  "qscript_cufflinks.stdout.log")
+    val placeHolderFile = new File(getOutputDir + "qscript_cufflinks.stdout.log")
     add(cuffdiff(samplesAndLables, replicates, placeHolderFile))
 
   }
-
 
   case class cuffdiff(samplesAndLables: Map[File, String], replicates: Map[String, List[String]], outputFile: File) extends CommandLineFunction {
 
@@ -99,7 +101,6 @@ class Cuffdiff extends QScript {
     @Input var bamFiles: Seq[File] = samplesAndLables.keys.toSeq
     @Argument var labels: String = samplesAndLables.map(f => f._2).mkString(",")
     @Output var stdOut: File = outputFile
-
 
     /**
      * This function will merge all samples with identical names into the same condition
@@ -149,7 +150,7 @@ class Cuffdiff extends QScript {
     def commandLine = cuffdiffPath + "/cuffdiff" +
       " --library-type " + libraryType + " " +
       " -p " + threads +
-      (if(!getOutputDir.isEmpty) " -o " + getOutputDir + " "  else "" )+
+      (if (!getOutputDir.isEmpty) " -o " + getOutputDir + " " else "") +
       " --labels " + labelsString + " " +
       annotations.get.getAbsolutePath() + " " +
       inputFilesString +

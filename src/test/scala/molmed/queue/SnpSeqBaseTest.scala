@@ -35,14 +35,17 @@ object SnpSeqBaseTest {
   val pathToReportXMLForSameSampleAcrossMultipleLanes = pathToBaseDir + "runFolderWithSameSampleInMultipleLanes/report.xml"
   val pathToReportWithMultipleLibraries = pathToBaseDir + "reportWithMultipleLibraryNames.xml"
 
-  val rnaSetBaseDir = "/local/data/rna_seq_test_data/"
-  val pathToRNAtestBam = rnaSetBaseDir + "Pairend_StrandSpecific_51mer_Human_hg19.with.rg.bam"
+  val rnaSeqBaseDir = "/local/data/rna_seq_test_data/"
+  val pathToRNAtestBam = rnaSeqBaseDir + "Pairend_StrandSpecific_51mer_Human_hg19.with.rg.bam"
   val pathToCuffdiffCohortFile = pathToBaseDir + "cuffdiff.cohort.list"
-  val hg19_rRNA = "" // @TODO
+  val pathToCufflinksCohortFile = pathToBaseDir + "cufflinks.cohort.list"
+  val hg19_rRNA = rnaSeqBaseDir + "hg19_rRNA.bed"
   val pathToReplicatesFile = "" // @TODO
-  val hg19annotations = rnaSetBaseDir + "Homo_sapiens/UCSC/hg19/Annotation/Archives/archive-2013-03-06-11-23-03/Genes/genes.gtf"
+  val hg19annotations = rnaSeqBaseDir + "Homo_sapiens/UCSC/hg19/Annotation/Archives/archive-2013-03-06-11-23-03/Genes/genes.gtf"
 
   val pathToCuffdiff = "/home/MOLMED/dahljo/Bin/cufflinks"
   val pathToCufflinks = "/home/MOLMED/dahljo/Bin/cufflinks"
+    
+    val pathToRNASeQC = "/home/MOLMED/dahljo/workspace/piper/resources/RNA-SeQC_v1.1.7.jar"
 
 }
