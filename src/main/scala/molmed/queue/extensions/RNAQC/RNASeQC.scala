@@ -23,10 +23,13 @@ class RNASeQC extends CommandLineFunction {
   @Input(doc = "Output directory", shortName = "o", fullName = "output_dir", required = true)
   var output: File = _
 
+  @Argument(doc = "The path to RNA-SeQC", shortName = "rnaseqc", fullName = "rna_seqc", required = false)
+  var pathToRNASeQC: File = new File("resources/RNA-SeQC_v1.1.7.jar")
+  
   var rRNATargetString: String = ""
   var downsampleString: String = ""
 
-  override def commandLine = "java -jar resources/RNA-SeQC_v1.1.7.jar " +
+  override def commandLine = "java -jar " + pathToRNASeQC.getAbsolutePath() + " " +
     " -s " + input +
     " -r " + reference +
     " -t " + transcripts +

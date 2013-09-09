@@ -36,7 +36,7 @@ object SnpSeqBaseTest {
   val pathToReportWithMultipleLibraries = pathToBaseDir + "reportWithMultipleLibraryNames.xml"
 
   val rnaSeqBaseDir = "/local/data/rna_seq_test_data/"
-  val pathToRNAtestBam = rnaSeqBaseDir + "Pairend_StrandSpecific_51mer_Human_hg19.with.rg.bam"
+  val pathToRNAtestBam = rnaSeqBaseDir + "Pairend_StrandSpecific_51mer_Human_hg19.reordered.with.rg.bam"
   val pathToCuffdiffCohortFile = pathToBaseDir + "cuffdiff.cohort.list"
   val pathToCufflinksCohortFile = pathToBaseDir + "cufflinks.cohort.list"
   val hg19_rRNA = rnaSeqBaseDir + "hg19_rRNA.bed"
