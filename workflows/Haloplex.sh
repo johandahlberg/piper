@@ -50,7 +50,7 @@ function haloplex {
 }
 
 # Load the correct java engine
-module load java/sun_jdk1.6.0_18
+module load java/sun_jdk1.6.0_45
 module load R/2.15.0
 
 #---------------------------------------------
