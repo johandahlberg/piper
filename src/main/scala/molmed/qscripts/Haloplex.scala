@@ -206,7 +206,8 @@ class Haloplex extends QScript {
     def setupSamples(): Map[String, Seq[SampleAPI]] = {
       val setupReader: SetupXMLReaderAPI = new SetupXMLReader(input)
       uppmaxProjId = setupReader.getUppmaxProjectId()
-      projectName = setupReader.getProjectName
+      projectName = setupReader.getProjectName()
+      uppmaxQoSFlag = setupReader.getUppmaxQoSFlag()
       setupReader.getSamples()
     }
 
