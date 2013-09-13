@@ -42,4 +42,4 @@ check_errs $? "wget RNA-SeQC FAILED"
 
 # Uncomment this to run tests after setup
 # sbt test
-sbt package
+sbt/sbt package
