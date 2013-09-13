@@ -5,6 +5,7 @@
         <sequenceingcenter>SNP_SEQ_PLATFORM</sequenceingcenter>
         <platfrom>Illumina</platfrom>
         <uppmaxprojectid>a2009002</uppmaxprojectid>
+       	<uppmaxqos>seqver</uppmaxqos>
     </metadata>
     <inputs>
         <runfolder>
