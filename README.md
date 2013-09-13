@@ -9,14 +9,14 @@
 
 [![Build Status](https://travis-ci.org/johandahlberg/piper.png?branch=master)](https://travis-ci.org/johandahlberg/piper)
 
-A pipeline project for the [SNP&SEQ platform](http://www.molmed.medsci.uu.se/SNP+SEQ+Technology+Platform/) built on top of [GATK Queue](http://www.broadinstitute.org/gatk/guide/topic?name=intro#intro1306). Note that this project is under heavy development and might not be entirely stable at this point. It's also worth noting that this project has the primary goal of analyzing sequencing data from the SNP&SEQ platform and therefore has dependencies on metadata files which are unique created in the workflow of the platform, such as the `report.xml` which are delivered with sequencing data from our facility. I'd however be more than happy to support anyone interested in extending the pipeline to other contexts.
+A pipeline project for the [SNP&SEQ platform](http://www.molmed.medsci.uu.se/SNP+SEQ+Technology+Platform/) built on top of [GATK Queue](http://www.broadinstitute.org/gatk/guide/topic?name=intro#intro1306). Note that this project is under heavy development and might not be entirely stable at this point. It's also worth noting that this project has the primary goal of analyzing sequencing data from the SNP&SEQ platform and therefore has dependencies on metadata files which are created in the workflow of the platform, such as the `report.xml` which are delivered with sequencing data from our facility. I'd however be more than happy to support anyone interested in extending the pipeline to other contexts.
 
 Piper builds on the concept of standardized workflows for different next-generation sequencing applications. At the moment Piper supports the following workflows:
 
 * WholeGenome: Which is used for human whole genome sequencing data. This goes through alignment, alignment quality control, dataprocessing, variant calling and variant filtration according to the [best practice recommended by the Broad Institute](http://www.broadinstitute.org/gatk/guide/topic?name=best-practices), using primarily the GATK.
 * TruSeq and SureSelect human exome sequencing: These use basically the same pipeline as the whole genome pipeline, but with the modifications suggested in the [best practice document](http://www.broadinstitute.org/gatk/guide/topic?name=best-practices) for exome studies.
-* RNACounts: Which produces [FPKMs](http://cufflinks.cbcb.umd.edu/faq.html#fpkm) for transcripts of an existing reference annotation using Tophat for mapping and Cufflinks to produce the FPKMs.
 * Haloplex: Haloplex targeted sequencing analysis. Including alignment, data processing and variant calling.
+* RNACounts: Which produces [FPKMs](http://cufflinks.cbcb.umd.edu/faq.html#fpkm) for transcripts of an existing reference annotation using Tophat for mapping and Cufflinks to produce the FPKMs.
 * RNADifferentialExpression: This performs differential expression studies of transcripts of an existing reference annotation using Tophat for mapping and Cuffdiff for differential expression analysis. This can then be visualized using the [cummeRbund](http://compbio.mit.edu/cummeRbund/) R package.
 * Additionally Piper contains a DNAGeneralPipeline and a RNAGeneralPipeline which are used as templates for creating new workflows. These can also be used for creating workflows for species other that human - however they are not expected to work out of the box. You have been warned.
 
@@ -25,7 +25,7 @@ All supported workflows are available in the `workflows` directory in the projec
 Prerequisites and installation
 ==============================
 
-Piper runs has been tested on the Java(TM) SE Runtime Environment (build 1.6.0_18) on the UPPMAX cluster. It might run on in other environments, but this is untested. Besides the JVM Piper depends on the [sbt](http://www.scala-sbt.org/) and [ant](http://ant.apache.org/), and [git](http://git-scm.com/) to checkout the source. To install piper, make sure that there programs are on you path, then clone this repository and run the setup script:
+Piper runs has been tested on the Java(TM) SE Runtime Environment (build 1.6.0_45) on the UPPMAX cluster. It might run in other environments, but this is untested. Besides the JVM Piper depends on [ant](http://ant.apache.org/) for building (the GATK) and [git](http://git-scm.com/) to checkout the source. To install piper, make sure that there programs are on you path, then clone this repository and run the setup script:
 
     git clone https://github.com/johandahlberg/piper.git
     cd piper
@@ -88,6 +88,20 @@ Pick the workflow that you want to run, e.g. haloplex. Open the corresponding fi
     ./workflow/haloplex.sh # OR sbatch workflow/haloplex.sh to sending it to a node
 
 
+Special notes on adding data to project
+---------------------------------------
+
+It's quite common for data in a project to be delivered in batches, as the raw data is delivered from the sequencers. If this is the case, and you want to map your data to the reference as data comes in, this is supported by some of the workflows at the moment, namely:
+
+* DNAGeneralWorkflow
+* WholeGenome
+* TruSeqExome
+* SureSelectExome
+
+The other workflows require that all data is in place when the anlysis is started.
+
+Do run this type of workflow you need to comment out the steps after alignment until all data has arrived, the data will then be merged by the `mergeBySample` step, and fedd on to further processing.
+
 Monitoring progress
 -------------------
 
@@ -139,6 +153,7 @@ This is an (incomplete) overview of Pipers project organization, describing the 
 |-globalConfig.sh   # Global setup with e.g. paths to programs etc.
 |-piper             # Basic runscript
 |-README.md         # This readme
+|----sbt            # The sbt compiler - included for the users convinience
 |----lib            # Unmanaged dependecencies
 |----project        # Build stuff for sbt
 |----resources      # Unmanaged additional dependecencies which are manually downloaded by setup script, and a perl hack which is currently used to sync reads
@@ -172,7 +187,7 @@ Testing
 Running the tests is done by `sbt test`. However there are some things which need to be noted. As the pipeline tests take long time and have dependencies on outside programs (such as bwa for alignment, etc.) these can only be run on machine which have all the required programs installed, and which have all the correct resources. This means that by default the tests are setup to just compile the qscripts, but not run them. If you want to run the qscripts you need to go into `src/test/resources/testng.xml` and set the value of the runpipeline parameter to 'true'.
 
 ### Writing pipeline tests
-TODO
+Pipeline tests are setup to run a certain QScript and check the md5sums of the outputs. If md5sums do not match, it will show you what the differences between the files are so that you can decide if the changes to the output are reasonable concidering the changes to the code you have made. At the moment pipeline tests are just setup to accutally run (with all the necessary resources, etc) on my workstation. In furture versions I hope to be able to make this more portable.
 
 ### Continious integration using Travis:
 Piper uses [Travis](https://travis-ci.org/) for continious integration. For instruction on how to set this up with a github repository see: http://about.travis-ci.org/docs/user/getting-started/
