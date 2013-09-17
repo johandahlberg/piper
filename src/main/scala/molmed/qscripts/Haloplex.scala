@@ -121,7 +121,7 @@ class Haloplex extends QScript {
     val adaptor1 = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC"
     val adaptor2 = "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT"
 
-    val cutadaptOutputDir = getOutputDir() + "cutadapt"
+    val cutadaptOutputDir = getOutputDir() + "/cutadapt"
     cutadaptOutputDir.mkdirs()
 
     // Run cutadapt & sync    
