@@ -467,7 +467,7 @@ class Haloplex extends QScript {
   case class cov(inBam: Seq[File], outRecalFile: File, reference: File) extends BaseRecalibrator with CommandLineGATKArgs {
 
     // Ask for a fat node
-    this.jobNativeArgs +:= "-p node -C fat " + jobNativeArgsBaseString
+    this.jobNativeArgs = Seq("-p node -C fat " + jobNativeArgsBaseString)
     
     this.reference_sequence = reference
     this.isIntermediate = false
