@@ -9,29 +9,29 @@
 
 [![Build Status](https://travis-ci.org/johandahlberg/piper.png?branch=master)](https://travis-ci.org/johandahlberg/piper)
 
-A pipeline project for the [SNP&SEQ platform](http://www.molmed.medsci.uu.se/SNP+SEQ+Technology+Platform/) built on top of [GATK Queue](http://www.broadinstitute.org/gatk/guide/topic?name=intro#intro1306). Note that this project is under heavy development and might not be entirely stable at this point. It's also worth noting that this project has the primary goal of analyzing sequencing data from the SNP&SEQ platform and therefore has dependencies on metadata files which are created in the workflow of the platform, such as the `report.xml` which are delivered with sequencing data from our facility. I'd however be more than happy to support anyone interested in extending the pipeline to other contexts.
+A pipeline project for the [SNP&SEQ Technology platform](http://www.molmed.medsci.uu.se/SNP+SEQ+Technology+Platform/) built on top of [GATK Queue](http://www.broadinstitute.org/gatk/guide/topic?name=intro#intro1306). Note that this project is under heavy development and might not be entirely stable at this point. It's also worth noting that this project has the primary goal of analyzing sequencing data from the SNP&SEQ Technology platform and therefore has dependencies on metadata files which are created in the workflow of the platform, such as the `report.xml` which is created by [Sisyphus](https://github.com/Molmed/sisyphus) and delivered with sequencing data from our facility. I'd however be more than happy to support anyone interested in extending the pipeline to other contexts.
 
 Piper builds on the concept of standardized workflows for different next-generation sequencing applications. At the moment Piper supports the following workflows:
 
-* WholeGenome: Which is used for human whole genome sequencing data. This goes through alignment, alignment quality control, dataprocessing, variant calling and variant filtration according to the [best practice recommended by the Broad Institute](http://www.broadinstitute.org/gatk/guide/topic?name=best-practices), using primarily the GATK.
+* WholeGenome: For human whole genome sequencing data. This goes through alignment, alignment quality control, dataprocessing, variant calling and variant filtration according to the [best practice recommended by the Broad Institute](http://www.broadinstitute.org/gatk/guide/topic?name=best-practices), using primarily the GATK.
 * TruSeq and SureSelect human exome sequencing: These use basically the same pipeline as the whole genome pipeline, but with the modifications suggested in the [best practice document](http://www.broadinstitute.org/gatk/guide/topic?name=best-practices) for exome studies.
 * Haloplex: Haloplex targeted sequencing analysis. Including alignment, data processing and variant calling.
 * RNACounts: Which produces [FPKMs](http://cufflinks.cbcb.umd.edu/faq.html#fpkm) for transcripts of an existing reference annotation using Tophat for mapping and Cufflinks to produce the FPKMs.
 * RNADifferentialExpression: This performs differential expression studies of transcripts of an existing reference annotation using Tophat for mapping and Cuffdiff for differential expression analysis. This can then be visualized using the [cummeRbund](http://compbio.mit.edu/cummeRbund/) R package.
-* Additionally Piper contains a DNAGeneralPipeline and a RNAGeneralPipeline which are used as templates for creating new workflows. These can also be used for creating workflows for species other that human - however they are not expected to work out of the box. You have been warned.
+* Additionally Piper contains a DNAGeneralPipeline and a RNAGeneralPipeline which are used as templates for creating new workflows. These can also be used for creating workflows for species other than human - however they are not expected to work out of the box. You have been warned.
 
 All supported workflows are available in the `workflows` directory in the project root.
 
 Prerequisites and installation
 ==============================
 
-Piper runs has been tested on the Java(TM) SE Runtime Environment (build 1.6.0_45) on the UPPMAX cluster. It might run in other environments, but this is untested. Besides the JVM Piper depends on [ant](http://ant.apache.org/) for building (the GATK) and [git](http://git-scm.com/) to checkout the source. To install piper, make sure that there programs are on you path, then clone this repository and run the setup script:
+Piper has been tested on the Java(TM) SE Runtime Environment (build 1.6.0_45) on the [UPPMAX](http://www.uppmax.uu.se) cluster Kalkyl. It might run in other environments, but this is untested. Besides the JVM Piper depends on [ant](http://ant.apache.org/) for building (the GATK) and [git](http://git-scm.com/) to checkout the source. To install piper, make sure that these programs are in you path, then clone this repository and run the setup script:
 
     git clone https://github.com/johandahlberg/piper.git
     cd piper
     ./setup.sh
     
-Further more as Piper acts as a wrapper for several standard bioinformatics programs it requires that these are installed. At this point it requires that the following programs are installed (depending somewhat on the application):
+As Piper acts as a wrapper for several standard bioinformatics programs it requires that these are installed. At this point it requires that the following programs are installed (depending somewhat on the application):
 
 * [bwa](http://bio-bwa.sourceforge.net/) 0.6.2
 * [samtools](http://samtools.sourceforge.net/) 0.1.12-10
@@ -44,7 +44,7 @@ The paths for these programs are setup in the `globalConfig.sh` file. If you are
 Resource files
 ==============
 
-For the standard application of alignment, data processing and variant calling in human relies on data available in the GATK bundle from the Broad Institute. This is available for download at their [website](http://gatkforums.broadinstitute.org/discussion/1213/what-s-in-the-resource-bundle-and-how-can-i-get-it). If you are working on UPPMAX these resources are available at `/bubo/nobackup/uppnex/reference/biodata/GATK/ftp.broadinstitute.org/bundle/2.2/`, however you might want to create your own directory for these in which you soft link these files, as you will be required to create for example bwa indexes.
+For the standard application of alignment, data processing and variant calling in human relies on data available in the GATK bundle from the Broad Institute. This is available for download at their [website](http://gatkforums.broadinstitute.org/discussion/1213/what-s-in-the-resource-bundle-and-how-can-i-get-it). If you are working on UPPMAX these resources are available at `/bubo/nobackup/uppnex/reference/biodata/GATK/ftp.broadinstitute.org/bundle/2.2/`, however you might want to create your own directory for these in which you soft link the files, as you will be required to create for example bwa indexes.
 
 The path to the GATK bundle needs to be setup in the `globalConfig.sh` file. For MolMed users this has been setup to reasonable defaults.
 
@@ -53,20 +53,20 @@ Running the pipeline
 
 There are a number of workflows currently supported by Piper (See below). All workflow scripts share a similar structure which looks like this:
 
-* A number of bash functions which wrap QScripts with their parameters some simple log redirecting etc.
+* A number of bash functions which wrap QScripts with their parameters, some simple log redirecting etc.
 * A Run template (this is probably where you want to start looking), where parameters such as reference genome, interval file (e.g. for targeted sequencing) are set.
 * A section where the different QScripts are chained together so that for example: variant calling follows data processing, etc. If you want to change the order of the analysis, or skip some part entirely, comment these lines out and change their input/outputs accordingly. (Note that not all workflows are setup this way, and if they are not you will have to change the qscript to solve this)
 
 Setup for run
 -------------
 
-All workflows start with a xml file, for example: `pipelineSetup.xml`. This contains information about the raw data (run folders) that you want to run in the project. This is created using the `createSetupXml.sh` script. Before running this make sure that are you run folders are located (or linked) from a common folder (e.g. the runfolders directory under you project), then run this: 
+All workflows start with an xml file, for example: `pipelineSetup.xml`. This contains information about the raw data (run folders) that you want to run in the project. This is created using the `createSetupXml.sh` script. Before running this make sure that your run folders are located (or linked) from a common folder (e.g. the runfolders directory under your project), then run this: 
 
     ./createSetupXml.sh pipelineSetup.xml
 
-and answer the questions. This will create you setup file, which should look something like this:
+and answer the questions. This will create your setup file, which should look something like this:
 
-    <Project Name="TestProject" SequencingCenter="SnqSeq - Uppsala"
+    <Project Name="TestProject" SequencingCenter="UU-SNP"
         Platform="Illumina" UppmaxProjectId="a2009002">
 	
 	    <RunFolder Report="src/test/resources/testdata/runFoldersForMultipleSample/runfolder1/report.xml">
@@ -79,16 +79,16 @@ and answer the questions. This will create you setup file, which should look som
     </Project>
 
 
-This is the file you should assign the `PIPELINE_SETUP_XML` variable to in the workflow scripts.
+This is the file you should assign to the `PIPELINE_SETUP_XML` variable to in the workflow scripts.
 
 Run
 ---
 
 Pick the workflow that you want to run, e.g. haloplex. Open the corresponding file in the `workflow` directory with your favorite text editor and edit the run template part (it's located towards the end of the file) with the parameters you want to use. Then start the correponding workflow script with for example:
-    ./workflow/haloplex.sh # OR sbatch workflow/haloplex.sh to sending it to a node
+    ./workflow/haloplex.sh # OR sbatch workflow/haloplex.sh to send it to a node on the cluster
 
 
-Special notes on adding data to project
+Special notes on adding data to a project
 ---------------------------------------
 
 It's quite common for data in a project to be delivered in batches, as the raw data is delivered from the sequencers. If this is the case, and you want to map your data to the reference as data comes in, this is supported by some of the workflows at the moment, namely:
@@ -100,31 +100,31 @@ It's quite common for data in a project to be delivered in batches, as the raw d
 
 The other workflows require that all data is in place when the anlysis is started.
 
-Do run this type of workflow you need to comment out the steps after alignment until all data has arrived, the data will then be merged by the `mergeBySample` step, and fedd on to further processing.
+To run this type of workflow you need to comment out the steps after alignment until all data has arrived, the data will then be merged by the `mergeBySample` step, and fed on to further processing.
 
 Monitoring progress
 -------------------
 
-To follow the progress of the run look in the `pipeline_output/logs` folder. There you will find the logs for the different scripts. By searching the file for "Run", you can see how many jobs are currently running, how many have finished, and how many have failed. A tip is to use e.g. `less -S` to view the file with unwrapped lines, as it is quite difficult to read otherwise.
+To follow the progress of the run look in the `pipeline_output/logs` folder. There you will find the logs for the different scripts. By searching the file for "Run", you can see how many jobs are currently running, how many have finished, and how many have failed. A recommendation is to use e.g. `less -S` to view the file with unwrapped lines, as it is quite difficult to read otherwise.
 
 
 Development
 ===========
 
-The heavy lifting in Piper is primarilly done in Scala, with Bash glueing together the different scripts to into workflows. Some additional Java and the occational Perl component is used, but the main body of the code is written in Scala.
+The heavy lifting in Piper is primarilly done in Scala, with Bash glueing together the different scripts to into workflows. Some additional Java and the occasional Perl component is used, but the main body of the code is written in Scala.
 
 Coding
 ------
 
-For an introduction to Queue, on which Piper is build, see: http://gatkforums.broadinstitute.org/discussion/1306/overview-of-queue
+For an introduction to Queue, on which Piper is built, see: http://gatkforums.broadinstitute.org/discussion/1306/overview-of-queue
 
-To work on the Piper project I recommend using the [Scala IDE](http://scala-ide.org/). To start developing follow the installation procedure outlined above. When you have finised the installation you can set the project up for you IDE by running:
+To work on the Piper project I recommend using the [Scala IDE](http://scala-ide.org/). To start developing follow the installation procedure outlined above. When you have finised the installation you can set the project up for your IDE by running:
 
     sbt eclipse
 
-This will create the necessary project file for you to be able to import the project into the Scala IDE and start developing away.
+This will create the necessary project file for you to be able to import the project into the Scala IDE and start developing.
 
-Although the Scala IDE will compile the code as you type away, you will probably also want to get the hang of a few basic SBT commands (which you can either run from the interactive sbt console which you start by typing `sbt` in the project root folder, or by typing `sbt <command>` to run it straight from the CLI):
+Although the Scala IDE will compile the code as you type, you will probably also want to get the hang of a few basic SBT commands (which you can either run from the interactive sbt console which you start by typing `sbt` in the project root folder, or by typing `sbt <command>` to run it straight from the CLI):
 
     compile
 
@@ -132,15 +132,15 @@ Will compile your project.
 
     package
 
-Will produce you jars (look under the `target` dir and in the dir for the Scala version that you build targets)
+Will produce the jars (look under the `target` dir and in the dir for the Scala version that your build targets)
 
     clean
 
-If something looks strange it's probably a good idea to run this. It deletes all of your class files so that you can create be sure you have a totally clean build.
+If something looks strange it's probably a good idea to run this. It deletes all of your class files so that you can be sure you have a totally clean build.
 
     test
 
-Run the tests (for more on testing, see the testing chapter) - note that by default this only dry runs the qscript integration tests, which (basically making sure that they compile, but giving you no guarantees for runtime functionality).
+Run the tests (for more on testing, see the testing chapter) - note that by default this only dry runs the qscript integration tests, which basically makes sure that they compile, but giving you no guarantees for runtime functionality.
 
 ### Project organization
 
@@ -172,11 +172,11 @@ This is an (incomplete) overview of Pipers project organization, describing the 
 
 
 ### Making Piper generate graph files
-Queue includes functionallity to generate dot files to visualize the jobs graph. This is highly useful when debugging new qscripts as it lets you see how the jobs connect to one another, so if you have made some mistake in the chaining of the dependencies it easy to spot. ".dot" files can be opened with e.g. [xdot](https://github.com/jrfonseca/xdot.py).
+Queue includes functionallity to generate dot files to visualize the jobs graph. This is highly useful when debugging new qscripts as it lets you see how the jobs connect to one another, so if you have made some mistake in the chaining of the dependencies it is easy to spot. ".dot" files can be opened with e.g. [xdot](https://github.com/jrfonseca/xdot.py).
 
 
 ### Using the XML binding compiler (xjc):
-To generate the xml read classes I use xjc, which uses a xml schema in xsd format to generate the a number of java classes, which can then be used to interact with the setup and report xml files. These classes are used by the SetupXMLReader and the SetupFileCreator. An example of how to generate the classes can be seen below:
+To generate the xml read classes I use xjc, which uses an xml schema in xsd format to generate a number of java classes, which can then be used to interact with the setup and report xml files. These classes are used by the SetupXMLReader and the SetupFileCreator. An example of how to generate the classes is seen below:
 
 	 xjc -d src/main/java/ src/main/resources/PipelineSetupSchema.xsd
 
@@ -184,12 +184,12 @@ Testing
 -------
 
 ### Running pipeline tests
-Running the tests is done by `sbt test`. However there are some things which need to be noted. As the pipeline tests take long time and have dependencies on outside programs (such as bwa for alignment, etc.) these can only be run on machine which have all the required programs installed, and which have all the correct resources. This means that by default the tests are setup to just compile the qscripts, but not run them. If you want to run the qscripts you need to go into `src/test/resources/testng.xml` and set the value of the runpipeline parameter to 'true'.
+Running the tests is done by `sbt test`. However there are some things which need to be noted. As the pipeline tests take a long time and have dependencies on outside programs (such as bwa for alignment, etc.) these can only be run on machine which have all the required programs installed, and which have all the correct resources. This means that by default the tests are setup to just compile the qscripts, but not run them. If you want to run the qscripts you need to go into `src/test/resources/testng.xml` and set the value of the runpipeline parameter to 'true'.
 
 ### Writing pipeline tests
 Pipeline tests are setup to run a certain QScript and check the md5sums of the outputs. If md5sums do not match, it will show you what the differences between the files are so that you can decide if the changes to the output are reasonable concidering the changes to the code you have made. At the moment pipeline tests are just setup to accutally run (with all the necessary resources, etc) on my workstation. In furture versions I hope to be able to make this more portable.
 
-### Continious integration using Travis:
+### Continuous integration using Travis:
 Piper uses [Travis](https://travis-ci.org/) for continious integration. For instruction on how to set this up with a github repository see: http://about.travis-ci.org/docs/user/getting-started/
 
 Troubleshooting
