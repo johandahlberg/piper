@@ -292,11 +292,13 @@ class Haloplex extends QScript {
   /**
    * Case class wappers for external programs
    */
+  
+  val jobNativeArgsBaseString = " -A " + uppmaxProjId + " " + getUppmaxQosFlag() 
 
   // General arguments to non-GATK tools
   trait ExternalCommonArgs extends CommandLineFunction {
 
-    this.jobNativeArgs +:= "-p node -A " + uppmaxProjId + " " + getUppmaxQosFlag()
+    this.jobNativeArgs +:= "-p node " + jobNativeArgsBaseString
     this.memoryLimit = 24
     this.isIntermediate = false
   }
@@ -308,7 +310,7 @@ class Haloplex extends QScript {
 
     this.isIntermediate = true
 
-    this.jobNativeArgs +:= "-p core -n 2 -A " + uppmaxProjId + " " + getUppmaxQosFlag()
+    this.jobNativeArgs +:= "-p core -n 2 " + jobNativeArgsBaseString
     this.memoryLimit = 6
 
     // Run cutadapt and sync via perl script by adding N's in all empty reads.  
@@ -463,6 +465,9 @@ class Haloplex extends QScript {
 
   case class cov(inBam: Seq[File], outRecalFile: File, reference: File) extends BaseRecalibrator with CommandLineGATKArgs {
 
+    // Ask for a fat node
+    this.jobNativeArgs +:= "-p node -C fat " + jobNativeArgsBaseString
+    
     this.reference_sequence = reference
     this.isIntermediate = false
 
