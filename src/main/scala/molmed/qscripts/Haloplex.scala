@@ -104,6 +104,7 @@ class Haloplex extends QScript {
    */
 
   private var uppmaxProjId: String = ""
+  def getUppmaxProjId() = uppmaxProjId
   private var projectName: String = ""
   private var resources: Resources = null
 
@@ -293,7 +294,7 @@ class Haloplex extends QScript {
    * Case class wappers for external programs
    */
   
-  val jobNativeArgsBaseString = " -A " + uppmaxProjId + " " + getUppmaxQosFlag() 
+  val jobNativeArgsBaseString = " -A " + getUppmaxProjId() + " " + getUppmaxQosFlag() 
 
   // General arguments to non-GATK tools
   trait ExternalCommonArgs extends CommandLineFunction {
