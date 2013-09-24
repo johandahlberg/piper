@@ -405,7 +405,9 @@ class DataProcessingPipeline extends QScript {
     if (qscript.indels != null)
       this.known ++= qscript.indels
     this.consensusDeterminationModel = cleanModelEnum
-    this.compress = 0
+    //@TODO Should probably do default compression
+    // to save disk space.
+    //this.compress = 0
     this.noPGTag = qscript.testMode;
     this.scatterCount = nContigs
     this.analysisName = queueLogDir + outBam + ".clean"
@@ -444,8 +446,6 @@ class DataProcessingPipeline extends QScript {
     this.BQSR = inRecalFile
     //this.baq = CalculationMode.CALCULATE_AS_NECESSARY
     this.out = outBam
-    if (!qscript.intervalString.isEmpty) this.intervalsString ++= Seq(qscript.intervalString)
-    else if (qscript.intervals != null) this.intervals :+= qscript.intervals
     this.scatterCount = nContigs
     this.num_cpu_threads_per_data_thread = nbrOfThreads
     this.isIntermediate = false
