@@ -26,7 +26,7 @@ check_errs $? "git clone FAILED"
 cd gatk-protected
 
 # Validated gatk-version
-git checkout 5e89f01e106cc916e088d1ab43e66321f133b34c
+git checkout 6bda5696664da40bc2baef4f4cb69e4ef1f86ce5
 check_errs $? "git checkout FAILED"
 
 ant
