@@ -288,7 +288,6 @@ class VariantCalling extends QScript {
 
       if (t.nSamples <= 30) { // very few exome samples means very few variants
         this.mG = 4
-        this.percentBad = 0.04
       }
     }
 
@@ -314,7 +313,6 @@ class VariantCalling extends QScript {
 
     this.mG = 4
     this.std = 10
-    this.percentBad = 0.12
 
     if (t.nSamples >= 10)
       this.use_annotation ++= List("InbreedingCoeff") // InbreedingCoeff is a population-wide statistic that requires at least 10 samples to calculate
