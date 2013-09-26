@@ -23,27 +23,28 @@ class RNAQCSnpSeqPipelineTest {
     this.run = runpipeline
   }
 
-    @Test
-    def testRNAQC {
-      val projectName = "test1"
-  
-      val aggregatedMetrics = "aggregated_metrics.tsv"
-  
-      val spec = new PipelineTestSpec
-      spec.jobRunners = Seq("Shell")
-      spec.name = "BasicRNAQC"
-      spec.args = Array(
-        pathToScript,
-        " -i " + snpSeqBaseTest.pathToRNAtestBam,
-        " --reference " + snpSeqBaseTest.hg19,
-        " --transcripts " + snpSeqBaseTest.hg19annotations,
-        " --rna_seqc " + snpSeqBaseTest.pathToRNASeQC,
-        " --rRNA_targets " + snpSeqBaseTest.hg19_rRNA,
-        " -outputDir " + PipelineTest.runDir(spec.name, spec.jobRunners(0)),
-        " -startFromScratch ").mkString
-  
-      spec.fileMD5s += aggregatedMetrics -> "53550d81cce52aac749be3db1347e054"
-  
-      PipelineTest.executeTest(spec, run)
-    }
+  @Test
+  def testRNAQC {
+    val projectName = "test1"
+
+    val aggregatedMetrics = "aggregated_metrics.tsv"
+
+    val spec = new PipelineTestSpec
+    spec.jobRunners = Seq("Shell")
+    spec.name = "BasicRNAQC"
+    spec.args = Array(
+      pathToScript,
+      " -i " + snpSeqBaseTest.pathToRNAtestBam,
+      " --reference " + snpSeqBaseTest.hg19,
+      " --transcripts " + snpSeqBaseTest.hg19annotations,
+      " --rna_seqc " + snpSeqBaseTest.pathToRNASeQC,
+      " --rRNA_targets " + snpSeqBaseTest.hg19_rRNA,
+      " -outputDir " + PipelineTest.runDir(spec.name, spec.jobRunners(0)),
+      " -startFromScratch ").mkString
+
+    spec.fileMD5s += aggregatedMetrics -> "53550d81cce52aac749be3db1347e054"
+
+    spec.run = run
+    PipelineTest.executeTest(spec)
+  }
 }

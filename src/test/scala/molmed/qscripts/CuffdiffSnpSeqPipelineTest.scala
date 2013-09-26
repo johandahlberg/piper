@@ -45,7 +45,8 @@ class CuffdiffSnpSeqPipelineTest {
     spec.fileMD5s += geneExp -> "7ec98841c806d6e56d67693f1b799e7f"
     spec.fileMD5s += isoforms -> "a954b8ab4293a587a66351071a9f72a7"
 
-    PipelineTest.executeTest(spec, run)
+    spec.run = run
+    PipelineTest.executeTest(spec)
   }
-  
+
 }

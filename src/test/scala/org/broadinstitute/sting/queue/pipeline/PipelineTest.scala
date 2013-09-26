@@ -1,26 +1,27 @@
 /*
- * Copyright (c) 2012, The Broad Institute
- *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
+* Copyright (c) 2012 The Broad Institute
+* 
+* Permission is hereby granted, free of charge, to any person
+* obtaining a copy of this software and associated documentation
+* files (the "Software"), to deal in the Software without
+* restriction, including without limitation the rights to use,
+* copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the
+* Software is furnished to do so, subject to the following
+* conditions:
+* 
+* The above copyright notice and this permission notice shall be
+* included in all copies or substantial portions of the Software.
+* 
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+* OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+* NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+* HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+* WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+* THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 
 package org.broadinstitute.sting.queue.pipeline
 
@@ -45,14 +46,15 @@ object PipelineTest extends BaseTest with Logging {
   private val validationReportsDataLocation = "/humgen/gsa-hpprojects/GATK/validationreports/submitted/"
   private val md5DB = new MD5DB()
 
-  //final val run = System.getProperty("pipeline.run") == "run"
+  /**
+   * All the job runners configured to run PipelineTests at The Broad.
+   */
+  final val allJobRunners = Seq("Lsf706", "GridEngine", "Shell")
 
-  final val allJobRunners = {
-    val commandLinePluginManager = new CommandLinePluginManager
-    commandLinePluginManager.getPlugins.map(commandLinePluginManager.getName(_)).toSeq
-  }
-
-  final val defaultJobRunners = Seq("Lsf706", "GridEngine")
+  /**
+   * The default job runners to run.
+   */
+  final val defaultJobRunners = Seq("Shell")
 
   /**
    * Returns the top level output path to this test.
@@ -89,11 +91,11 @@ object PipelineTest extends BaseTest with Logging {
    * Runs the pipelineTest.
    * @param pipelineTest test to run.
    */
-  def executeTest(pipelineTest: GeneralPipelineTestSpec, run: Boolean) {
+  def executeTest(pipelineTest: PipelineTestSpec) {
     var jobRunners = pipelineTest.jobRunners
     if (jobRunners == null)
       jobRunners = defaultJobRunners;
-    jobRunners.foreach(executeTest(pipelineTest, _, run))
+    jobRunners.foreach(executeTest(pipelineTest, _))
   }
 
   /**
@@ -101,22 +103,14 @@ object PipelineTest extends BaseTest with Logging {
    * @param pipelineTest test to run.
    * @param jobRunner The name of the job manager to run the jobs.
    */
-  def executeTest(pipelineTest: GeneralPipelineTestSpec, jobRunner: String, run: Boolean) {
+  def executeTest(pipelineTest: PipelineTestSpec, jobRunner: String) {
     val name = pipelineTest.name
     if (name == null)
       Assert.fail("PipelineTestSpec.name is null")
     println(Utils.dupString('-', 80));
-    executeTest(name, pipelineTest.args, pipelineTest.jobQueue, pipelineTest.expectedException, jobRunner, run)
-    if (run) {
-      pipelineTest match {
-        case spec: PipelineTestSpec => {
-          assertMatchingMD5s(name, spec.fileMD5s.map { case (file, md5) => new File(runDir(name, jobRunner), file) -> md5 }, pipelineTest.parameterize)
-        }
-        case spec: MultipleOutcomeTestSpec => {
-          assertMultipleMatchingMD5s(name, spec.fileMD5s.map { case (file, md5) => new File(runDir(name, jobRunner), file) -> md5 }, pipelineTest.parameterize)
-        }
-      }
-
+    executeTest(name, pipelineTest.args, pipelineTest.jobQueue, pipelineTest.expectedException, jobRunner, pipelineTest.run)
+    if (pipelineTest.run) {
+      assertMatchingMD5s(name, pipelineTest.fileMD5s.map { case (file, md5) => new File(runDir(name, jobRunner), file) -> md5 }, pipelineTest.parameterize)
       if (pipelineTest.evalSpec != null)
         validateEval(name, pipelineTest.evalSpec, jobRunner)
       println("  => %s PASSED (%s)".format(name, jobRunner))
@@ -127,39 +121,12 @@ object PipelineTest extends BaseTest with Logging {
   private def assertMatchingMD5s(name: String, fileMD5s: Traversable[(File, String)], parameterize: Boolean) {
     var failed = 0
     for ((file, expectedMD5) <- fileMD5s) {
-      val calculatedMD5 = md5DB.testFileMD5(name, file, expectedMD5, parameterize)
+      val calculatedMD5 = md5DB.testFileMD5(name, "", file, expectedMD5, parameterize).actualMD5
       if (!parameterize && expectedMD5 != "" && expectedMD5 != calculatedMD5)
         failed += 1
     }
     if (failed > 0)
       Assert.fail("%d of %d MD5s did not match".format(failed, fileMD5s.size))
-  }
-
-  private def assertMultipleMatchingMD5s(name: String, fileMD5s: Traversable[(File, Seq[String])], parameterize: Boolean) {
-    var matches = 0
-    var failed = 0
-    for ((file, expectedMD5s) <- fileMD5s) {
-      for (expectedMD5 <- expectedMD5s) {
-        val calculatedMD5 = md5DB.testFileMD5(name, file, expectedMD5, parameterize)
-        if (expectedMD5s.contains(calculatedMD5))
-          matches += 1
-        else
-          failed += 1
-      }
-
-    }
-
-    // The method should receive one file at the time, and one of the md5sums should match this.
-    if (matches == 0 && !parameterize && failed != 0) {
-      println("NOTE: This multiple outcome test did not find any matching md5s, and will therefore fail.")
-      Assert.fail("%d of %d MD5s did not match".format(failed, fileMD5s.size))
-    } else if (parameterize)
-      println("NOTE: Parameterize is true - test will not fail.")
-    else {
-      println("NOTE: This is a test which can have multiple outcomes." +
-        " That means that eventhough the messages above says that it failed for some options," +
-        " it found a matching md5sum, and thus should be passed.")
-    }
   }
 
   private def validateEval(name: String, evalSpec: PipelineTestEvalSpec, jobRunner: String) {
