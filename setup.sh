@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Load needed module for build on uppmax
-module load java/sun_jdk1.6.0_45
+module load java/sun_jdk1.7.0_25
 module load ant
 
 check_errs()

@@ -172,7 +172,7 @@ function variantCalling {
 }
 
 # We also need the correct java engine and R version
-module load java/sun_jdk1.6.0_45
+module load java/sun_jdk1.7.0_25
 module load R/2.15.0
 
 #---------------------------------------------
