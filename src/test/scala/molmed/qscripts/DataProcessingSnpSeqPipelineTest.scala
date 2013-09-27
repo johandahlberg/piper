@@ -38,7 +38,7 @@ class DataProcessingSnpSeqPipelineTest {
       " -test ",
       " -startFromScratch ",
       " -p " + projectName).mkString
-    spec.fileMD5s += testOut -> "8c79ed658852b2f3a26fce6f35455763"
+    spec.fileMD5s += testOut -> "899cb08f77f4569802dfb4a88d96a65e"
     spec.run = this.run
     PipelineTest.executeTest(spec)
   }
@@ -61,7 +61,7 @@ class DataProcessingSnpSeqPipelineTest {
       " -bwape ",
       " -startFromScratch ",
       " -p " + projectName).mkString
-    spec.fileMD5s += testOut -> "34b8523546a6bc62af4b59ac2ee6b370"
+    spec.fileMD5s += testOut -> "5dfa965afe257c4d29ccb5c0b4198633"
     spec.run = run
     PipelineTest.executeTest(spec)
   }
@@ -85,7 +85,7 @@ class DataProcessingSnpSeqPipelineTest {
       " --revert ",
       " -startFromScratch ",
       " -p " + projectName).mkString
-    spec.fileMD5s += testOut -> "a3d8852cfb07ac898cb6c75c4a90c372"
+    spec.fileMD5s += testOut -> "899cb08f77f4569802dfb4a88d96a65e"
     spec.run = run
     PipelineTest.executeTest(spec)
   }
