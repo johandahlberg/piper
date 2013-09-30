@@ -44,8 +44,8 @@ class VariantCallingSnpSeqPipelineTest {
       " --test_mode ",
       " -startFromScratch ",
       " -p " + projectName).mkString
-    spec.fileMD5s += testRawSNV -> "5699ed88a0d2d97dfcacd6860f13e568"
-    spec.fileMD5s += testRawINDEL -> "25c219248b0f1b850803dda08f393a18"
+    spec.fileMD5s += testRawSNV -> "8cbdfc74848f95b7f753f9e636b92664"
+    spec.fileMD5s += testRawINDEL -> "c19d75369ac288824bd678ab00aed74b"
     spec.run = run
     PipelineTest.executeTest(spec)
 

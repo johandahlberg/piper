@@ -96,8 +96,7 @@ class VariantCalling extends QScript {
 
   @Argument(doc = "Test mode", fullName = "test_mode", shortName = "test", required = false)
   var testMode: Boolean = false
-  
-  
+
   private var resources: Resources = null
 
   /**
@@ -137,12 +136,11 @@ class VariantCalling extends QScript {
     val goldStandardClusterFile = new File(goldStandardName + ".clusters")
   }
 
-
   def script = {
 
     val bams = QScriptUtils.createSeqFromFile(input)
     resources = new Resources(resourcesPath, testMode)
-    
+
     // By default scatter over the contigs
     if (nContigs < 0)
       nContigs = QScriptUtils.getNumberOfContigs(bams(0))
@@ -190,6 +188,9 @@ class VariantCalling extends QScript {
   // 1.) Unified Genotyper Base
   class GenotyperBase(t: Target) extends UnifiedGenotyper with UNIVERSAL_GATK_ARGS {
 
+    if (qscript.testMode)
+      this.no_cmdline_in_header = true
+
     if (downsampleFraction != -1)
       this.downsample_to_fraction = downsampleFraction
     else
@@ -208,6 +209,7 @@ class VariantCalling extends QScript {
 
   // 1a.) Call SNPs with UG
   class snpCall(t: Target) extends GenotyperBase(t) {
+
     if (minimumBaseQuality >= 0)
       this.min_base_quality_score = minimumBaseQuality
     if (qscript.deletions >= 0)
