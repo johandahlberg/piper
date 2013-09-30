@@ -423,7 +423,7 @@ class Haloplex extends QScript {
       this.annotation = Seq("AlleleBalance")
       this.filterMBQ = true
     } else {
-      this.downsample_to_coverage = 30
+      this.downsample_to_coverage = 200
     }
 
     this.output_mode = org.broadinstitute.sting.gatk.walkers.genotyper.UnifiedGenotyperEngine.OUTPUT_MODE.EMIT_VARIANTS_ONLY
