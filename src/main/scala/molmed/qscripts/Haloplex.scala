@@ -293,7 +293,7 @@ class Haloplex extends QScript {
   /**
    * Case class wappers for external programs
    */
-  
+
   // General arguments to non-GATK tools
   trait ExternalCommonArgs extends CommandLineFunction {
 
@@ -403,6 +403,9 @@ class Haloplex extends QScript {
 
   case class genotype(@Input bam: Seq[File], reference: File, @Output @Gather(classOf[VcfGatherFunction]) vcf: File, isSecondPass: Boolean) extends UnifiedGenotyper with CommandLineGATKArgs {
 
+    if (qscript.testMode)
+      this.no_cmdline_in_header = true
+
     this.isIntermediate = false
 
     this.input_file = bam
@@ -466,14 +469,14 @@ class Haloplex extends QScript {
 
     // Ask for a fat node
     this.jobNativeArgs :+= " -C fat "
-    
+
     this.reference_sequence = reference
     this.isIntermediate = false
 
     this.num_cpu_threads_per_data_thread = nbrOfThreads
 
-    if(qscript.downsampleBQSR != -1)
-    	this.downsample_to_coverage = qscript.downsampleBQSR
+    if (qscript.downsampleBQSR != -1)
+      this.downsample_to_coverage = qscript.downsampleBQSR
     this.knownSites :+= resources.dbsnp
     this.covariate ++= Seq("ReadGroupCovariate", "QualityScoreCovariate", "CycleCovariate", "ContextCovariate")
     this.input_file = inBam
@@ -498,6 +501,10 @@ class Haloplex extends QScript {
   }
 
   case class filterVariations(@Input inVcf: File, @Output outVcf: File, reference: File) extends VariantFiltration with CommandLineGATKArgs {
+
+    if (qscript.testMode)
+      this.no_cmdline_in_header = true
+
     this.reference_sequence = reference
     this.variant = inVcf
     this.out = outVcf
