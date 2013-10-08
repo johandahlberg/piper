@@ -405,9 +405,6 @@ class DataProcessingPipeline extends QScript {
     if (qscript.indels != null)
       this.known ++= qscript.indels
     this.consensusDeterminationModel = cleanModelEnum
-    //@TODO Should probably do default compression
-    // to save disk space.
-    //this.compress = 0
     this.noPGTag = qscript.testMode;
     this.scatterCount = nContigs
     this.analysisName = queueLogDir + outBam + ".clean"
@@ -439,12 +436,8 @@ class DataProcessingPipeline extends QScript {
 
     this.input_file :+= inBam
 
-    // TODO According to this thread: 
-    // http://gatkforums.broadinstitute.org/discussion/2267/baq-tag-error#latest
-    // There is a bug in the GATK which means that the baq calculations should not
-    // be done in this step, but rather in the unified genotyper.
     this.BQSR = inRecalFile
-    //this.baq = CalculationMode.CALCULATE_AS_NECESSARY
+    this.baq = CalculationMode.CALCULATE_AS_NECESSARY
     this.out = outBam
     this.scatterCount = nContigs
     this.num_cpu_threads_per_data_thread = nbrOfThreads

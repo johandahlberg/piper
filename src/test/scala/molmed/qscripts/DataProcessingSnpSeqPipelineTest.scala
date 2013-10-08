@@ -38,7 +38,7 @@ class DataProcessingSnpSeqPipelineTest {
       " -test ",
       " -startFromScratch ",
       " -p " + projectName).mkString
-    spec.fileMD5s += testOut -> "899cb08f77f4569802dfb4a88d96a65e"
+    spec.fileMD5s += testOut -> "cff2cbe5cd411f70054989a1006ec436"
     spec.run = this.run
     PipelineTest.executeTest(spec)
   }
@@ -61,14 +61,14 @@ class DataProcessingSnpSeqPipelineTest {
       " -bwape ",
       " -startFromScratch ",
       " -p " + projectName).mkString
-    spec.fileMD5s += testOut -> "5dfa965afe257c4d29ccb5c0b4198633"
+    spec.fileMD5s += testOut -> "97f254cf538a4e8d183d7cd29c42ba45"
     spec.run = run
     PipelineTest.executeTest(spec)
   }
 
   @Test
   def testBWAPEBAMWithRevert {
-    val projectName = "test2"
+    val projectName = "test3"
     val testOut = projectName + ".exampleBAM.clean.dedup.recal.bam"
     val spec = new PipelineTestSpec
     spec.jobRunners = Seq("Shell")
@@ -85,7 +85,7 @@ class DataProcessingSnpSeqPipelineTest {
       " --revert ",
       " -startFromScratch ",
       " -p " + projectName).mkString
-    spec.fileMD5s += testOut -> "899cb08f77f4569802dfb4a88d96a65e"
+    spec.fileMD5s += testOut -> "3a6c2b891e4834ebd14a3a902fbb758d"
     spec.run = run
     PipelineTest.executeTest(spec)
   }
