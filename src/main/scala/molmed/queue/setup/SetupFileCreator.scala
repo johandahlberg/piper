@@ -143,7 +143,7 @@ object SetupFileCreator extends App {
         def lookForReport(p: String): String = {
             val dir = new File(p)
             require(dir.isDirectory(), dir + " was not a directory.")
-            val reportFile: File = dir.listFiles().find(report => report.getName() == "report.xml").getOrElse(throw new Error("Could not find report.xml in " + dir.getPath()))
+            val reportFile: File = dir.listFiles().find(report => report.getName() == "report.xml" || report.getName() == "report.tsv").getOrElse(throw new Error("Could not find report.xml in " + dir.getPath()))
             reportFile.getAbsolutePath()
         }
 
