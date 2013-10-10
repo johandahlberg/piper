@@ -1,0 +1,4 @@
+#SampleName	Lane	ReadLibrary	FlowcellId
+MyFirstSample	1	FirstLib	9767892AVF
+MyFirstSample   2	SecondLib	9767892AVF
+MySecondSample	1	SomeOtherLib	9767892AVF

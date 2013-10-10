@@ -69,13 +69,6 @@ class IlluminaXMLReportReader(file: File) extends IlluminaXMLReportReaderAPI {
   def getFlowcellId(): String =
     illuminaProject.getMetaData().getFlowCellId()
 
-  def getPlatformUnitID(sampleName: String, lane: Int): String =
-    getFlowcellId + "." + sampleName + "." + lane
-
-  def getReadGroupID(sampleName: String, lane: Int): String = {
-    getPlatformUnitID(sampleName, lane)
-  }
-
   def getLanes(sampleName: String): List[Int] = {
     getMatchingSamples(sampleName).flatMap(f =>
       f.getTag().flatMap(p =>

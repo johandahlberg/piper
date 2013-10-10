@@ -31,6 +31,8 @@ object SnpSeqBaseTest {
   
   val differentRgsCohortList = pathToBaseDir + "bam.cohort.list"
 
+  val pathToFlatFileReport: String = pathToBaseDir + "report.tsv"
+  
   val pathToReportXML: String = pathToBaseDir + "smallTestFastqDataFolder/report.xml"
   val pathToReportXMLForSameSampleAcrossMultipleLanes = pathToBaseDir + "runFolderWithSameSampleInMultipleLanes/report.xml"
   val pathToReportWithMultipleLibraries = pathToBaseDir + "reportWithMultipleLibraryNames.xml"
