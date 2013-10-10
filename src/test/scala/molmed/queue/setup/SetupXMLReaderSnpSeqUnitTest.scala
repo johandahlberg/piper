@@ -60,7 +60,7 @@ class SetupXMLReaderSnpSeqUnitTest {
     @Test
     def TestGetSamples() = {
 
-        val illuminaXMLReportReader: IlluminaXMLReportReaderAPI = new IlluminaXMLReportReaderStub()
+        val illuminaXMLReportReader: ReportReaderAPI = new IlluminaXMLReportReaderStub()
 
         val actual = setupXMLReader.getSamples()
 

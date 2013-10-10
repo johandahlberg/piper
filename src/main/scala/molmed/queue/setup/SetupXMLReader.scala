@@ -85,7 +85,11 @@ class SetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
                     val report = tupple._1
                     val sampleFolderList = tupple._2.filter(s => s.getName().equalsIgnoreCase(sampleName))                    
 
-                    val reportReader = new IlluminaXMLReportReader(new File(report))
+                    val reportReader = report match {
+                      case  r: String if r.endsWith(".xml") => new IlluminaXMLReportReader(new File(r))
+                      case  r: String if r.endsWith(".tsv") => new FlatFileReportReader(new File(r))
+                      case _ => throw new Exception("Invalid file type of report: " + report + " only supports .xml and .tsv")                                      
+                    }
 
                     val sampleList: Seq[Sample] = sampleFolderList.flatMap(sampleFolder => {
 
@@ -142,7 +146,7 @@ class SetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
      * Private help methods used to construct ReadGroupInformations and ReadPaircontainer objects
      */
 
-    private def buildReadGroupInformation(sampleName: String, lane: Int, illuminaXMLReportReader: IlluminaXMLReportReader): ReadGroupInformation = {
+    private def buildReadGroupInformation(sampleName: String, lane: Int, illuminaXMLReportReader: ReportReaderAPI): ReadGroupInformation = {
 
         val readGroupId = illuminaXMLReportReader.getReadGroupID(sampleName, lane)
         val sequencingCenter = this.getSequencingCenter()

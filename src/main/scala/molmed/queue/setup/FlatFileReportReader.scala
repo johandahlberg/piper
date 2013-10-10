@@ -5,25 +5,25 @@ import java.io.File
 import org.apache.commons.lang.NotImplementedException
 import scala.io.Source
 
-class FlatFileSetupReader(setupFile: File) extends IlluminaXMLReportReaderAPI {
-  
+class FlatFileReportReader(setupFile: File) extends ReportReaderAPI {
+
   case class FlatFileSetupLine(sampleName: String, lane: Int, library: String, flowCellId: String)
-  
+
   val lines = Source.fromFile(setupFile).getLines.filter(s => !s.startsWith("#")).map(line => {
-    println(line)
     val elements = line.split("\\s+")
-    val l = new FlatFileSetupLine(elements(0), elements(1).toInt, elements(2), elements(3))
-    println(l)
-    l
+    new FlatFileSetupLine(elements(0), elements(1).toInt, elements(2), elements(3))
   }).toList
 
   def getReadLibrary(sampleName: String, lane: Int): String = {
+
     val matches = lines.filter(s =>
       s.sampleName.equals(sampleName) &&
         s.lane == lane)
+
     assert(!(matches.size > 1), "Found more than one match for sample: " + sampleName + " lane: " + lane + ". This should only match once." +
-        "matches=" + matches)
+      "matches=" + matches)
     assert(!matches.isEmpty, "Didn't find match for sample: " + sampleName + " lane: " + lane)
+
     matches(0).library
   }
 

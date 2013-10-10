@@ -1,6 +1,6 @@
 package molmed.queue.setup
 
-trait IlluminaXMLReportReaderAPI {
+trait ReportReaderAPI {
   def getReadLibrary(sampleName: String, lane: Int): String
   def getFlowcellId(): String
   def getLanes(sampleName: String): List[Int]

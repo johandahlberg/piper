@@ -9,7 +9,7 @@ import molmed.xml.illuminareport.Read
 import javax.xml.bind.Marshaller
 import collection.JavaConversions._
 
-class IlluminaXMLReportReader(file: File) extends IlluminaXMLReportReaderAPI {
+class IlluminaXMLReportReader(file: File) extends ReportReaderAPI {
 
   /**
    * XML related fields

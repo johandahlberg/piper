@@ -1,8 +1,8 @@
 package molmed.queue.setup.stubs
 
-import molmed.queue.setup.IlluminaXMLReportReaderAPI
+import molmed.queue.setup.ReportReaderAPI
 
-class IlluminaXMLReportReaderStub extends IlluminaXMLReportReaderAPI{
+class IlluminaXMLReportReaderStub extends ReportReaderAPI{
     
     var sampleName: String = null
     var flowCellId: String = null
