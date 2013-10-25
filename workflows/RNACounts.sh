@@ -87,6 +87,7 @@ function RNA_QC {
 	    --transcripts ${ANNOTATIONS} \
 	    --rRNA_targets ${RRNA_TARGETS} \
 	    -outputDir ${RNA_QC_OUTPUT}/ \
+	    --path_to_samtools ${PATH_TO_SAMTOOLS} \
 	    -jobRunner ${JOB_RUNNER} \
 	    -jobNative "${JOB_NATIVE_ARGS}" \
 	    --job_walltime 259200 \
