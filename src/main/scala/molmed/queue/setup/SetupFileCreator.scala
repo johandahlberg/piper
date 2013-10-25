@@ -130,7 +130,7 @@ object SetupFileCreator extends App {
     def getRunFoldersFromRootDir(): List[String] = {
         val rootDir = new File(getSingleInput(Option("Path to the run folder root dir")))
         require(rootDir.isDirectory(), rootDir + " was not a directory.")
-        rootDir.listFiles().toList.map(f => f.getAbsolutePath())
+        rootDir.listFiles().filter(_.isDirectory).toList.map(f => f.getAbsolutePath())
     }
     
     
