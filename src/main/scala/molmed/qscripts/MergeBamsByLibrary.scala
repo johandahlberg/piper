@@ -15,26 +15,29 @@ class MergeBamsByLibrary extends QScript {
 
   @Argument(doc = "Output path for the processed BAM files.", fullName = "output_directory", shortName = "outputDir", required = false)
   var outputDir: String = ""
-  def getOutputDir: String = if(outputDir.isEmpty()) "" else outputDir + "/"
+  def getOutputDir: String = if (outputDir.isEmpty()) "" else outputDir + "/"
 
   @Argument(doc = "the project name determines the final output (BAM file) base name. Example NA12878 yields NA12878.processed.bam", fullName = "project", shortName = "p", required = false)
   var projectName: String = ""
+
+  case class Sample(library: String, file: File)
 
   def script() {
 
     val bams = QScriptUtils.createSeqFromFile(input)
 
-    val sampleNamesAndFiles = for (bam <- bams) yield {
-      (getLibraryNameFromReadGroups(bam), bam)
+    val samples = for (bam <- bams) yield {
+      new Sample(getLibraryNameFromReadGroups(bam), bam)
     }
 
-    val filesGroupedBySampleName = sampleNamesAndFiles.groupBy(f => f._1).
-      mapValues(f => f.map(g => g._2))
+    val filesGroupedByLibrary = samples.groupBy(f => f.library).
+      mapValues(f => f.map(g => g.file))
 
     val cohortList =
-      for (sampleNamesAndFiles <- filesGroupedBySampleName) yield {
+      for (sampleNamesAndFiles <- filesGroupedByLibrary) yield {
 
-        val sampleName = sampleNamesAndFiles._1
+        // Should be same sample name for all libraries.
+        val sampleName = getSampleNameFromReadGroups(sampleNamesAndFiles._2(0))
         val mergedFile: File = getOutputDir + sampleName + ".bam"
         val files = sampleNamesAndFiles._2
 
