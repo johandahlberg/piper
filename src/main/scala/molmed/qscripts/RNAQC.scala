@@ -76,7 +76,7 @@ class RNAQC extends QScript {
       val sampleOutputDir = new File(getOutputDir + sampleName)
       sampleOutputDir.mkdir()
 
-      val index = swapExt(sampleOutputDir, bam, ".bam", ".bai")
+      val index = new File(bam + ".bai")
       add(samtools_index(bam, index))
 
       val placeHolderFile = new File(sampleOutputDir + "/qscript_RNASeQC.stdout.log")
