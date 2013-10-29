@@ -35,9 +35,9 @@ DB_SNP_B37=${GATK_BUNDLE_B37}"/dbsnp_137.b37.vcf"
 MILLS_B37=${GATK_BUNDLE_B37}"/Mills_and_1000G_gold_standard.indels.b37.vcf"
 ONE_K_G_B37=${GATK_BUNDLE_B37}"/1000G_phase1.indels.b37.vcf"
 
-DB_SNP_H19=${GATK_BUNDLE_H19}"/dbsnp_137.hg19.vcf"
-MILLS_H19=${GATK_BUNDLE_H19}"/Mills_and_1000G_gold_standard.indels.hg19.vcf"
-ONE_K_G_H19=${GATK_BUNDLE_H19}"/1000G_phase1.indels.hg19.vcf"
+DB_SNP_HG19=${GATK_BUNDLE_H19}"/dbsnp_137.hg19.vcf"
+MILLS_HG19=${GATK_BUNDLE_H19}"/Mills_and_1000G_gold_standard.indels.hg19.vcf"
+ONE_K_G_HG19=${GATK_BUNDLE_H19}"/1000G_phase1.indels.hg19.vcf"
 
 #---------------------------------------------
 # Global variables
