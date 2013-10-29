@@ -1,10 +1,8 @@
 package molmed.utils
 
 import java.io.File
-
 import scala.collection.JavaConversions._
 import scala.collection.JavaConversions._
-
 import org.broadinstitute.sting.commandline.Input
 import org.broadinstitute.sting.commandline.Output
 import org.broadinstitute.sting.queue.QScript
@@ -12,7 +10,6 @@ import org.broadinstitute.sting.queue.QScript
 import org.broadinstitute.sting.queue.function.CommandLineFunction
 import org.broadinstitute.sting.queue.function.InProcessFunction
 import org.broadinstitute.sting.queue.function.ListWriterFunction
-
 import molmed.queue.setup._
 import molmed.queue.setup.ReadPairContainer
 import molmed.queue.setup.SampleAPI
@@ -20,9 +17,10 @@ import molmed.utils.GeneralUtils._
 import molmed.utils.GeneralUtils.checkReferenceIsBwaIndexed
 import net.sf.samtools.SAMFileReader
 import net.sf.samtools.SAMFileReader
+import net.sf.samtools.SAMFileHeader
 
 class AlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samtoolsPath: String, projId: String, getUppmaxQosFlag: () => String) {
-   
+
   // Takes a list of processed BAM files and realign them using the BWA option requested  (bwase or bwape).
   // Returns a list of realigned BAM files.
   def performAlignment(qscript: QScript)(fastqs: ReadPairContainer, readGroupInfo: String, reference: File, outputDir: File, isIntermediateAlignment: Boolean = false): File = {
@@ -142,17 +140,30 @@ class AlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samtool
   }
 }
 
-
 object AlignmentUtils {
 
-  def getSampleNameFromReadGroups(bam: File): String = {
+  def getSamHeaderFromFile(bam: File): SAMFileHeader = {
     val samFileReader = new SAMFileReader(bam)
     val samHeader = samFileReader.getFileHeader()
+    samHeader
+  }
+
+  def getSampleNameFromReadGroups(bam: File): String = {
+    val samHeader = getSamHeaderFromFile(bam)
     val sampleNames = samHeader.getReadGroups().map(rg => rg.getSample()).toSet
     require(!sampleNames.isEmpty, "Couldn't find read groups in file: " + bam.getAbsolutePath() + ". This is required for the script to work.")
     require(sampleNames.size == 1, "More than one sample in file: " + bam.getAbsolutePath() +
       ". Please make sure that there is only one sample per file in input.")
     sampleNames.toList(0)
+  }
+
+  def getLibraryNameFromReadGroups(bam: File): String = {
+    val samHeader = getSamHeaderFromFile(bam)
+    val library = samHeader.getReadGroups().map(rg => rg.getLibrary()).toSet
+    require(!library.isEmpty, "Couldn't find read groups in file: " + bam.getAbsolutePath() + ". This is required for the script to work.")
+    require(library.size == 1, "More than one library in file: " + bam.getAbsolutePath() +
+      ". Please make sure that there is only one library per file in input.")
+    library.toList(0)
   }
 
 }
