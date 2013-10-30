@@ -33,7 +33,7 @@ class Cufflinks extends QScript {
 
   @Argument(doc = "Output path for the processed files.", fullName = "output_directory", shortName = "outputDir", required = false)
   var outputDir: String = ""
-  def getOutputDir: String = if(outputDir.isEmpty()) "" else outputDir + "/" 
+  def getOutputDir: String = if (outputDir.isEmpty()) "" else outputDir + "/"
 
   @Argument(doc = "Number of threads to use", fullName = "threads", shortName = "nt", required = false)
   var threads: Int = 1
@@ -53,13 +53,14 @@ class Cufflinks extends QScript {
   @Argument(doc = "Run cuffmerge to merge together the cufflink assemblies.", fullName = "merge", shortName = "me", required = false)
   var merge: Boolean = false
 
+  @Argument(doc = "UPPMAX project id", fullName = "project_id", shortName = "pid", required = false)
+  var projId: String = ""
+
   /**
    * **************************************************************************
    * Private variables
    * **************************************************************************
    */
-
-  var projId: String = ""
 
   def createOutputDir(file: File) = {
     val outDir = {
@@ -137,13 +138,13 @@ class Cufflinks extends QScript {
       (if (findNovelTranscripts) " --GTF-guide " else " --GTF ") + annotations.get.getAbsolutePath() + " "
     } else ""
 
-    def commandLine = cufflinksPath + "/cufflinks " + 
+    def commandLine = cufflinksPath + "/cufflinks " +
       " --library-type " + libraryType + " " +
       maskFileString + annotationString +
       " -p " + threads +
       " -o " + sampleOutputDir + " " +
       bamFile + " "
-      " 1> " + stdOut
+    " 1> " + stdOut
 
     this.analysisName = "cufflinks"
     this.jobName = "cufflinks"
