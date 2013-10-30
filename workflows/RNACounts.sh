@@ -51,6 +51,7 @@ function alignWithTophat {
 function cufflinks {
     source piper -S ${SCRIPTS_DIR}/Cufflinks.scala \
 	    -i $1 \
+	    --project_id ${PROJECT_ID} \
 	    --annotations ${ANNOTATIONS} \
 	    --library_type ${LIBRARY_TYPE} \
 	    --mask ${RRNA_TARGETS} \
