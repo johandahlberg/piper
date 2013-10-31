@@ -12,7 +12,7 @@ then
 	PATH_TO_SAMTOOLS="/bubo/sw/apps/bioinfo/samtools/0.1.12-10/samtools"	
 	PATH_TO_TOPHAT="/bubo/sw/apps/bioinfo/tophat/2.0.4/kalkyl/bin/tophat2"
 	PATH_TO_CUTADAPT="/bubo/sw/apps/bioinfo/cutadapt/1.2.1/kalkyl/bin/cutadapt"
-	PATH_TO_CUFFLINKS="/bubo/sw/apps/bioinfo/cufflinks/2.1.1/kalkyl/cufflinks"
+	PATH_TO_CUFFLINKS="/bubo/sw/apps/bioinfo/cufflinks/2.1.1/kalkyl/"
 	GATK_BUNDLE_B37="/proj/b2010028/references/piper_references/gatk_bundle/2.2/b37"
 	GATK_BUNDLE_HG19="/proj/b2010028/references/piper_references/gatk_bundle/2.2/hg19"
 else
