@@ -1,10 +1,10 @@
 package molmed.qscripts
 import collection.JavaConversions._
-
 import org.broadinstitute.sting.queue.QScript
 import org.broadinstitute.sting.queue.function.ListWriterFunction
 import org.broadinstitute.sting.queue.util.QScriptUtils
 import java.io.File
+import molmed.utils.AlignmentUtils
 
 class Cufflinks extends QScript {
 
@@ -64,7 +64,7 @@ class Cufflinks extends QScript {
 
   def createOutputDir(file: File) = {
     val outDir = {
-      val basename = file.getName().replace(".bam", "")
+      val basename = AlignmentUtils.getSampleNameFromReadGroups(file)
       if (outputDir.isEmpty()) {
         new File("cufflinks/" + basename)
       } else {
