@@ -30,6 +30,7 @@ object SnpSeqBaseTest {
   val pathToSetupFileForSameSampleAcrossMultipleLanes = pathToBaseDir + "pipelineSetupSameSampleAcrossMultipleLanes.xml"
   
   val differentRgsCohortList = pathToBaseDir + "bam.cohort.list"
+  val singleFileCohortList = pathToBaseDir + "bam.single.file.cohort.list"
 
   val pathToFlatFileReport: String = pathToBaseDir + "report.tsv"
   

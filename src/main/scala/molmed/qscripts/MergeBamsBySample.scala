@@ -5,6 +5,7 @@ import org.broadinstitute.sting.queue.util.QScriptUtils
 import org.broadinstitute.sting.queue.extensions.picard.MergeSamFiles
 import molmed.utils.AlignmentUtils._
 import org.broadinstitute.sting.queue.function.ListWriterFunction
+import org.broadinstitute.sting.queue.function.InProcessFunction
 
 class MergeBamsBySample extends QScript {
 
@@ -15,7 +16,7 @@ class MergeBamsBySample extends QScript {
 
   @Argument(doc = "Output path for the processed BAM files.", fullName = "output_directory", shortName = "outputDir", required = false)
   var outputDir: String = ""
-  def getOutputDir: String = if(outputDir.isEmpty()) "" else outputDir + "/"
+  def getOutputDir: String = if (outputDir.isEmpty()) "" else outputDir + "/"
 
   @Argument(doc = "the project name determines the final output (BAM file) base name. Example NA12878 yields NA12878.processed.bam", fullName = "project", shortName = "p", required = false)
   var projectName: String = ""
@@ -28,8 +29,10 @@ class MergeBamsBySample extends QScript {
       (getSampleNameFromReadGroups(bam), bam)
     }
 
-    val filesGroupedBySampleName = sampleNamesAndFiles.groupBy(f => f._1).
-      mapValues(f => f.map(g => g._2))
+    val filesGroupedBySampleName =
+      sampleNamesAndFiles.
+        groupBy(f => f._1).
+        mapValues(f => f.map(g => g._2))
 
     val cohortList =
       for (sampleNamesAndFiles <- filesGroupedBySampleName) yield {
@@ -38,8 +41,16 @@ class MergeBamsBySample extends QScript {
         val mergedFile: File = getOutputDir + sampleName + ".bam"
         val files = sampleNamesAndFiles._2
 
-        add(joinBams(files, mergedFile))
-        mergedFile
+        // If there is only on file associated with the sample name, just create a
+        // hard link instead of merging.
+        if (files.size > 1) {
+          add(joinBams(files, mergedFile))
+          mergedFile
+        }
+        else {
+          add(createLink(files(0), mergedFile))
+          mergedFile
+        }
       }
 
     // output a BAM list with all the processed files
@@ -66,6 +77,19 @@ class MergeBamsBySample extends QScript {
     this.listFile = outBamList
     this.analysisName = "bamList"
     this.jobName = "bamList"
+  }
+
+  case class createLink(@Input inBam: File, @Output outBam: File) extends InProcessFunction {
+
+    def run() {
+
+      import scala.sys.process.Process
+
+      val linkProcess = Process("""ln """ + inBam.getAbsolutePath() + """ """ + outBam.getAbsolutePath())
+      val exitCode = linkProcess.!
+      assert(exitCode == 0, "Couldn't create hard link from: " + inBam.getAbsolutePath() + " to: " + outBam.getAbsolutePath())
+    }
+
   }
 
 }

@@ -37,4 +37,22 @@ class MergeBamsBySampleSnpSeqPipelineTest {
     spec.run = run
     PipelineTest.executeTest(spec)
   }
+
+  @Test
+  def testLinkingMergeBamsBySample {
+    val mergeBam = "exampleBAM.bam.bam"
+
+    val spec = new PipelineTestSpec
+    spec.jobRunners = Seq("Shell")
+    spec.name = "LinkingMergeBySample"
+    spec.args = Array(
+      pathToScript,
+      " -i " + SnpSeqBaseTest.singleFileCohortList,
+      " --project " + "TEST",
+      " -startFromScratch ").mkString
+    spec.fileMD5s += mergeBam -> "b9dc5bf6753ca2819e70b056eaf61258"
+    spec.run = run
+    PipelineTest.executeTest(spec)
+  }
+
 }
