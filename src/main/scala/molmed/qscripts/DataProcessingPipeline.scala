@@ -1,9 +1,7 @@
 package molmed.qscripts
 
 import java.io.FileNotFoundException
-
 import scala.collection.JavaConversions._
-
 import org.broadinstitute.sting.commandline.Hidden
 import org.broadinstitute.sting.gatk.walkers.indels.IndelRealigner.ConsensusDeterminationModel
 import org.broadinstitute.sting.queue.QScript
@@ -13,10 +11,13 @@ import molmed.queue.extensions.picard.FixMateInformation
 import org.broadinstitute.sting.queue.function.ListWriterFunction
 import org.broadinstitute.sting.queue.util.QScriptUtils
 import org.broadinstitute.sting.utils.baq.BAQ.CalculationMode
-
 import net.sf.picard.reference.IndexedFastaSequenceFile
 import net.sf.samtools.SAMFileHeader.SortOrder
 import net.sf.samtools.SAMFileReader
+import molmed.utils.Uppmaxable
+import molmed.utils.GATKUtils
+import molmed.utils.GATKOptions
+import molmed.utils.GeneralUtils
 
 /**
  * TODO
@@ -26,7 +27,7 @@ import net.sf.samtools.SAMFileReader
  * - Might want to include reduce bam, etc. in this to increase the effectivity.
  */
 
-class DataProcessingPipeline extends QScript {
+class DataProcessingPipeline extends QScript with Uppmaxable {
   qscript =>
 
   /**
@@ -55,10 +56,7 @@ class DataProcessingPipeline extends QScript {
 
   @Input(doc = "The path to the binary of bwa (usually BAM files have already been mapped - but if you want to remap this is the option)", fullName = "path_to_bwa", shortName = "bwa", required = false)
   var bwaPath: File = _
-
-  @Argument(doc = "the project name determines the final output (BAM file) base name. Example NA12878 yields NA12878.processed.bam", fullName = "project", shortName = "p", required = false)
-  var projectName: String = "project"
-
+  
   @Argument(doc = "Output path for the processed BAM files.", fullName = "output_directory", shortName = "outputDir", required = false)
   var outputDir: String = ""
 
@@ -193,7 +191,7 @@ class DataProcessingPipeline extends QScript {
 
   // Takes a list of processed BAM files and realign them using the BWA option requested  (bwase or bwape).
   // Returns a list of realigned BAM files.
-  def performAlignment(bams: Seq[File]): Seq[File] = {
+  def performAlignment(bams: Seq[File], generalUtils: GeneralUtils): Seq[File] = {
     var realignedBams: Seq[File] = Seq()
     var index = 1
     for (bam <- bams) {
@@ -204,7 +202,7 @@ class DataProcessingPipeline extends QScript {
       val realignedBamFile = swapExt(bam, ".bam", "." + index + ".realigned.bam")
       val rgRealignedBamFile = swapExt(bam, ".bam", "." + index + ".realigned.rg.bam")
 
-      val runBAM = if (revertBams) revertBAM(bam, true) else bam
+      val runBAM = if (revertBams) revertBAM(bam, true, generalUtils) else bam
 
       if (useBWAse) {
 
@@ -216,10 +214,10 @@ class DataProcessingPipeline extends QScript {
           bwa_sam_pe(runBAM, saiFile1, saiFile2, realignedSamFile))
       } else if (useBWAsw) {
         val fastQ = swapExt(runBAM, ".bam", ".fq")
-        add(convertToFastQ(runBAM, fastQ),
+        add(generalUtils.convertToFastQ(runBAM, fastQ),
           bwa_sw(fastQ, realignedSamFile))
       }
-      add(sortSam(realignedSamFile, realignedBamFile, SortOrder.coordinate))
+      add(generalUtils.sortSam(realignedSamFile, realignedBamFile, SortOrder.coordinate))
       addReadGroups(realignedBamFile, rgRealignedBamFile, new SAMFileReader(bam))
       realignedBams :+= rgRealignedBamFile
       index = index + 1
@@ -236,16 +234,16 @@ class DataProcessingPipeline extends QScript {
       ConsensusDeterminationModel.USE_READS
   }
 
-  def revertBams(bams: Seq[File], removeAlignmentInformation: Boolean): Seq[File] = {
+  def revertBams(bams: Seq[File], removeAlignmentInformation: Boolean, generalUtils: GeneralUtils): Seq[File] = {
     var revertedBAMList: Seq[File] = Seq()
     for (bam <- bams)
-      revertedBAMList :+= revertBAM(bam, removeAlignmentInformation)
+      revertedBAMList :+= revertBAM(bam, removeAlignmentInformation, generalUtils)
     revertedBAMList
   }
 
-  def revertBAM(bam: File, removeAlignmentInformation: Boolean): File = {
+  def revertBAM(bam: File, removeAlignmentInformation: Boolean, generalUtils: GeneralUtils): File = {
     val revertedBAM = swapExt(bam, ".bam", ".reverted.bam")
-    add(revert(bam, revertedBAM, removeAlignmentInformation))
+    add(generalUtils.revert(bam, revertedBAM, removeAlignmentInformation))
     revertedBAM
   }
 
@@ -256,6 +254,11 @@ class DataProcessingPipeline extends QScript {
    */
 
   def script() {
+
+    val gatkOptions = new GATKOptions(reference, nbrOfThreads, nContigs, Some(intervals), Some(dbSNP), Some(indels))
+    val gatkUtils = new GATKUtils(gatkOptions, projectName, projId, uppmaxQoSFlag)
+    val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
+
     // final output list of processed bam files
     var cohortList: Seq[File] = Seq()
 
@@ -274,7 +277,7 @@ class DataProcessingPipeline extends QScript {
         throw new FileNotFoundException("Could not find a dict file for the reference: " + reference.toString + ". Make one using picards: CreateSequenceDictionary")
     }
 
-    val realignedBAMs = if (realign) { performAlignment(bams) } else { bams }
+    val realignedBAMs = if (realign) { performAlignment(bams, generalUtils) } else { bams }
 
     // generate a BAM file per sample joining all per lane files if necessary
     val sampleBAMFiles: Map[String, Seq[File]] = createSampleFiles(bams, realignedBAMs)
@@ -282,7 +285,7 @@ class DataProcessingPipeline extends QScript {
     // if this is a 'knowns only' indel realignment run, do it only once for all samples.
     val globalIntervals = new File(outputDir + projectName + ".intervals")
     if (cleaningModel == ConsensusDeterminationModel.KNOWNS_ONLY)
-      add(target(null, globalIntervals))
+      add(gatkUtils.target(null, globalIntervals, cleanModelEnum))
 
     // put each sample through the pipeline
     for ((sample, bamList) <- sampleBAMFiles) {
@@ -297,7 +300,7 @@ class DataProcessingPipeline extends QScript {
       // to be fixed explicitly
       val fixBamList =
         if (fixMatePairInfo) {
-          add(fixMatePairs(bamList, bam))
+          add(generalUtils.fixMatePairs(bamList, bam))
           Seq(bam)
         } else
           bamList
@@ -320,24 +323,24 @@ class DataProcessingPipeline extends QScript {
       // alignment and the final bam file of the pipeline.
       if (validation) {
         for (sampleFile <- fixBamList)
-          add(validate(sampleFile, preValidateLog),
-            validate(recalBam, postValidateLog))
+          add(generalUtils.validate(sampleFile, preValidateLog, reference),
+            generalUtils.validate(recalBam, postValidateLog, reference))
       }
 
       if (cleaningModel != ConsensusDeterminationModel.KNOWNS_ONLY)
-        add(target(fixBamList, targetIntervals))
+        add(gatkUtils.target(fixBamList, targetIntervals, cleanModelEnum))
 
-      add(clean(fixBamList, targetIntervals, cleanedBam))
+      add(gatkUtils.clean(fixBamList, targetIntervals, cleanedBam, cleanModelEnum, testMode))
 
       if (!skipDeduplication)
-        add(dedup(cleanedBam, dedupedBam, metricsFile),
-          cov(dedupedBam, preRecalFile),
-          recal(dedupedBam, preRecalFile, recalBam),
-          cov(recalBam, postRecalFile))
+        add(generalUtils.dedup(cleanedBam, dedupedBam, metricsFile),
+          gatkUtils.cov(dedupedBam, preRecalFile, defaultPlatform),
+          gatkUtils.recal(dedupedBam, preRecalFile, recalBam),
+          gatkUtils.cov(recalBam, postRecalFile, defaultPlatform))
       else
-        add(cov(cleanedBam, preRecalFile),
-          recal(cleanedBam, preRecalFile, recalBam),
-          cov(recalBam, postRecalFile))
+        add(gatkUtils.cov(cleanedBam, preRecalFile, defaultPlatform),
+          gatkUtils.recal(cleanedBam, preRecalFile, recalBam),
+          gatkUtils.cov(recalBam, postRecalFile, defaultPlatform))
 
       cohortList :+= recalBam
     }
@@ -376,115 +379,11 @@ class DataProcessingPipeline extends QScript {
     this.maxRecordsInRam = 100000
   }
 
-  case class target(inBams: Seq[File], outIntervals: File) extends RealignerTargetCreator with CommandLineGATKArgs {
-
-    this.num_threads = nbrOfThreads
-
-    if (cleanModelEnum != ConsensusDeterminationModel.KNOWNS_ONLY)
-      this.input_file = inBams
-    this.out = outIntervals
-    this.mismatchFraction = 0.0
-    if (qscript.dbSNP != null)
-      this.known ++= qscript.dbSNP
-    if (indels != null)
-      this.known ++= qscript.indels
-    this.scatterCount = nContigs
-    this.analysisName = queueLogDir + outIntervals + ".target"
-    this.jobName = queueLogDir + outIntervals + ".target"
-  }
-
-  case class clean(inBams: Seq[File], tIntervals: File, outBam: File) extends IndelRealigner with CommandLineGATKArgs {
-
-    //TODO This should probably be a core job since it does not support parallel exection.         
-
-    this.input_file = inBams
-    this.targetIntervals = tIntervals
-    this.out = outBam
-    if (qscript.dbSNP != null)
-      this.known ++= qscript.dbSNP
-    if (qscript.indels != null)
-      this.known ++= qscript.indels
-    this.consensusDeterminationModel = cleanModelEnum
-    this.noPGTag = qscript.testMode;
-    this.scatterCount = nContigs
-    this.analysisName = queueLogDir + outBam + ".clean"
-    this.jobName = queueLogDir + outBam + ".clean"
-  }
-
-  case class cov(inBam: File, outRecalFile: File) extends BaseRecalibrator with CommandLineGATKArgs {
-
-    this.num_cpu_threads_per_data_thread = nbrOfThreads
-
-    if (qscript.dbSNP != null)
-      this.knownSites ++= qscript.dbSNP
-    this.covariate ++= Seq("ReadGroupCovariate", "QualityScoreCovariate", "CycleCovariate", "ContextCovariate")
-    this.input_file :+= inBam
-    this.disable_indel_quals = false
-    this.out = outRecalFile
-    if (!defaultPlatform.isEmpty) this.default_platform = defaultPlatform
-    if (!qscript.intervalString.isEmpty) this.intervalsString ++= Seq(qscript.intervalString)
-    else if (qscript.intervals != null) this.intervals :+= qscript.intervals
-
-    this.scatterCount = nContigs
-    this.analysisName = queueLogDir + outRecalFile + ".covariates"
-    this.jobName = queueLogDir + outRecalFile + ".covariates"
-  }
-
-  case class recal(inBam: File, inRecalFile: File, outBam: File) extends PrintReads with CommandLineGATKArgs {
-
-    //TODO This should probably be a core job since it does not support parallel exection.   
-
-    this.input_file :+= inBam
-
-    this.BQSR = inRecalFile
-    this.baq = CalculationMode.CALCULATE_AS_NECESSARY
-    this.out = outBam
-    this.scatterCount = nContigs
-    this.num_cpu_threads_per_data_thread = nbrOfThreads
-    this.isIntermediate = false
-    this.analysisName = queueLogDir + outBam + ".recalibration"
-    this.jobName = queueLogDir + outBam + ".recalibration"
-  }
-
   /**
    * **************************************************************************
    * Classes (non-GATK programs)
    * **************************************************************************
    */
-
-  case class dedup(inBam: File, outBam: File, metricsFile: File) extends MarkDuplicates with ExternalCommonArgs {
-
-    this.input :+= inBam
-    this.output = outBam
-    this.metrics = metricsFile
-    this.memoryLimit = 16
-    this.analysisName = queueLogDir + outBam + ".dedup"
-    this.jobName = queueLogDir + outBam + ".dedup"
-  }
-
-  case class joinBams(inBams: Seq[File], outBam: File) extends MergeSamFiles with ExternalCommonArgs {
-    this.input = inBams
-    this.output = outBam
-    this.analysisName = queueLogDir + outBam + ".joinBams"
-    this.jobName = queueLogDir + outBam + ".joinBams"
-  }
-
-  case class sortSam(inSam: File, outBam: File, sortOrderP: SortOrder) extends SortSam with ExternalCommonArgs {
-    this.input :+= inSam
-    this.output = outBam
-    this.sortOrder = sortOrderP
-    this.analysisName = queueLogDir + outBam + ".sortSam"
-    this.jobName = queueLogDir + outBam + ".sortSam"
-  }
-
-  case class validate(inBam: File, outLog: File) extends ValidateSamFile with ExternalCommonArgs {
-    this.input :+= inBam
-    this.output = outLog
-    this.REFERENCE_SEQUENCE = qscript.reference
-    this.isIntermediate = false
-    this.analysisName = queueLogDir + outLog + ".validate"
-    this.jobName = queueLogDir + outLog + ".validate"
-  }
 
   case class addReadGroup(inBam: File, outBam: File, readGroup: ReadGroup) extends AddOrReplaceReadGroups with ExternalCommonArgs {
     this.input :+= inBam
@@ -498,27 +397,6 @@ class DataProcessingPipeline extends QScript {
     this.RGSM = readGroup.sm
     this.analysisName = queueLogDir + outBam + ".rg"
     this.jobName = queueLogDir + outBam + ".rg"
-  }
-
-  case class fixMatePairs(inBam: Seq[File], outBam: File) extends FixMateInformation with ExternalCommonArgs {
-    this.input = inBam
-    this.output = outBam
-  }
-
-  case class revert(inBam: File, outBam: File, removeAlignmentInfo: Boolean) extends RevertSam with ExternalCommonArgs {
-    this.output = outBam
-    this.input :+= inBam
-    this.removeAlignmentInformation = removeAlignmentInfo;
-    this.sortOrder = if (removeAlignmentInfo) { SortOrder.queryname } else { SortOrder.coordinate }
-    this.analysisName = queueLogDir + outBam + "revert"
-    this.jobName = queueLogDir + outBam + ".revert"
-  }
-
-  case class convertToFastQ(inBam: File, outFQ: File) extends SamToFastq with ExternalCommonArgs {
-    this.input :+= inBam
-    this.fastq = outFQ
-    this.analysisName = queueLogDir + outFQ + "convert_to_fastq"
-    this.jobName = queueLogDir + outFQ + ".convert_to_fastq"
   }
 
   case class bwa_aln_se(inBam: File, outSai: File) extends CommandLineFunction with ExternalCommonArgs {

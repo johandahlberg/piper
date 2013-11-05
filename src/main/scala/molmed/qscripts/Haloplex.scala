@@ -99,7 +99,6 @@ class Haloplex extends QScript with Uppmaxable {
   /**
    * Private variables
    */
-  private var projectName: String = ""
   private var resources: Resources = null
 
   /**
@@ -195,7 +194,7 @@ class Haloplex extends QScript with Uppmaxable {
     val samples: Map[String, Seq[SampleAPI]] = setupSamples()
     // Run cutadapt       
     val cutAndSyncedSamples = cutSamples(samples)
-    val alignmentHelper = new BwaAlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, projId, uppmaxQoSFlag)
+    val alignmentHelper = new BwaAlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, projectName, projId, uppmaxQoSFlag)
 
     // Align with bwa
     val cohortList =

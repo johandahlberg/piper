@@ -5,11 +5,13 @@ import org.broadinstitute.sting.commandline.Argument
 
 trait Uppmaxable {
 
-  @Hidden
   @Argument(doc = "Uppmax qos flag", fullName = "quality_of_service", shortName = "qos", required = false)
   var uppmaxQoSFlag: Option[String] = None
 
-  @Hidden
   @Argument(doc = "Uppmax project id", fullName = "project_id", shortName = "upid", required = false)
   var projId: String = ""
+
+  @Argument(doc = "Project name", fullName = "project_name", shortName = "name", required = false)
+  var projectName: Option[String] = None
+
 }

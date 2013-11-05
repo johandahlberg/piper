@@ -52,8 +52,8 @@ class SetupXMLReaderSnpSeqUnitTest {
 
     @Test
     def TestGetProjectName() = {
-        val expected: String = "TestProject"
-        val actual: String = setupXMLReader.getProjectName()
+        val expected = Some("TestProject")
+        val actual = setupXMLReader.getProjectName()
         assert(actual.equals(expected))
     }
 

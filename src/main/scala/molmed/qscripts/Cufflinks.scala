@@ -5,8 +5,10 @@ import org.broadinstitute.sting.queue.function.ListWriterFunction
 import org.broadinstitute.sting.queue.util.QScriptUtils
 import java.io.File
 import molmed.utils.ReadGroupUtils
+import molmed.utils.UppmaxUtils
+import molmed.utils.Uppmaxable
 
-class Cufflinks extends QScript {
+class Cufflinks extends QScript with Uppmaxable {
 
   qscript =>
 
@@ -53,9 +55,6 @@ class Cufflinks extends QScript {
   @Argument(doc = "Run cuffmerge to merge together the cufflink assemblies.", fullName = "merge", shortName = "me", required = false)
   var merge: Boolean = false
 
-  @Argument(doc = "UPPMAX project id", fullName = "project_id", shortName = "pid", required = false)
-  var projId: String = ""
-
   /**
    * **************************************************************************
    * Private variables
@@ -86,12 +85,14 @@ class Cufflinks extends QScript {
     var outputDirList: Seq[File] = Seq()
 
     val bams = QScriptUtils.createSeqFromFile(input)
+    
+    val cufflinksUtils = new CufflinksUtils
 
     for (bam <- bams) {
       val outDir = createOutputDir(bam)
       val placeHolderFile = new File(getOutputDir + "qscript_cufflinks.stdout.log")
 
-      add(cufflinks(bam, outDir, placeHolderFile))
+      add(cufflinksUtils.cufflinks(bam, outDir, placeHolderFile))
       placeHolderList :+= placeHolderFile
       outputDirList :+= outDir
     }
@@ -101,16 +102,8 @@ class Cufflinks extends QScript {
       add(writeTranscriptList(transcriptList, outputDirList, placeHolderList))
 
       val placeHolderFile = new File(getOutputDir + "qscript_cuffmerge.stdout.log")
-      add(cuffmerge(transcriptList, getOutputDir + "cuffmerge/", reference, placeHolderFile))
+      add(cufflinksUtils.cuffmerge(transcriptList, getOutputDir + "cuffmerge/", reference, placeHolderFile))
     }
-  }
-
-  // General arguments to non-GATK tools
-  trait ExternalCommonArgs extends CommandLineFunction {
-
-    this.jobNativeArgs +:= "-p node -A " + projId
-    this.memoryLimit = 24
-    this.isIntermediate = false
   }
 
   case class writeTranscriptList(transcriptList: File, outputDirList: Seq[File], placeHolder: Seq[File]) extends ListWriterFunction {
@@ -123,57 +116,59 @@ class Cufflinks extends QScript {
 
   }
 
-  case class cufflinks(inputBamFile: File, sampleOutputDir: File, outputFile: File) extends CommandLineFunction with ExternalCommonArgs {
+  class CufflinksUtils extends UppmaxUtils(projectName, projId, uppmaxQoSFlag) {
+    case class cufflinks(inputBamFile: File, sampleOutputDir: File, outputFile: File) extends ExternalCommonArgs {
 
-    // Sometime this should be kept, sometimes it shouldn't
-    this.isIntermediate = false
+      // Sometime this should be kept, sometimes it shouldn't
+      this.isIntermediate = false
 
-    @Input var bamFile = inputBamFile
-    @Input var dir = sampleOutputDir
-    @Output var stdOut = outputFile
+      @Input var bamFile = inputBamFile
+      @Input var dir = sampleOutputDir
+      @Output var stdOut = outputFile
 
-    val maskFileString = if (maskFile.isDefined && maskFile.get != null) "--mask-file " + maskFile.get.getAbsolutePath() + " " else ""
+      val maskFileString = if (maskFile.isDefined && maskFile.get != null) "--mask-file " + maskFile.get.getAbsolutePath() + " " else ""
 
-    def annotationString = if (annotations.isDefined && annotations.get != null) {
-      (if (findNovelTranscripts) " --GTF-guide " else " --GTF ") + annotations.get.getAbsolutePath() + " "
-    } else ""
+      def annotationString = if (annotations.isDefined && annotations.get != null) {
+        (if (findNovelTranscripts) " --GTF-guide " else " --GTF ") + annotations.get.getAbsolutePath() + " "
+      } else ""
 
-    def commandLine = cufflinksPath + "/cufflinks " +
-      " --library-type " + libraryType + " " +
-      maskFileString + annotationString +
-      " -p " + threads +
-      " -o " + sampleOutputDir + " " +
-      bamFile + " "
-    " 1> " + stdOut
-
-    this.analysisName = "cufflinks"
-    this.jobName = "cufflinks"
-  }
-
-  case class cuffmerge(assemblies: File, outputDir: File, reference: File, outputFile: File) extends CommandLineFunction with ExternalCommonArgs {
-
-    // Sometime this should be kept, sometimes it shouldn't
-    this.isIntermediate = false
-
-    @Input var as = assemblies
-    @Input var dir = outputDir
-    @Input var ref = reference
-    @Output var stdOut = outputFile
-
-    val referenceAnnotationString = if (annotations.isDefined && annotations.get != null)
-      " --ref-gtf " + annotations.get.getAbsolutePath() + " "
-    else ""
-
-    //cuffmerge -s /seqdata/fastafiles/hg19/hg19.fa assemblies.txt
-    def commandLine = cufflinksPath + "/cuffmerge -p " + threads +
-      " -o " + dir +
-      " --ref-sequence " + ref + " " +
-      referenceAnnotationString +
-      assemblies +
+      def commandLine = cufflinksPath + "/cufflinks " +
+        " --library-type " + libraryType + " " +
+        maskFileString + annotationString +
+        " -p " + threads +
+        " -o " + sampleOutputDir + " " +
+        bamFile + " "
       " 1> " + stdOut
 
-    this.analysisName = "cuffmerge"
-    this.jobName = "cuffmerge"
+      this.analysisName = "cufflinks"
+      this.jobName = "cufflinks"
+    }
 
+    case class cuffmerge(assemblies: File, outputDir: File, reference: File, outputFile: File) extends ExternalCommonArgs {
+
+      // Sometime this should be kept, sometimes it shouldn't
+      this.isIntermediate = false
+
+      @Input var as = assemblies
+      @Input var dir = outputDir
+      @Input var ref = reference
+      @Output var stdOut = outputFile
+
+      val referenceAnnotationString = if (annotations.isDefined && annotations.get != null)
+        " --ref-gtf " + annotations.get.getAbsolutePath() + " "
+      else ""
+
+      //cuffmerge -s /seqdata/fastafiles/hg19/hg19.fa assemblies.txt
+      def commandLine = cufflinksPath + "/cuffmerge -p " + threads +
+        " -o " + dir +
+        " --ref-sequence " + ref + " " +
+        referenceAnnotationString +
+        assemblies +
+        " 1> " + stdOut
+
+      this.analysisName = "cuffmerge"
+      this.jobName = "cuffmerge"
+
+    }
   }
 }

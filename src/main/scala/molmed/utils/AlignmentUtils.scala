@@ -20,9 +20,9 @@ import net.sf.samtools.SAMFileReader
 
 import molmed.utils.ReadGroupUtils._
 
-abstract class AligmentUtils(projId: String, uppmaxQoSFlag: Option[String]) extends UppmaxUtils(projId, uppmaxQoSFlag)
+abstract class AligmentUtils(projectName: Option[String], projId: String, uppmaxQoSFlag: Option[String]) extends UppmaxUtils(projectName, projId, uppmaxQoSFlag)
 
-class TophatAligmentUtils(tophatPath: String, tophatThreads: Int, projId: String, uppmaxQoSFlag: Option[String]) extends AligmentUtils(projId, uppmaxQoSFlag) {
+class TophatAligmentUtils(tophatPath: String, tophatThreads: Int, projectName: Option[String], projId: String, uppmaxQoSFlag: Option[String]) extends AligmentUtils(projectName, projId, uppmaxQoSFlag) {
 
   case class tophat(fastqs1: File, fastqs2: File, sampleOutputDir: File, reference: File, annotations: Option[File], libraryType: String, outputFile: File, readGroupInfo: String, fusionSearch: Boolean = false) extends ExternalCommonArgs {
 
@@ -66,7 +66,7 @@ class TophatAligmentUtils(tophatPath: String, tophatThreads: Int, projId: String
   }
 }
 
-class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samtoolsPath: String, projId: String, uppmaxQoSFlag: Option[String]) extends AligmentUtils(projId, uppmaxQoSFlag) {
+class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samtoolsPath: String, projectName: Option[String], projId: String, uppmaxQoSFlag: Option[String]) extends AligmentUtils(projectName, projId, uppmaxQoSFlag) {
 
   // Takes a list of processed BAM files and realign them using the BWA option requested  (bwase or bwape).
   // Returns a list of realigned BAM files.

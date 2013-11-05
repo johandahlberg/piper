@@ -56,8 +56,9 @@ class SetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
         project.getMetadata().getSequenceingcenter()
     }
 
-    def getProjectName(): String = {
-        project.getMetadata().getName()
+    def getProjectName(): Option[String] = {
+        val projectName = project.getMetadata().getName()
+        if(projectName.isEmpty()) None else Some(projectName)
     }
     
     def getUppmaxQoSFlag(): Option[String] = {

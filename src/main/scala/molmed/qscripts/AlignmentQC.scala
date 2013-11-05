@@ -8,6 +8,7 @@ import org.broadinstitute.sting.queue.extensions.gatk._
 import org.broadinstitute.sting.queue.util.QScriptUtils
 import molmed.utils.GATKUtils
 import molmed.utils.Uppmaxable
+import molmed.utils.GATKOptions
 
 class AlignmentQC extends QScript with Uppmaxable {
     qscript =>
@@ -47,7 +48,8 @@ class AlignmentQC extends QScript with Uppmaxable {
 
         // Get the bam files to analyze
         val bams = QScriptUtils.createSeqFromFile(input)
-        val gatkUtils = new GATKUtils(this, reference, Option(intervals), projId, uppmaxQoSFlag)
+        val gatkOptions = new GATKOptions(reference, 8, 1, Some(intervals), None, None)
+        val gatkUtils = new GATKUtils(gatkOptions, projectName, projId, uppmaxQoSFlag)
 
         // Run QC for each of them and output to a separate dir for each sample.
         for (bam <- bams) {

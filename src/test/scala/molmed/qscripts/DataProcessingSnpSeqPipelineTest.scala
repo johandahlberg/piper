@@ -37,7 +37,7 @@ class DataProcessingSnpSeqPipelineTest {
       " -D " + snpSeqBaseTest.publicTestDir + "exampleDBSNP.vcf",
       " -test ",
       " -startFromScratch ",
-      " -p " + projectName).mkString
+      " --project_name " + projectName).mkString
     spec.fileMD5s += testOut -> "cff2cbe5cd411f70054989a1006ec436"
     spec.run = this.run
     PipelineTest.executeTest(spec)
@@ -60,7 +60,7 @@ class DataProcessingSnpSeqPipelineTest {
       " -bwa /usr/bin/bwa",
       " -bwape ",
       " -startFromScratch ",
-      " -p " + projectName).mkString
+      " --project_name " + projectName).mkString
     spec.fileMD5s += testOut -> "97f254cf538a4e8d183d7cd29c42ba45"
     spec.run = run
     PipelineTest.executeTest(spec)
@@ -84,7 +84,7 @@ class DataProcessingSnpSeqPipelineTest {
       " -bwape ",
       " --revert ",
       " -startFromScratch ",
-      " -p " + projectName).mkString
+      " --project_name " + projectName).mkString
     spec.fileMD5s += testOut -> "3a6c2b891e4834ebd14a3a902fbb758d"
     spec.run = run
     PipelineTest.executeTest(spec)

@@ -24,7 +24,7 @@ trait SetupXMLReaderAPI {
      * 
      * For example: "ExampleProject123"
      */
-    def getProjectName(): String
+    def getProjectName(): Option[String]
 
     def getSamples(): Map[String, Seq[SampleAPI]]
 

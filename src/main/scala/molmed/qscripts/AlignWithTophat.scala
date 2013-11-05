@@ -171,8 +171,8 @@ class AlignWithTophat extends QScript with Uppmaxable {
     projId = setupReader.getUppmaxProjectId()
     uppmaxQoSFlag = setupReader.getUppmaxQoSFlag()
 
-    val generalUtils = new GeneralUtils(qscript, projId, uppmaxQoSFlag)
-    val tophatUtils = new TophatAligmentUtils(tophatPath, tophatThreads, projId, uppmaxQoSFlag)
+    val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
+    val tophatUtils = new TophatAligmentUtils(tophatPath, tophatThreads, projectName, projId, uppmaxQoSFlag)
     val (cohortList, placeHolderList) =
       if (runCutadapt)
         alignSamples(cutSamples(generalUtils, samples), tophatUtils)

@@ -69,8 +69,8 @@ class AlignWithBWA extends QScript with Uppmaxable {
     projId = setupReader.getUppmaxProjectId()
     uppmaxQoSFlag = setupReader.getUppmaxQoSFlag()
 
-    val alignmentHelper = new BwaAlignmentUtils(this, bwaPath, bwaThreads, samtoolsPath, projId, uppmaxQoSFlag)
-    val generalUtils = new GeneralUtils(qscript, projId, uppmaxQoSFlag)
+    val alignmentHelper = new BwaAlignmentUtils(this, bwaPath, bwaThreads, samtoolsPath, projectName, projId, uppmaxQoSFlag)
+    val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
     
     // final output list of bam files
     var cohortList: Seq[File] = samples.values.flatten.map(sample => alignmentHelper.align(sample, outputDir, false)).toSeq
