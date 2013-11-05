@@ -60,8 +60,9 @@ class SetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
         project.getMetadata().getName()
     }
     
-    def getUppmaxQoSFlag(): String = {
-      project.getMetadata().getUppmaxqos()
+    def getUppmaxQoSFlag(): Option[String] = {
+      val uppmaxQoSFlag = project.getMetadata().getUppmaxqos()
+      if(uppmaxQoSFlag.isEmpty()) None else Some(uppmaxQoSFlag)
     }
 
     def getSamples(): Map[String, Seq[Sample]] = {

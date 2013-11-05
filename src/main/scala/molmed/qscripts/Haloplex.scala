@@ -32,9 +32,11 @@ import net.sf.samtools.SAMFileHeader
 import net.sf.samtools.SAMFileHeader.SortOrder
 import net.sf.samtools.SAMFileReader
 import net.sf.samtools.SAMTextHeaderCodec
-import molmed.utils.AlignmentUtils
+import molmed.utils.ReadGroupUtils._
+import molmed.utils.Uppmaxable
+import molmed.utils.BwaAlignmentUtils
 
-class Haloplex extends QScript {
+class Haloplex extends QScript with Uppmaxable {
 
   qscript =>
 
@@ -94,17 +96,9 @@ class Haloplex extends QScript {
   @Input(doc = "Path to the sync script", fullName = "path_to_sync", shortName = "sync", required = false)
   var pathToSyncScript: File = "resources/FixEmptyReads.pl"
 
-  @Hidden
-  @Argument(doc = "Uppmax qos flag", fullName = "quality_of_service", shortName = "qos", required = false)
-  var uppmaxQoSFlag: String = ""
-  def getUppmaxQosFlag(): String = if (uppmaxQoSFlag.isEmpty()) "" else " --qos=" + uppmaxQoSFlag
-
   /**
    * Private variables
    */
-
-  private var uppmaxProjId: String = ""
-  def getUppmaxProjId() = uppmaxProjId
   private var projectName: String = ""
   private var resources: Resources = null
 
@@ -174,21 +168,6 @@ class Haloplex extends QScript {
   }
 
   /**
-   * Ugly hack help method to handle if there are no input files found (as when running the travis CI builds), in which
-   * case we create a fake sample map for the script to compile.
-   */
-  private def createFakeSamples(): Map[String, Seq[SampleAPI]] = {
-    uppmaxProjId = "fakeprojid"
-    projectName = "TestProject"
-    Map(
-      "1" -> List(
-        Sample("1", new File("src/test/resources/testdata/exampleFASTA.fasta"),
-          ReadGroupInformation("1", "C0HNDACXX.1.1", "SNP_SEQ_PLATFORM", "CEP_C13-NA11992", "Illumina", "C0HNDACXX.1.1"),
-          ReadPairContainer(new File("src/test/resources/testdata/smallTestFastqDataFolder/Sample_1/exampleFASTQ_L001_R1_file.fastq").getAbsoluteFile(),
-            new File("src/test/resources/testdata/smallTestFastqDataFolder/Sample_1/exampleFASTQ_L001_R2_file.fastq").getAbsoluteFile(), "1"))))
-  }
-
-  /**
    * The actual script
    */
 
@@ -206,28 +185,17 @@ class Haloplex extends QScript {
 
     def setupSamples(): Map[String, Seq[SampleAPI]] = {
       val setupReader: SetupXMLReaderAPI = new SetupXMLReader(input)
-      uppmaxProjId = setupReader.getUppmaxProjectId()
+      projId = setupReader.getUppmaxProjectId()
       projectName = setupReader.getProjectName()
       uppmaxQoSFlag = setupReader.getUppmaxQoSFlag()
       setupReader.getSamples()
     }
 
     // Get and setup input files
-    val samples: Map[String, Seq[SampleAPI]] = if (!testMode) {
-      setupSamples()
-    } else {
-      try {
-        setupSamples()
-      } catch {
-        case e: FileNotFoundException => createFakeSamples()
-        case e: Throwable => throw e
-      }
-    }
-
+    val samples: Map[String, Seq[SampleAPI]] = setupSamples()
     // Run cutadapt       
     val cutAndSyncedSamples = cutSamples(samples)
-
-    val alignmentHelper = new AlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, uppmaxProjId, getUppmaxQosFlag)
+    val alignmentHelper = new BwaAlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, projId, uppmaxQoSFlag)
 
     // Align with bwa
     val cohortList =
@@ -297,7 +265,8 @@ class Haloplex extends QScript {
   // General arguments to non-GATK tools
   trait ExternalCommonArgs extends CommandLineFunction {
 
-    this.jobNativeArgs +:= "-p node -A " + uppmaxProjId + " " + getUppmaxQosFlag()
+    val qosFlag = if (!uppmaxQoSFlag.isEmpty) " --qos=" + uppmaxQoSFlag.get else ""
+    this.jobNativeArgs +:= "-p node -A " + projId + " " + qosFlag
     this.memoryLimit = 24
     this.isIntermediate = false
   }
@@ -308,8 +277,7 @@ class Haloplex extends QScript {
   case class cutadapt(@Input fastq: File, @Output cutFastq: File, @Argument adaptor: String) extends ExternalCommonArgs {
 
     this.isIntermediate = true
-
-    this.jobNativeArgs +:= "-p core -n 2 -A " + uppmaxProjId + " " + getUppmaxQosFlag()
+    this.jobNativeArgs +:= "-p core -n 2 -A " + projId + " " + qosFlag
     this.memoryLimit = 6
 
     // Run cutadapt and sync via perl script by adding N's in all empty reads.  

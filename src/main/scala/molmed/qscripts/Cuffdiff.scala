@@ -5,6 +5,7 @@ import org.broadinstitute.sting.queue.function.ListWriterFunction
 import org.broadinstitute.sting.queue.util.QScriptUtils
 import java.io.File
 import net.sf.samtools.SAMFileReader
+import molmed.utils.ReadGroupUtils
 
 class Cuffdiff extends QScript {
 
@@ -55,8 +56,6 @@ class Cuffdiff extends QScript {
    *  Help methods
    */
 
-  import molmed.utils.AlignmentUtils._
-
   def getReplicatesFromFile(file: File): Map[String, List[String]] = {
     val lines = scala.io.Source.fromFile(file).getLines
     val conditionSampleTuples = for (line <- lines) yield {
@@ -82,7 +81,7 @@ class Cuffdiff extends QScript {
     val bams = QScriptUtils.createSeqFromFile(input)
     val replicates: Map[String, List[String]] = if (replicatesFile.isDefined) getReplicatesFromFile(replicatesFile.get) else Map.empty
 
-    val samplesAndLables = bams.map(file => (file, getSampleNameFromReadGroups(file))).toMap
+    val samplesAndLables = bams.map(file => (file, ReadGroupUtils.getSampleNameFromReadGroups(file))).toMap
 
     val placeHolderFile = new File(getOutputDir + "qscript_cufflinks.stdout.log")
     add(cuffdiff(samplesAndLables, replicates, placeHolderFile))

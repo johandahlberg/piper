@@ -13,7 +13,9 @@ import molmed.queue.setup._
 import org.broadinstitute.sting.queue.function.InProcessFunction
 import org.broadinstitute.sting.utils.io.IOUtils
 import molmed.utils.GeneralUtils._
-import molmed.utils.AlignmentUtils
+import molmed.utils.BwaAlignmentUtils
+import molmed.utils.Uppmaxable
+import molmed.utils.GeneralUtils
 
 /**
  * TODO
@@ -22,7 +24,7 @@ import molmed.utils.AlignmentUtils
  * - Look at the removing of intermediate bam failes part. Right now it seems that it removes the wrong files when re-running the script.
  */
 
-class AlignWithBWA extends QScript {
+class AlignWithBWA extends QScript with Uppmaxable {
   qscript =>
 
   /**
@@ -52,19 +54,6 @@ class AlignWithBWA extends QScript {
   @Argument(doc = "Number of threads BWA should use", fullName = "bwa_threads", shortName = "bt", required = false)
   var bwaThreads: Int = 1
 
-  @Hidden
-  @Argument(doc = "Uppmax qos flag", fullName = "quality_of_service", shortName = "qos", required = false)
-  var uppmaxQoSFlag: String = ""
-  def getUppmaxQosFlag(): String = if (uppmaxQoSFlag.isEmpty()) "" else " --qos=" + uppmaxQoSFlag
-
-  /**
-   * **************************************************************************
-   * Private variables
-   * **************************************************************************
-   */
-
-  var projId: String = ""
-
   /**
    * **************************************************************************
    * Main script
@@ -80,70 +69,15 @@ class AlignWithBWA extends QScript {
     projId = setupReader.getUppmaxProjectId()
     uppmaxQoSFlag = setupReader.getUppmaxQoSFlag()
 
-    val alignmentHelper = new AlignmentUtils(this, bwaPath, bwaThreads, samtoolsPath, projId, getUppmaxQosFlag)
+    val alignmentHelper = new BwaAlignmentUtils(this, bwaPath, bwaThreads, samtoolsPath, projId, uppmaxQoSFlag)
+    val generalUtils = new GeneralUtils(qscript, projId, uppmaxQoSFlag)
     
     // final output list of bam files
     var cohortList: Seq[File] = samples.values.flatten.map(sample => alignmentHelper.align(sample, outputDir, false)).toSeq
 
     // output a BAM list with all the processed files
     val cohortFile = new File(qscript.outputDir + setupReader.getProjectName() + ".cohort.list")
-    add(writeList(cohortList, cohortFile))
+    add(generalUtils.writeList(cohortList, cohortFile))
   }
 
-  /**
-   * **************************************************************************
-   * Case classes - used by qgraph to setup the job run order.
-   * **************************************************************************
-   */
-
-  // General arguments to non-GATK tools
-  trait ExternalCommonArgs extends CommandLineFunction {
-
-    this.jobNativeArgs +:= "-p node -A " + projId + " " + getUppmaxQosFlag()
-    this.memoryLimit = Some(24)
-    this.isIntermediate = false
-  }
-
-  case class joinBams(inBams: Seq[File], outBam: File, index: File) extends MergeSamFiles with ExternalCommonArgs {
-    this.input = inBams
-    this.output = outBam
-    this.outputIndex = index
-
-    this.analysisName = "joinBams"
-    this.jobName = "joinBams"
-    this.isIntermediate = false
-  }
-
-  case class writeList(inBams: Seq[File], outBamList: File) extends ListWriterFunction {
-    this.inputFiles = inBams
-    this.listFile = outBamList
-    this.analysisName = "bamList"
-    this.jobName = "bamList"
-  }
-
-  case class sortSam(inSam: File, outBam: File, sortOrderP: SortOrder) extends SortSam with ExternalCommonArgs {
-    this.input :+= inSam
-    this.output = outBam
-    this.sortOrder = sortOrderP
-    this.analysisName = "sortSam"
-    this.jobName = "sortSam"
-  }
-
-  case class removeIntermeditateFiles(@Input files: Seq[File], @Input placeHolder: File) extends InProcessFunction {
-    def run(): Unit = {
-      files.foreach(f => {
-        val success = f.delete()
-        if (success)
-          logger.debug("Successfully deleted intermediate file: " + f.getAbsoluteFile())
-        else
-          logger.error("Failed deleted intermediate file: " + f.getAbsoluteFile())
-      })
-    }
-  }
-
-  case class reNameFile(@Input inFile: File, @Output outFile: File) extends InProcessFunction {
-    def run(): Unit = {
-      inFile.renameTo(outFile)
-    }
-  }
 }

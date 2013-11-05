@@ -10,7 +10,7 @@ import molmed.queue.extensions.RNAQC.RNASeQC
 import org.broadinstitute.sting.queue.function.InProcessFunction
 import scala.io.Source
 import java.io.PrintWriter
-import molmed.utils.AlignmentUtils._
+import molmed.utils.ReadGroupUtils._
 
 class RNAQC extends QScript {
   qscript =>

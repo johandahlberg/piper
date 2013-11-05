@@ -32,5 +32,5 @@ trait SetupXMLReaderAPI {
 
     def getUppmaxProjectId(): String
     
-    def getUppmaxQoSFlag(): String
+    def getUppmaxQoSFlag(): Option[String]
 }

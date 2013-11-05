@@ -3,7 +3,7 @@ package molmed.qscripts
 import org.broadinstitute.sting.queue.QScript
 import org.broadinstitute.sting.queue.util.QScriptUtils
 import org.broadinstitute.sting.queue.extensions.picard.MergeSamFiles
-import molmed.utils.AlignmentUtils._
+import molmed.utils.ReadGroupUtils._
 import org.broadinstitute.sting.queue.function.ListWriterFunction
 import org.broadinstitute.sting.queue.function.InProcessFunction
 

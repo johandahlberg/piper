@@ -6,8 +6,10 @@ import collection.JavaConversions._
 import java.io.File
 import org.broadinstitute.sting.queue.extensions.gatk._
 import org.broadinstitute.sting.queue.util.QScriptUtils
+import molmed.utils.GATKUtils
+import molmed.utils.Uppmaxable
 
-class AlignmentQC extends QScript {
+class AlignmentQC extends QScript with Uppmaxable {
     qscript =>
 
     /**
@@ -28,17 +30,12 @@ class AlignmentQC extends QScript {
      * **************************************************************************
      */
 
-    @Argument(doc = "UPPMAX project id", fullName = "project_id", shortName = "pid", required = false)
-    var projId: String = _
 
     @Input(doc = "an intervals file to be used by GATK - output bams at intervals only", fullName = "gatk_interval_file", shortName = "intervals", required = false)
     var intervals: File = _
 
     @Argument(doc = "Output path for the processed BAM files.", fullName = "output_directory", shortName = "outputDir", required = false)
     var outputDir: String = ""
-
-    @Argument(doc = "Number of threads to use", fullName = "nbr_of_threads", shortName = "nt", required = false)
-    var nbrOfThreads: Int = 1
 
     /**
      * **************************************************************************
@@ -50,11 +47,12 @@ class AlignmentQC extends QScript {
 
         // Get the bam files to analyze
         val bams = QScriptUtils.createSeqFromFile(input)
+        val gatkUtils = new GATKUtils(this, reference, Option(intervals), projId, uppmaxQoSFlag)
 
         // Run QC for each of them and output to a separate dir for each sample.
         for (bam <- bams) {
             val outDir = createOutputDir(bam)
-            add(DepthOfCoverage(bam, outDir))
+            add(gatkUtils.DepthOfCoverage(bam, outDir))
         }
     }
 
@@ -66,34 +64,4 @@ class AlignmentQC extends QScript {
         outDir.mkdirs()
         outDir
     }
-
-    /**
-     * **************************************************************************
-     * Extension classes
-     * **************************************************************************
-     */
-
-
-    // General arguments to non-GATK tools
-    trait ExternalCommonArgs extends CommandLineFunction {
-        this.memoryLimit = 9
-        this.isIntermediate = true
-        this.jobNativeArgs +:= "-p core -n 3 -A " + projId
-    }
-
-    // General arguments to GATK walkers
-    trait CommandLineGATKArgs extends CommandLineGATK with ExternalCommonArgs {
-        this.reference_sequence = qscript.reference
-    }
-
-    case class DepthOfCoverage(inBam: File, outputDir: File) extends org.broadinstitute.sting.queue.extensions.gatk.DepthOfCoverage with CommandLineGATKArgs {
-        this.input_file = Seq(inBam)
-        this.out = outputDir
-        if (qscript.intervals != null) this.intervals :+= qscript.intervals
-        this.isIntermediate = false
-        this.analysisName = "DepthOfCoverage"
-        this.jobName = "DepthOfCoverage"
-        this.omitBaseOutput = true // TODO Add this as parameter to script
-    }
-
 }

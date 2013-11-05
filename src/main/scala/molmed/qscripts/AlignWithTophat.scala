@@ -10,8 +10,12 @@ import java.io.File
 import java.io.PrintWriter
 import java.util.regex.Pattern
 import org.broadinstitute.sting.commandline.Hidden
+import molmed.utils.Uppmaxable
+import molmed.utils.GeneralUtils
+import molmed.utils.UppmaxUtils
+import molmed.utils.TophatAligmentUtils
 
-class AlignWithTophat extends QScript {
+class AlignWithTophat extends QScript with Uppmaxable {
 
   qscript =>
 
@@ -60,24 +64,11 @@ class AlignWithTophat extends QScript {
   @Argument(doc = "Run cutadapt", fullName = "cutadapt", shortName = "ca", required = false)
   var runCutadapt: Boolean = false
 
-  @Hidden
-  @Argument(doc = "Uppmax qos flag", fullName = "quality_of_service", shortName = "qos", required = false)
-  var uppmaxQoSFlag: String = ""
-  def getUppmaxQosFlag(): String = if (uppmaxQoSFlag.isEmpty()) "" else " --qos=" + uppmaxQoSFlag
-
-  /**
-   * **************************************************************************
-   * Private variables
-   * **************************************************************************
-   */
-
-  var projId: String = ""
-
   /**
    * Help methods
    */
 
-  def performAlignment(sampleName: String, fastqs: ReadPairContainer, reference: File, readGroupInfo: String): (File, File) = {
+  def performAlignment(tophatAligmentUtils: TophatAligmentUtils, sampleName: String, fastqs: ReadPairContainer, reference: File, readGroupInfo: String): (File, File) = {
 
     // All fastqs input to this function should be from the same sample
     // and should all be aligned to the same reference.
@@ -87,12 +78,12 @@ class AlignWithTophat extends QScript {
 
     val placeHolderFile = new File(sampleDir + "/qscript_tophap.stdout.log")
 
-    add(tophat(fastqs.mate1, fastqs.mate2, sampleDir, reference, placeHolderFile, readGroupInfo))
+    add(tophatAligmentUtils.tophat(fastqs.mate1, fastqs.mate2, sampleDir, reference, annotations, libraryType, placeHolderFile, readGroupInfo, fusionSearch))
 
     return (alignedBamFile, placeHolderFile)
   }
 
-  private def alignSamples(sampleMap: Map[String, Seq[SampleAPI]]): (Seq[File], Seq[File]) = {
+  private def alignSamples(sampleMap: Map[String, Seq[SampleAPI]], tophatUtils: TophatAligmentUtils): (Seq[File], Seq[File]) = {
 
     var cohortSeq: Seq[File] = Seq()
     var placeHolderSeq: Seq[File] = Seq()
@@ -104,13 +95,13 @@ class AlignWithTophat extends QScript {
      */
     for ((sampleName, samples) <- sampleMap) {
       if (samples.size == 1) {
-        val (file, placeholder) = performAlignment(sampleName, samples(0).getFastqs, samples(0).getReference, samples(0).getTophatStyleReadGroupInformationString)
+        val (file, placeholder) = performAlignment(tophatUtils, sampleName, samples(0).getFastqs, samples(0).getReference, samples(0).getTophatStyleReadGroupInformationString)
         cohortSeq :+= file
         placeHolderSeq :+= placeholder
       } else {
         var counter = 1
         for (sample <- samples) {
-          val (file, placeholder) = performAlignment(sampleName + "_" + counter, sample.getFastqs, sample.getReference, sample.getTophatStyleReadGroupInformationString)
+          val (file, placeholder) = performAlignment(tophatUtils, sampleName + "_" + counter, sample.getFastqs, sample.getReference, sample.getTophatStyleReadGroupInformationString)
           counter += 1
           cohortSeq :+= file
           placeHolderSeq :+= placeholder
@@ -120,7 +111,7 @@ class AlignWithTophat extends QScript {
     return (cohortSeq, placeHolderSeq)
   }
 
-  def cutSamples(sampleMap: Map[String, Seq[SampleAPI]]): Map[String, Seq[SampleAPI]] = {
+  def cutSamples(generalUtils: GeneralUtils, sampleMap: Map[String, Seq[SampleAPI]]): Map[String, Seq[SampleAPI]] = {
 
     // Standard Illumina adaptors
     val adaptor1 = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC"
@@ -145,12 +136,12 @@ class AlignWithTophat extends QScript {
         val readpairContainer = sample.getFastqs
 
         val mate1SyncedFastq = new File(cutadaptOutputDir + "/" + sample.getReadGroupInformation.platformUnitId + "/" + constructTrimmedName(sample.getFastqs.mate1.getName()))
-        add(cutadapt(readpairContainer.mate1, mate1SyncedFastq, adaptor1))
+        add(generalUtils.cutadapt(readpairContainer.mate1, mate1SyncedFastq, adaptor1, this.cutadaptPath))
 
         val mate2SyncedFastq =
           if (readpairContainer.isMatePaired) {
             val mate2SyncedFastq = new File(cutadaptOutputDir + "/" + sample.getReadGroupInformation.platformUnitId + "/" + constructTrimmedName(sample.getFastqs.mate2.getName()))
-            add(cutadapt(readpairContainer.mate2, mate2SyncedFastq, adaptor2))
+            add(generalUtils.cutadapt(readpairContainer.mate2, mate2SyncedFastq, adaptor2, this.cutadaptPath))
             mate2SyncedFastq
           } else null
 
@@ -174,15 +165,19 @@ class AlignWithTophat extends QScript {
    */
   def script {
 
-    // Temporary solution to handle the case where there is a legacy setup file
-    // which does not fulfill the xml-schema.
     val setupReader: SetupXMLReaderAPI = new SetupXMLReader(input)
 
     val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
     projId = setupReader.getUppmaxProjectId()
     uppmaxQoSFlag = setupReader.getUppmaxQoSFlag()
-    
-    val (cohortList, placeHolderList) = if (runCutadapt) alignSamples(cutSamples(samples)) else alignSamples(samples)
+
+    val generalUtils = new GeneralUtils(qscript, projId, uppmaxQoSFlag)
+    val tophatUtils = new TophatAligmentUtils(tophatPath, tophatThreads, projId, uppmaxQoSFlag)
+    val (cohortList, placeHolderList) =
+      if (runCutadapt)
+        alignSamples(cutSamples(generalUtils, samples), tophatUtils)
+      else
+        alignSamples(samples, tophatUtils)
 
     // output a BAM list with all the processed files
     val cohortFile = new File(qscript.outputDir + setupReader.getProjectName() + ".cohort.list")
@@ -194,75 +189,13 @@ class AlignWithTophat extends QScript {
    * Case classes for running command lines
    */
 
-  // General arguments to non-GATK tools
-  trait ExternalCommonArgs extends CommandLineFunction {
-
-    this.jobNativeArgs +:= "-p node -A " + projId + " " + getUppmaxQosFlag()
-    this.memoryLimit = 24
-    this.isIntermediate = false
-  }
-
-  case class writeList(inBams: Seq[File], outBamList: File, placeHolder: Seq[File]) extends ListWriterFunction {
-
-    @Input
-    val ph = placeHolder
-
+  /**
+   * Special list writer class which uses a place holder to make sure it waits for input.
+   */
+  case class writeList(inBams: Seq[File], outBamList: File, @Input placeHolder: Seq[File]) extends ListWriterFunction {
     this.inputFiles = inBams
     this.listFile = outBamList
     this.analysisName = "bamList"
     this.jobName = "bamList"
-  }
-
-  case class cutadapt(@Input fastq: File, @Output cutFastq: File, @Argument adaptor: String) extends ExternalCommonArgs {
-
-    this.isIntermediate = true
-
-    this.jobNativeArgs +:= "-p core -n 2 -A " + projId
-    this.memoryLimit = 6
-
-    // Run cutadapt and sync via perl script by adding N's in all empty reads.  
-    def commandLine = cutadaptPath + " -a " + adaptor + " " + fastq + " | perl resources/FixEmptyReads.pl -o " + cutFastq
-
-  }
-
-  case class tophat(fastqs1: File, fastqs2: File, sampleOutputDir: File, reference: File, outputFile: File, readGroupInfo: String) extends CommandLineFunction with ExternalCommonArgs {
-
-    // Sometime this should be kept, sometimes it shouldn't
-    this.isIntermediate = false
-
-    @Input var files1 = fastqs1
-    @Input var files2 = fastqs2
-    @Input var dir = sampleOutputDir
-    @Input var ref = reference
-
-    @Output var stdOut = outputFile
-
-    val file1String = files1.getAbsolutePath()
-    val file2String = if (files2 != null) files2.getAbsolutePath() else ""
-
-    // Only add --GTF option if this has been defined as an option on the command line
-    def annotationString = if (annotations.isDefined && annotations.get != null)
-      " --GTF " + annotations.get.getAbsolutePath() + " "
-    else
-      ""
-
-    // Only do fussion search if it has been defined on the command line.
-    // Since it requires a lot of ram, make sure it requests a fat node.    
-    def fusionSearchString = if (fusionSearch) {
-      this.jobNativeArgs +:= "-p node -C fat -A " + projId
-      this.memoryLimit = 48
-      " --fusion-search --bowtie1 --no-coverage-search "
-    } else ""
-
-    def commandLine = tophatPath +
-      " --library-type " + libraryType +
-      annotationString +
-      " -p " + tophatThreads +
-      " --output-dir " + dir +
-      " " + readGroupInfo +
-      " --keep-fasta-order " +
-      fusionSearchString +
-      ref + " " + file1String + " " + file2String +
-      " 1> " + stdOut
   }
 }
