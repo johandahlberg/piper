@@ -12,8 +12,10 @@ import org.broadinstitute.sting.commandline.Hidden
 import molmed.queue.setup._
 import org.broadinstitute.sting.queue.function.InProcessFunction
 import org.broadinstitute.sting.utils.io.IOUtils
+import molmed.utils.Uppmaxable
+import molmed.utils.GeneralUtils
 
-class MergeBamFilesOnFileName extends QScript {
+class MergeBamFilesOnFileName extends QScript with Uppmaxable {
     qscript =>
 
     @Input(doc = "List of bam files to merge", fullName = "input", shortName = "i", required = true)
@@ -22,9 +24,6 @@ class MergeBamFilesOnFileName extends QScript {
     @Argument(doc="Output path for the processed BAM files.", fullName="output_directory", shortName="outputDir", required=true)
     var outputDir: String = _
     
-    @Argument(doc = "Uppmax Project ID", fullName = "project", shortName = "p", required = true)
-    var projId: String = _
-
     /**
      * **************************************************************************
      * Main script
@@ -35,6 +34,8 @@ class MergeBamFilesOnFileName extends QScript {
 
         // Get all the input files form the list
         val files: Seq[File] = QScriptUtils.createSeqFromFile(input)
+        
+        val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
 
         // Create Map of all the input files with the file names as keys
         val fileMap = createSampleFileMap(files)
@@ -45,7 +46,7 @@ class MergeBamFilesOnFileName extends QScript {
             val mergedBam = new File(outputDir + "/" + fileName)                        
 
             // Get the Seq of files corresponding to the file name and merge all those files.
-            add(joinBams(fileMap(fileName), mergedBam))
+            add(generalUtils.joinBams(fileMap(fileName), mergedBam))
         }
 
     }
@@ -67,28 +68,5 @@ class MergeBamFilesOnFileName extends QScript {
 
         })
         fileMap.toMap
-    }
-
-    /**
-     * **************************************************************************
-     * Case classes - used by qgrapth to setup the job run order.
-     * **************************************************************************
-     */
-
-    // General arguments to non-GATK tools
-    trait ExternalCommonArgs extends CommandLineFunction {
-
-        this.jobNativeArgs +:= "-p node -A " + projId
-        this.memoryLimit = 24
-        this.isIntermediate = false
-    }
-
-    case class joinBams(inBams: Seq[File], outBam: File) extends MergeSamFiles with ExternalCommonArgs {
-        this.input = inBams
-        this.output = outBam
-        this.createIndex = true
-
-        this.analysisName = "joinBams"
-        this.jobName = "joinBams"
     }
 }

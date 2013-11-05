@@ -140,8 +140,8 @@ class Cufflinks extends QScript with Uppmaxable {
         bamFile + " "
       " 1> " + stdOut
 
-      this.analysisName = "cufflinks"
-      this.jobName = "cufflinks"
+      this.analysisName = projectName + "_cufflinks"
+      this.jobName = projectName + "_cufflinks"
     }
 
     case class cuffmerge(assemblies: File, outputDir: File, reference: File, outputFile: File) extends ExternalCommonArgs {
@@ -166,8 +166,8 @@ class Cufflinks extends QScript with Uppmaxable {
         assemblies +
         " 1> " + stdOut
 
-      this.analysisName = "cuffmerge"
-      this.jobName = "cuffmerge"
+      this.analysisName = projectName + "_cuffmerge"
+      this.jobName = projectName + "_cuffmerge"
 
     }
   }

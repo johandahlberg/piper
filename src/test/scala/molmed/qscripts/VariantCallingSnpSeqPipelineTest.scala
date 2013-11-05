@@ -43,7 +43,7 @@ class VariantCallingSnpSeqPipelineTest {
       " -noRecal ",
       " --test_mode ",
       " -startFromScratch ",
-      " -p " + projectName).mkString
+      " --project_name " + projectName).mkString
     spec.fileMD5s += testRawSNV -> "8cbdfc74848f95b7f753f9e636b92664"
     spec.fileMD5s += testRawINDEL -> "c19d75369ac288824bd678ab00aed74b"
     spec.run = run
@@ -74,7 +74,7 @@ class VariantCallingSnpSeqPipelineTest {
       " -noRecal ",
       " --test_mode ",
       " -startFromScratch ",
-      " -p " + projectName).mkString
+      " --project_name  " + projectName).mkString
 
     spec.run = false
     PipelineTest.executeTest(spec)

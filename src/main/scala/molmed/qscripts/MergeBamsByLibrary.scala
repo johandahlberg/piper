@@ -5,8 +5,10 @@ import org.broadinstitute.sting.queue.util.QScriptUtils
 import org.broadinstitute.sting.queue.extensions.picard.MergeSamFiles
 import molmed.utils.ReadGroupUtils._
 import org.broadinstitute.sting.queue.function.ListWriterFunction
+import molmed.utils.Uppmaxable
+import molmed.utils.GeneralUtils
 
-class MergeBamsByLibrary extends QScript {
+class MergeBamsByLibrary extends QScript with Uppmaxable{
 
   qscript =>
 
@@ -17,8 +19,6 @@ class MergeBamsByLibrary extends QScript {
   var outputDir: String = ""
   def getOutputDir: String = if (outputDir.isEmpty()) "" else outputDir + "/"
 
-  @Argument(doc = "the project name determines the final output (BAM file) base name. Example NA12878 yields NA12878.processed.bam", fullName = "project", shortName = "p", required = false)
-  var projectName: String = ""
 
   case class Sample(library: String, file: File)
 
@@ -26,6 +26,8 @@ class MergeBamsByLibrary extends QScript {
 
     val bams = QScriptUtils.createSeqFromFile(input)
 
+    val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
+    
     val samples = for (bam <- bams) yield {
       new Sample(getLibraryNameFromReadGroups(bam), bam)
     }
@@ -41,34 +43,13 @@ class MergeBamsByLibrary extends QScript {
         val mergedFile: File = getOutputDir + sampleName + ".bam"
         val files = sampleNamesAndFiles._2
 
-        add(joinBams(files, mergedFile))
+        add(generalUtils.joinBams(files, mergedFile))
         mergedFile
       }
 
     // output a BAM list with all the processed files
     val cohortFile = new File(getOutputDir + projectName + ".cohort.list")
-    add(writeList(cohortList.toSeq, cohortFile))
+    add(generalUtils.writeList(cohortList.toSeq, cohortFile))
 
   }
-
-  // General arguments to non-GATK tools
-  trait ExternalCommonArgs extends CommandLineFunction {
-    this.memoryLimit = 24
-    this.isIntermediate = false
-  }
-
-  case class joinBams(inBams: Seq[File], outBam: File) extends MergeSamFiles with ExternalCommonArgs {
-    this.input = inBams
-    this.output = outBam
-    this.analysisName = "joinBams" + outBam.getName()
-    this.jobName = "joinBams" + outBam.getName()
-  }
-
-  case class writeList(inBams: Seq[File], outBamList: File) extends ListWriterFunction {
-    this.inputFiles = inBams
-    this.listFile = outBamList
-    this.analysisName = "bamList"
-    this.jobName = "bamList"
-  }
-
 }

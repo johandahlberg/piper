@@ -35,6 +35,7 @@ import net.sf.samtools.SAMTextHeaderCodec
 import molmed.utils.ReadGroupUtils._
 import molmed.utils.Uppmaxable
 import molmed.utils.BwaAlignmentUtils
+import molmed.utils.GeneralUtils
 
 class Haloplex extends QScript with Uppmaxable {
 
@@ -109,7 +110,7 @@ class Haloplex extends QScript with Uppmaxable {
     if (outputDir.isEmpty()) "" else outputDir + "/"
   }
 
-  def cutSamples(sampleMap: Map[String, Seq[SampleAPI]]): Map[String, Seq[SampleAPI]] = {
+  def cutSamples(sampleMap: Map[String, Seq[SampleAPI]], generalUtils: GeneralUtils): Map[String, Seq[SampleAPI]] = {
 
     // Standard Illumina adaptors    
     val adaptor1 = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC"
@@ -134,12 +135,12 @@ class Haloplex extends QScript with Uppmaxable {
         val readpairContainer = sample.getFastqs
 
         val mate1SyncedFastq = new File(cutadaptOutputDir + "/" + sample.getReadGroupInformation.platformUnitId + "/" + constructTrimmedName(sample.getFastqs.mate1.getName()))
-        add(cutadapt(readpairContainer.mate1, mate1SyncedFastq, adaptor1))
+        add(generalUtils.cutadapt(readpairContainer.mate1, mate1SyncedFastq, adaptor1, cutadaptPath))
 
         val mate2SyncedFastq =
           if (readpairContainer.isMatePaired) {
             val mate2SyncedFastq = new File(cutadaptOutputDir + "/" + sample.getReadGroupInformation.platformUnitId + "/" + constructTrimmedName(sample.getFastqs.mate2.getName()))
-            add(cutadapt(readpairContainer.mate2, mate2SyncedFastq, adaptor2))
+            add(generalUtils.cutadapt(readpairContainer.mate2, mate2SyncedFastq, adaptor2, cutadaptPath))
             mate2SyncedFastq
           } else null
 
@@ -173,6 +174,7 @@ class Haloplex extends QScript with Uppmaxable {
   def script() = {
 
     resources = new Resources(resourcesPath, testMode)
+    val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
 
     // Create output dirs
     val vcfOutputDir = new File(getOutputDir() + "/vcf_files")
@@ -193,7 +195,7 @@ class Haloplex extends QScript with Uppmaxable {
     // Get and setup input files
     val samples: Map[String, Seq[SampleAPI]] = setupSamples()
     // Run cutadapt       
-    val cutAndSyncedSamples = cutSamples(samples)
+    val cutAndSyncedSamples = cutSamples(samples, generalUtils)
     val alignmentHelper = new BwaAlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, projectName, projId, uppmaxQoSFlag)
 
     // Align with bwa
@@ -271,55 +273,7 @@ class Haloplex extends QScript with Uppmaxable {
   }
 
   // General arguments to GATK walkers
-  trait CommandLineGATKArgs extends CommandLineGATK with ExternalCommonArgs {}
-
-  case class cutadapt(@Input fastq: File, @Output cutFastq: File, @Argument adaptor: String) extends ExternalCommonArgs {
-
-    this.isIntermediate = true
-    this.jobNativeArgs +:= "-p core -n 2 -A " + projId + " " + qosFlag
-    this.memoryLimit = 6
-
-    // Run cutadapt and sync via perl script by adding N's in all empty reads.  
-    def commandLine = cutadaptPath + " -a " + adaptor + " " + fastq + " | perl " + pathToSyncScript + " -o " + cutFastq
-
-  }
-
-  case class joinBams(inBams: Seq[File], outBam: File, index: File) extends MergeSamFiles with ExternalCommonArgs {
-    this.input = inBams
-    this.output = outBam
-    this.outputIndex = index
-
-    this.analysisName = "joinBams"
-    this.jobName = "joinBams"
-    this.isIntermediate = false
-  }
-
-  case class writeList(inBams: Seq[File], outBamList: File) extends ListWriterFunction {
-    this.inputFiles = inBams
-    this.listFile = outBamList
-    this.analysisName = "bamList"
-    this.jobName = "bamList"
-  }
-
-  case class sortSam(inSam: File, outBam: File, sortOrderP: SortOrder) extends SortSam with ExternalCommonArgs {
-    this.input :+= inSam
-    this.output = outBam
-    this.sortOrder = sortOrderP
-    this.analysisName = "sortSam"
-    this.jobName = "sortSam"
-  }
-
-  case class removeIntermeditateFiles(@Input files: Seq[File], @Input placeHolder: File) extends InProcessFunction {
-    def run(): Unit = {
-      files.foreach(f => {
-        val success = f.delete()
-        if (success)
-          logger.debug("Successfully deleted intermediate file: " + f.getAbsoluteFile())
-        else
-          logger.error("Failed deleted intermediate file: " + f.getAbsoluteFile())
-      })
-    }
-  }
+  trait CommandLineGATKArgs extends CommandLineGATK with ExternalCommonArgs {} 
 
   def intervalFormatString(contig: String, start: String, end: String, strand: String, intervalName: String): String =
     "%s\t%s\t%s\t%s\t%s".format(contig, start, end, strand, intervalName)
@@ -398,6 +352,9 @@ class Haloplex extends QScript with Uppmaxable {
 
     this.output_mode = org.broadinstitute.sting.gatk.walkers.genotyper.UnifiedGenotyperEngine.OUTPUT_MODE.EMIT_VARIANTS_ONLY
     this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.BOTH
+
+    this.analysisName = projectName + "_genotype"
+    this.jobName = projectName + "_genotype"
   }
 
   case class target(@Input candidateIndels: File, outIntervals: File, reference: File) extends RealignerTargetCreator with CommandLineGATKArgs {
@@ -411,8 +368,8 @@ class Haloplex extends QScript with Uppmaxable {
     this.known :+= resources.phase1
     this.known :+= candidateIndels
     this.scatterCount = nContigs
-    this.analysisName = outIntervals + ".target"
-    this.jobName = outIntervals + ".target"
+    this.analysisName = projectName + "_target"
+    this.jobName = projectName + "_target"
   }
 
   case class clean(inBams: Seq[File], tIntervals: File, outBam: File, reference: File) extends IndelRealigner with CommandLineGATKArgs {
@@ -428,8 +385,8 @@ class Haloplex extends QScript with Uppmaxable {
     this.consensusDeterminationModel = org.broadinstitute.sting.gatk.walkers.indels.IndelRealigner.ConsensusDeterminationModel.KNOWNS_ONLY
     this.compress = 0
     this.scatterCount = nContigs
-    this.analysisName = outBam + ".clean"
-    this.jobName = outBam + ".clean"
+    this.analysisName = projectName + "_clean"
+    this.jobName = projectName + "_clean"
   }
 
   case class cov(inBam: Seq[File], outRecalFile: File, reference: File) extends BaseRecalibrator with CommandLineGATKArgs {
@@ -452,8 +409,8 @@ class Haloplex extends QScript with Uppmaxable {
     this.intervals = Seq(qscript.intervals)
 
     this.scatterCount = nContigs
-    this.analysisName = outRecalFile + ".covariates"
-    this.jobName = outRecalFile + ".covariates"
+    this.analysisName = projectName + "_cov"
+    this.jobName = projectName + "_cov"
   }
 
   case class clip(@Input inBam: File, @Output @Gather(classOf[BamGatherFunction]) outBam: File, covariates: File, reference: File) extends ClipReads with CommandLineGATKArgs {
@@ -465,6 +422,9 @@ class Haloplex extends QScript with Uppmaxable {
     this.scatterCount = nContigs
     this.clipRepresentation = org.broadinstitute.sting.utils.clipping.ClippingRepresentation.WRITE_NS
     this.BQSR = covariates
+
+    this.analysisName = projectName + "_clean"
+    this.jobName = projectName + "_clean"
   }
 
   case class filterVariations(@Input inVcf: File, @Output outVcf: File, reference: File) extends VariantFiltration with CommandLineGATKArgs {
@@ -486,6 +446,9 @@ class Haloplex extends QScript with Uppmaxable {
 
     this.filterName = Seq("HARD_TO_VALIDATE", "LowCoverage", "VeryLowQual", "LowQual", "LowQD")
 
+    this.analysisName = projectName + "_filterVariants"
+    this.jobName = projectName + "_filterVariants"
+
   }
 
   case class collectTargetedPCRMetrics(bam: File, generalStatisticsOutput: File, perTargetStat: File, ampliconIntervalFile: File, targetIntevalFile: File, ref: File) extends CollectTargetedPcrMetrics with ExternalCommonArgs {
@@ -498,6 +461,9 @@ class Haloplex extends QScript with Uppmaxable {
     this.amplicons = ampliconIntervalFile
     this.targets = targetIntevalFile
     this.reference = ref
+
+    this.analysisName = projectName + "_collectPCRMetrics"
+    this.jobName = projectName + "_collectPCRMetrics"
 
   }
 

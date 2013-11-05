@@ -115,8 +115,8 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
     this.isIntermediate = true
 
     def commandLine = bwaPath + " aln -t " + bwaThreads + " -q 5 " + ref + " " + fastq + " > " + sai
-    this.analysisName = projId + "bwa_aln"
-    this.jobName = projId + "bwa_aln"
+    this.analysisName = projectName + "_bwaAln"
+    this.jobName = projectName + "_bwaAln"
   }
 
   // Help function to create samtools sorting and indexing paths
@@ -135,8 +135,8 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
 
     def commandLine = bwaPath + " samse " + ref + " " + sai + " " + mate1 + " -r " + readGroupInfo +
       sortAndIndex(alignedBam)
-    this.analysisName = "bwa_sam_se"
-    this.jobName = "bwa_sam_se"
+    this.analysisName =  projectName + "_bwaSamSe"
+    this.jobName = projectName + "_bwaSamSe"
   }
 
   // Perform alignment of paired end reads
@@ -154,8 +154,8 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
     def commandLine = bwaPath + " sampe " + ref + " " + sai1 + " " + sai2 + " " + mate1 + " " + mate2 +
       " -r " + readGroupInfo +
       sortAndIndex(alignedBam)
-    this.analysisName = "bwa_sam_pe"
-    this.jobName = "bwa_sam_pe"
+    this.analysisName = projectName + "_bwaSamPe"
+    this.jobName = projectName + "_bwaSamPe"
   }
 
   // Perform Smith-Watherman aligment of single end reads
@@ -169,7 +169,7 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
 
     def commandLine = bwaPath + " bwasw -t " + bwaThreads + " " + ref + " " + fq +
       sortAndIndex(bam)
-    this.analysisName = "bwasw"
-    this.jobName = "bwasw"
+    this.analysisName = projectName + "_bwaSw"
+    this.jobName = projectName + "_bwaSw"
   }
 }

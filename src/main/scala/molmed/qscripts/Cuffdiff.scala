@@ -151,8 +151,8 @@ class Cuffdiff extends QScript with Uppmaxable {
         inputFilesString +
         " 1> " + stdOut
 
-      this.analysisName = "cuffdiff"
-      this.jobName = "cuffdiff"
+      this.analysisName = projectName + "_cuffdiff"
+      this.jobName = projectName + "_cuffdiff"
     }
   }
 

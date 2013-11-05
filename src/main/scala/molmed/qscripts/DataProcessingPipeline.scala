@@ -347,7 +347,7 @@ class DataProcessingPipeline extends QScript with Uppmaxable {
 
     // output a BAM list with all the processed per sample files
     val cohortFile = new File(qscript.outputDir + qscript.projectName + ".cohort.list")
-    add(writeList(cohortList, cohortFile))
+    add(generalUtils.writeList(cohortList, cohortFile))
   }
 
   // Override the normal swapExt metod by adding the outputDir to the file path by default if it is defined.
@@ -395,8 +395,8 @@ class DataProcessingPipeline extends QScript with Uppmaxable {
     this.RGPL = readGroup.pl
     this.RGPU = readGroup.pu
     this.RGSM = readGroup.sm
-    this.analysisName = queueLogDir + outBam + ".rg"
-    this.jobName = queueLogDir + outBam + ".rg"
+    this.analysisName = projectName + "_addRG"
+    this.jobName = projectName + "_addRG"
   }
 
   case class bwa_aln_se(inBam: File, outSai: File) extends CommandLineFunction with ExternalCommonArgs {
@@ -440,12 +440,5 @@ class DataProcessingPipeline extends QScript with Uppmaxable {
     def commandLine = bwaPath + " bwasw -t " + bwaThreads + " " + reference + " " + fq + " > " + bam
     this.analysisName = queueLogDir + outBam + ".bwasw"
     this.jobName = queueLogDir + outBam + ".bwasw"
-  }
-
-  case class writeList(inBams: Seq[File], outBamList: File) extends ListWriterFunction {
-    this.inputFiles = inBams
-    this.listFile = outBamList
-    this.analysisName = queueLogDir + outBamList + ".bamList"
-    this.jobName = queueLogDir + outBamList + ".bamList"
   }
 }

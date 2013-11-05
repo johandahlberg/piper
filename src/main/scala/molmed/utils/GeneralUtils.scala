@@ -18,10 +18,9 @@ import org.broadinstitute.sting.queue.extensions.picard.SamToFastq
 
 class GeneralUtils(projectName: Option[String], projId: String, uppmaxQoSFlag: Option[String]) extends UppmaxUtils(projectName, projId, uppmaxQoSFlag) {
 
-  case class joinBams(inBams: Seq[File], outBam: File, index: File) extends MergeSamFiles with ExternalCommonArgs {
+  case class joinBams(inBams: Seq[File], outBam: File) extends MergeSamFiles with ExternalCommonArgs {
     this.input = inBams
     this.output = outBam
-    this.outputIndex = index
 
     this.analysisName = projectName + "_joinBams"
     this.jobName = projectName + "_joinBams"

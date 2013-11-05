@@ -31,7 +31,7 @@ class MergeBamsBySampleSnpSeqPipelineTest {
     spec.args = Array(
       pathToScript,
       " -i " + SnpSeqBaseTest.differentRgsCohortList,
-      " --project " + "TEST",
+      " --project_name " + "TEST",
       " -startFromScratch ").mkString
     spec.fileMD5s += mergeBam -> "eeca6021ee8389b244c4c59f96482c72"
     spec.run = run
@@ -48,7 +48,7 @@ class MergeBamsBySampleSnpSeqPipelineTest {
     spec.args = Array(
       pathToScript,
       " -i " + SnpSeqBaseTest.singleFileCohortList,
-      " --project " + "TEST",
+      " --project_name " + "TEST",
       " -startFromScratch ").mkString
     spec.fileMD5s += mergeBam -> "b9dc5bf6753ca2819e70b056eaf61258"
     spec.run = run

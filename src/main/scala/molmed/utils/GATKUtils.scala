@@ -7,15 +7,7 @@ import org.broadinstitute.sting.queue.extensions.gatk._
 import org.broadinstitute.sting.utils.baq.BAQ.CalculationMode
 import org.broadinstitute.sting.gatk.walkers.indels.IndelRealigner.ConsensusDeterminationModel
 
-case class GATKOptions(
-  reference: File,
-  nbrOfThreads: Option[Int] = Some(8),
-  scatterGatherCount: Option[Int] = Some(1),
-  intervalFile: Option[File],
-  dbSNP: Option[Seq[File]],
-  indels: Option[Seq[File]])
-
-class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], projId: String, getUppmaxQosFlag: Option[String]) extends UppmaxUtils(projectName, projId, getUppmaxQosFlag) {
+class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], projId: String, uppmaxQoSFlag: Option[String]) extends UppmaxUtils(projectName, projId, uppmaxQoSFlag) {
 
   // General arguments to GATK walkers
   trait CommandLineGATKArgs extends CommandLineGATK with ExternalCommonArgs {
@@ -45,8 +37,8 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], projId: S
     if (!gatkOptions.indels.isEmpty)
       this.known ++= gatkOptions.indels.get
     this.scatterCount = gatkOptions.scatterGatherCount.get
-    this.analysisName = projId + "_targets"
-    this.jobName = projId + "_targets"
+    this.analysisName = projectName + "_targets"
+    this.jobName = projectName + "_targets"
   }
 
   case class clean(inBams: Seq[File], tIntervals: File, outBam: File, cleanModelEnum: ConsensusDeterminationModel, testMode: Boolean) extends IndelRealigner with CommandLineGATKArgs {
@@ -63,8 +55,8 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], projId: S
     this.consensusDeterminationModel = cleanModelEnum
     this.noPGTag = testMode;
     this.scatterCount = gatkOptions.scatterGatherCount.get
-    this.analysisName = projId + "_clean"
-    this.jobName = projId + "_clean"
+    this.analysisName = projectName + "_clean"
+    this.jobName = projectName + "_clean"
   }
 
   case class cov(inBam: File, outRecalFile: File, defaultPlatform: String) extends BaseRecalibrator with CommandLineGATKArgs {
@@ -81,8 +73,8 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], projId: S
     if (!gatkOptions.intervalFile.isEmpty) this.intervals :+= gatkOptions.intervalFile.get
 
     this.scatterCount = gatkOptions.scatterGatherCount.get
-    this.analysisName = projId + "_cov"
-    this.jobName = projId + "_cov"
+    this.analysisName = projectName + "_cov"
+    this.jobName = projectName + "_cov"
   }
 
   case class recal(inBam: File, inRecalFile: File, outBam: File) extends PrintReads with CommandLineGATKArgs {
@@ -97,8 +89,8 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], projId: S
     this.scatterCount = gatkOptions.scatterGatherCount.get
     this.num_cpu_threads_per_data_thread = gatkOptions.nbrOfThreads
     this.isIntermediate = false
-    this.analysisName = projId + "_recal"
-    this.jobName = projId + "_recal"
+    this.analysisName = projectName + "_recal"
+    this.jobName = projectName + "_recal"
   }
 
 }
