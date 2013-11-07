@@ -16,6 +16,8 @@ import molmed.utils.GATKOptions
 import molmed.utils.VariantCallingUtils
 
 /**
+ * Run variant calling using GATK.
+ * 
  * TODO
  * - Clean up the argument list
  */

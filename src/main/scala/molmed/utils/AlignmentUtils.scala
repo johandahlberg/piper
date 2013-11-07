@@ -124,7 +124,7 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
     samtoolsPath + " index " + alignedBam.getAbsoluteFile()
 
   // Perform alignment of single end reads
-  case class bwa_sam_se(fastq: File, inSai: File, outBam: File, readGroupInfo: String, reference: File, intermediate: Boolean = false) extends ExternalCommonArgs {
+  case class bwa_sam_se(fastq: File, inSai: File, outBam: File, readGroupInfo: String, reference: File, intermediate: Boolean = false) extends SixGbRamJobs {
     @Input(doc = "fastq file to be aligned") var mate1 = fastq
     @Input(doc = "bwa alignment index file") var sai = inSai
     @Input(doc = "reference") var ref = reference
@@ -159,7 +159,7 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
   }
 
   // Perform Smith-Watherman aligment of single end reads
-  case class bwa_sw(inFastQ: File, outBam: File, reference: File, intermediate: Boolean = false) extends ExternalCommonArgs {
+  case class bwa_sw(inFastQ: File, outBam: File, reference: File, intermediate: Boolean = false) extends SixGbRamJobs {
     @Input(doc = "fastq file to be aligned") var fq = inFastQ
     @Input(doc = "reference") var ref = reference
     @Output(doc = "output bam file") var bam = outBam

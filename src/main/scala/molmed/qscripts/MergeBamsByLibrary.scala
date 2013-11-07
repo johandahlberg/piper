@@ -8,6 +8,9 @@ import org.broadinstitute.sting.queue.function.ListWriterFunction
 import molmed.utils.Uppmaxable
 import molmed.utils.GeneralUtils
 
+/**
+ * Merge bams by the library specified in the read group.
+ */
 class MergeBamsByLibrary extends QScript with Uppmaxable{
 
   qscript =>

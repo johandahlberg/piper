@@ -13,6 +13,10 @@ import java.io.PrintWriter
 import molmed.utils.ReadGroupUtils._
 import molmed.utils.Uppmaxable
 
+/**
+ * Generate RNA QC metrics and merge the results from the individuals files
+ * to a tab separated file with all the results.
+ */
 class RNAQC extends QScript with Uppmaxable {
   qscript =>
 

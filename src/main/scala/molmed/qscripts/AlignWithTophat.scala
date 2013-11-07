@@ -15,6 +15,16 @@ import molmed.utils.GeneralUtils
 import molmed.utils.UppmaxUtils
 import molmed.utils.TophatAligmentUtils
 
+/**
+ * Align paired end reads to a reference using Tophat. By default cutadapt is not
+ * run, but using the "--cutadapt" will add that step. Can also experimentally do
+ * fusion search, however, this does not seem to be useful in the results
+ * it generates.
+ *  
+ * @TODO
+ * - Add single end capabilities.
+ */
+
 class AlignWithTophat extends QScript with Uppmaxable {
 
   qscript =>

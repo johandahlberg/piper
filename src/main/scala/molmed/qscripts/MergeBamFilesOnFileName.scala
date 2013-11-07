@@ -15,6 +15,10 @@ import org.broadinstitute.sting.utils.io.IOUtils
 import molmed.utils.Uppmaxable
 import molmed.utils.GeneralUtils
 
+/**
+ * This is just a ugly hack I use onced to merge bam file on
+ * their file names. (And that's also what it does...)
+ */
 class MergeBamFilesOnFileName extends QScript with Uppmaxable {
     qscript =>
 

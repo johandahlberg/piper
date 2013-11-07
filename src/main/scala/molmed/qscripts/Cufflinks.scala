@@ -8,6 +8,13 @@ import molmed.utils.ReadGroupUtils
 import molmed.utils.UppmaxUtils
 import molmed.utils.Uppmaxable
 
+/**
+ * Run cufflinks on a cohort to generate FPKMs for the known transcripts.
+ * It can also use cufflinks novel transcript discovery to find novel
+ * transcripts in addition to quantifying known transcripts.
+ * However this functionallity should be seen as experimental 
+ * at its best.
+ */
 class Cufflinks extends QScript with Uppmaxable {
 
   qscript =>
@@ -106,6 +113,9 @@ class Cufflinks extends QScript with Uppmaxable {
     }
   }
 
+  /**
+   * Cufflinks utility case classes.
+   */
   case class writeTranscriptList(transcriptList: File, outputDirList: Seq[File], placeHolder: Seq[File]) extends ListWriterFunction {
 
     @Input val ph = placeHolder

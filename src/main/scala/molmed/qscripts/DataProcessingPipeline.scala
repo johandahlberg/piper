@@ -20,10 +20,12 @@ import molmed.utils.GATKOptions
 import molmed.utils.GeneralUtils
 
 /**
- * TODO
+ * Runs the GATK recommended best practice analysis for data processing.
+ * Base quality recalibration, indel realignment, etc. 
+ * 
+ * @TODO
+ * - Update to new best practice.
  * - Look at node/core optimization.
- * - Make sure that the scatter/gatter functionality works as intended. Might want to fix it so that s/g is performed even when realigning.
- * 		FIXED
  * - Might want to include reduce bam, etc. in this to increase the effectivity.
  */
 
@@ -123,7 +125,6 @@ class DataProcessingPipeline extends QScript with Uppmaxable {
    */
 
   val queueLogDir: String = ".qlog/" // Gracefully hide Queue's output
-
   var cleanModelEnum: ConsensusDeterminationModel = ConsensusDeterminationModel.USE_READS
 
   /**
@@ -255,6 +256,7 @@ class DataProcessingPipeline extends QScript with Uppmaxable {
 
   def script() {
 
+    // Setup of options utility classes.
     val gatkOptions = new GATKOptions(reference, nbrOfThreads, nContigs, Some(intervals), Some(dbSNP), Some(indels))
     val gatkUtils = new GATKUtils(gatkOptions, projectName, projId, uppmaxQoSFlag)
     val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
@@ -265,7 +267,7 @@ class DataProcessingPipeline extends QScript with Uppmaxable {
     // sets the model for the Indel Realigner
     cleanModelEnum = getIndelCleaningModel
 
-    // keep a record of the number of contigs in the first bam file in the list
+    // keep a record of the number of contigs in the reference.
     val bams = QScriptUtils.createSeqFromFile(input)
     if (nContigs < 0) //nContigs = QScriptUtils.getNumberOfContigs(realignedBAMs(0))
     {
@@ -277,6 +279,8 @@ class DataProcessingPipeline extends QScript with Uppmaxable {
         throw new FileNotFoundException("Could not find a dict file for the reference: " + reference.toString + ". Make one using picards: CreateSequenceDictionary")
     }
 
+    // In some cases it might be necessary to realign samples from the bam files. This will
+    // handle this.
     val realignedBAMs = if (realign) { performAlignment(bams, generalUtils) } else { bams }
 
     // generate a BAM file per sample joining all per lane files if necessary
@@ -382,6 +386,8 @@ class DataProcessingPipeline extends QScript with Uppmaxable {
   /**
    * **************************************************************************
    * Classes (non-GATK programs)
+   * Most of these are custom bwa case classes which handle realigment of a
+   * bam file rather than aligning from fastq input data.
    * **************************************************************************
    */
 

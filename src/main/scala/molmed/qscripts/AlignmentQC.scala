@@ -10,6 +10,9 @@ import molmed.utils.GATKUtils
 import molmed.utils.Uppmaxable
 import molmed.utils.GATKOptions
 
+/**
+ * Simple Alignment quality control using the DepthOfCoverage walker from GATK. 
+ */
 class AlignmentQC extends QScript with Uppmaxable {
     qscript =>
 

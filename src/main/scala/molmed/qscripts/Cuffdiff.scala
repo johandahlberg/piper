@@ -9,6 +9,13 @@ import molmed.utils.ReadGroupUtils
 import molmed.utils.Uppmaxable
 import molmed.utils.UppmaxUtils
 
+/**
+ * Runs cuffdiff to calculate differential expression between samples. By default
+ * it will compare all samples against all. A replicate file can be used to 
+ * specify that files should go under the same label. (See below for format).
+ * If samples have identical names they will also be concidered replicates and
+ * be run under the same label. 
+ */
 class Cuffdiff extends QScript with Uppmaxable {
 
   qscript =>
@@ -88,6 +95,9 @@ class Cuffdiff extends QScript with Uppmaxable {
 
   }
 
+  /**
+   * Cuffdiff commandline case classes.
+   */
   class CuffDiffUtils extends UppmaxUtils(projId, uppmaxQoSFlag) {
     case class cuffdiff(samplesAndLables: Map[File, String], replicates: Map[String, List[String]], outputFile: File) extends FatNode {
 

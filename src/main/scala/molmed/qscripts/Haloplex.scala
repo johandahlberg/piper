@@ -37,6 +37,9 @@ import molmed.utils.Uppmaxable
 import molmed.utils.BwaAlignmentUtils
 import molmed.utils.GeneralUtils
 
+/**
+ * Haloplex best practice analysis from fastqs to variant calls.
+ */
 class Haloplex extends QScript with Uppmaxable {
 
   qscript =>
