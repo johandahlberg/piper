@@ -116,7 +116,7 @@ class Cufflinks extends QScript with Uppmaxable {
 
   }
 
-  class CufflinksUtils extends UppmaxUtils(projectName, projId, uppmaxQoSFlag) {
+  class CufflinksUtils extends UppmaxUtils(projId, uppmaxQoSFlag) {
     case class cufflinks(inputBamFile: File, sampleOutputDir: File, outputFile: File) extends ExternalCommonArgs {
 
       // Sometime this should be kept, sometimes it shouldn't
@@ -140,8 +140,8 @@ class Cufflinks extends QScript with Uppmaxable {
         bamFile + " "
       " 1> " + stdOut
 
-      this.analysisName = projectName + "_cufflinks"
-      this.jobName = projectName + "_cufflinks"
+      this.analysisName = projectName.get + "_cufflinks"
+      this.jobName = projectName.get + "_cufflinks"
     }
 
     case class cuffmerge(assemblies: File, outputDir: File, reference: File, outputFile: File) extends ExternalCommonArgs {
@@ -166,8 +166,8 @@ class Cufflinks extends QScript with Uppmaxable {
         assemblies +
         " 1> " + stdOut
 
-      this.analysisName = projectName + "_cuffmerge"
-      this.jobName = projectName + "_cuffmerge"
+      this.analysisName = projectName.get + "_cuffmerge"
+      this.jobName = projectName.get + "_cuffmerge"
 
     }
   }

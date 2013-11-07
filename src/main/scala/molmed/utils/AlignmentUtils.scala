@@ -20,7 +20,7 @@ import net.sf.samtools.SAMFileReader
 
 import molmed.utils.ReadGroupUtils._
 
-abstract class AligmentUtils(projectName: Option[String], projId: String, uppmaxQoSFlag: Option[String]) extends UppmaxUtils(projectName, projId, uppmaxQoSFlag)
+abstract class AligmentUtils(projectName: Option[String], projId: String, uppmaxQoSFlag: Option[String]) extends UppmaxUtils(projId, uppmaxQoSFlag)
 
 class TophatAligmentUtils(tophatPath: String, tophatThreads: Int, projectName: Option[String], projId: String, uppmaxQoSFlag: Option[String]) extends AligmentUtils(projectName, projId, uppmaxQoSFlag) {
 
@@ -115,8 +115,8 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
     this.isIntermediate = true
 
     def commandLine = bwaPath + " aln -t " + bwaThreads + " -q 5 " + ref + " " + fastq + " > " + sai
-    this.analysisName = projectName + "_bwaAln"
-    this.jobName = projectName + "_bwaAln"
+    this.analysisName = projectName.get + "_bwaAln"
+    this.jobName = projectName.get + "_bwaAln"
   }
 
   // Help function to create samtools sorting and indexing paths
@@ -135,8 +135,8 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
 
     def commandLine = bwaPath + " samse " + ref + " " + sai + " " + mate1 + " -r " + readGroupInfo +
       sortAndIndex(alignedBam)
-    this.analysisName =  projectName + "_bwaSamSe"
-    this.jobName = projectName + "_bwaSamSe"
+    this.analysisName =  projectName.get + "_bwaSamSe"
+    this.jobName = projectName.get + "_bwaSamSe"
   }
 
   // Perform alignment of paired end reads
@@ -154,8 +154,8 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
     def commandLine = bwaPath + " sampe " + ref + " " + sai1 + " " + sai2 + " " + mate1 + " " + mate2 +
       " -r " + readGroupInfo +
       sortAndIndex(alignedBam)
-    this.analysisName = projectName + "_bwaSamPe"
-    this.jobName = projectName + "_bwaSamPe"
+    this.analysisName = projectName.get + "_bwaSamPe"
+    this.jobName = projectName.get + "_bwaSamPe"
   }
 
   // Perform Smith-Watherman aligment of single end reads
@@ -169,7 +169,7 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
 
     def commandLine = bwaPath + " bwasw -t " + bwaThreads + " " + ref + " " + fq +
       sortAndIndex(bam)
-    this.analysisName = projectName + "_bwaSw"
-    this.jobName = projectName + "_bwaSw"
+    this.analysisName = projectName.get + "_bwaSw"
+    this.jobName = projectName.get + "_bwaSw"
   }
 }

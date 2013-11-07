@@ -195,7 +195,7 @@ class AlignWithTophat extends QScript with Uppmaxable {
   case class writeList(inBams: Seq[File], outBamList: File, @Input placeHolder: Seq[File]) extends ListWriterFunction {
     this.inputFiles = inBams
     this.listFile = outBamList
-    this.analysisName = projectName + "_bamList"
-    this.jobName = projectName + "_bamList"
+    this.analysisName = projectName.get + "_bamList"
+    this.jobName = projectName.get + "_bamList"
   }
 }

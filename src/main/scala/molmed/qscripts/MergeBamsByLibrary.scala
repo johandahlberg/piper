@@ -48,7 +48,7 @@ class MergeBamsByLibrary extends QScript with Uppmaxable{
       }
 
     // output a BAM list with all the processed files
-    val cohortFile = new File(getOutputDir + projectName + ".cohort.list")
+    val cohortFile = new File(getOutputDir + projectName.get + ".cohort.list")
     add(generalUtils.writeList(cohortList.toSeq, cohortFile))
 
   }

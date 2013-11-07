@@ -88,7 +88,7 @@ class Cuffdiff extends QScript with Uppmaxable {
 
   }
 
-  class CuffDiffUtils extends UppmaxUtils(projectName, projId, uppmaxQoSFlag) {
+  class CuffDiffUtils extends UppmaxUtils(projId, uppmaxQoSFlag) {
     case class cuffdiff(samplesAndLables: Map[File, String], replicates: Map[String, List[String]], outputFile: File) extends FatNode {
 
       this.isIntermediate = false
@@ -151,8 +151,8 @@ class Cuffdiff extends QScript with Uppmaxable {
         inputFilesString +
         " 1> " + stdOut
 
-      this.analysisName = projectName + "_cuffdiff"
-      this.jobName = projectName + "_cuffdiff"
+      this.analysisName = projectName.get + "_cuffdiff"
+      this.jobName = projectName.get + "_cuffdiff"
     }
   }
 

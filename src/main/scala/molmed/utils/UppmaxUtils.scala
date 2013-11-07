@@ -2,7 +2,7 @@ package molmed.utils
 
 import org.broadinstitute.sting.queue.function.CommandLineFunction
 
-class UppmaxUtils(projectName: Option[String], projId: String, uppmaxQoSFlag: Option[String]) {
+class UppmaxUtils(projId: String, uppmaxQoSFlag: Option[String]) {
 
   val qosFlag = if (!uppmaxQoSFlag.isEmpty) " --qos=" + uppmaxQoSFlag.get else ""
   val projectBaseString = " -A " + projId + " "  + qosFlag

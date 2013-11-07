@@ -18,7 +18,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     if (testMode)
       this.no_cmdline_in_header = true
 
-    if (downsampleFraction != -1)
+    if (downsampleFraction.get != -1.0)
       this.downsample_to_fraction = downsampleFraction
     else
       this.dcov = if (t.isLowpass) { Some(50) } else { Some(250) }
@@ -45,8 +45,8 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     this.out = t.rawSnpVCF
     this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.SNP
     this.baq = if (noBAQ || t.isExome) { org.broadinstitute.sting.utils.baq.BAQ.CalculationMode.OFF } else { org.broadinstitute.sting.utils.baq.BAQ.CalculationMode.CALCULATE_AS_NECESSARY }
-    this.analysisName = projectName + "_UGs"
-    this.jobName = projectName + "_snpCall"
+    this.analysisName = projectName.get + "_UGs"
+    this.jobName = projectName.get + "_snpCall"
   }
 
   // 1b.) Call Indels with UG
@@ -54,8 +54,8 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     this.out = t.rawIndelVCF
     this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.INDEL
     this.baq = org.broadinstitute.sting.utils.baq.BAQ.CalculationMode.OFF
-    this.analysisName = projectName + "_UGi"
-    this.jobName = projectName + "_indelcall"
+    this.analysisName = projectName.get + "_UGi"
+    this.jobName = projectName.get + "_indelcall"
   }
 
   // 2.) Hard Filtering for indels
@@ -73,8 +73,8 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
       this.filterExpression ++= List("InbreedingCoeff < -0.8")
     }
 
-    this.analysisName = projectName + "_VF"
-    this.jobName = projectName + "_indelfilter"
+    this.analysisName = projectName.get + "_VF"
+    this.jobName = projectName.get + "_indelfilter"
   }
 
   class VQSRBase(t: VariantCallingTarget) extends VariantRecalibrator with CommandLineGATKArgs {
@@ -123,8 +123,8 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
 
     this.rscript_file = t.vqsrSnpRscript
     this.mode = org.broadinstitute.sting.gatk.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.SNP
-    this.analysisName = projectName + "_VQSRs"
-    this.jobName = projectName + "_snprecal"
+    this.analysisName = projectName.get + "_VQSRs"
+    this.jobName = projectName.get + "_snprecal"
   }
 
   class indelRecal(t: VariantCallingTarget) extends VQSRBase(t) {
@@ -148,8 +148,8 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     this.recal_file = t.recalIndelFile
     this.rscript_file = t.vqsrIndelRscript
     this.mode = org.broadinstitute.sting.gatk.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.INDEL
-    this.analysisName = projectName + "_VQSRi"
-    this.jobName = projectName + "_indelRecal"
+    this.analysisName = projectName.get + "_VQSRi"
+    this.jobName = projectName.get + "_indelRecal"
   }
 
   // 4.) Apply the recalibration table to the appropriate tranches
@@ -168,8 +168,8 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     // this.ts_filter_level = t.snpTrancheTarget
     this.mode = org.broadinstitute.sting.gatk.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.SNP
     this.out = t.recalibratedSnpVCF
-    this.analysisName = projectName + "_AVQSRs"
-    this.jobName = projectName + "_snpcut"
+    this.analysisName = projectName.get + "_AVQSRs"
+    this.jobName = projectName.get + "_snpcut"
   }
 
   class indelCut(t: VariantCallingTarget) extends applyVQSRBase(t) {
@@ -181,8 +181,8 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     //this.ts_filter_level = t.indelTranchTarget
     this.mode = org.broadinstitute.sting.gatk.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.INDEL
     this.out = t.recalibratedIndelVCF
-    this.analysisName = projectName + "_AVQSRi"
-    this.jobName = projectName + "_indelcut"
+    this.analysisName = projectName.get + "_AVQSRi"
+    this.jobName = projectName.get + "_indelcut"
   }
 
   // 5.) Variant Evaluation Base(OPTIONAL)
@@ -201,8 +201,8 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     //if (t.reference == b37 || t.reference == hg19) this.comp :+= new TaggedFile( omni_b37, "omni" )
     this.eval :+= t.recalibratedSnpVCF
     this.out = t.evalFile
-    this.analysisName = projectName + "_VEs"
-    this.jobName = projectName + "_snpeval"
+    this.analysisName = projectName.get + "_VEs"
+    this.jobName = projectName.get + "_snpeval"
   }
 
   // 5b.) Indel Evaluation (OPTIONAL)
@@ -215,8 +215,8 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     //TODO Check, if no eval modules are assigned, the standard ones are used.
     //this.evalModule = List("CompOverlap", "CountVariants", "TiTvVariantEvaluator", "ValidationReport", "IndelStatistics")
     this.out = t.evalIndelFile
-    this.analysisName = projectName + "_VEi"
-    this.jobName = projectName + "_indeleval"
+    this.analysisName = projectName.get + "_VEi"
+    this.jobName = projectName.get + "_indeleval"
   }
 
 }

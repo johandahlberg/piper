@@ -120,8 +120,8 @@ class RNAQC extends QScript with Uppmaxable {
     this.pathToRNASeQC = pathRNASeQC
 
     this.isIntermediate = false
-    this.analysisName = projectName + "_RNA_QC"
-    this.jobName = projectName + "_RNA_QC"
+    this.analysisName = projectName.get + "_RNA_QC"
+    this.jobName = projectName.get + "_RNA_QC"
   }
 
   case class createAggregatedMetrics(@Input placeHolderSeq: Seq[File], @Input outputDir: File, @Output aggregatedMetricsFile: File) extends InProcessFunction {
@@ -153,7 +153,7 @@ class RNAQC extends QScript with Uppmaxable {
     this.isIntermediate = false
 
     def commandLine = samtoolsPath + " index " + bam + " " + bai
-    this.analysisName = projectName + "_samtools_index"
-    this.jobName = projectName + "_samtools_index"
+    this.analysisName = projectName.get + "_samtools_index"
+    this.jobName = projectName.get + "_samtools_index"
   }
 }

@@ -12,6 +12,6 @@ trait Uppmaxable {
   var projId: String = ""
 
   @Argument(doc = "Project name", fullName = "project_name", shortName = "name", required = false)
-  var projectName: Option[String] = None
+  var projectName: Option[String] = Some("DefaultProject")
 
 }
