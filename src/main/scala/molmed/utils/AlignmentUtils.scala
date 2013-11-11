@@ -36,6 +36,9 @@ class TophatAligmentUtils(tophatPath: String, tophatThreads: Int, projectName: O
 
     @Output var stdOut = outputFile
 
+    this.analysisName =  projectName.get + "_tophat"
+    this.jobName = projectName.get + "_tophat"
+    
     val file1String = files1.getAbsolutePath()
     val file2String = if (files2 != null) files2.getAbsolutePath() else ""
 
