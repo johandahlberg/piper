@@ -180,6 +180,7 @@ class AlignWithTophat extends QScript with Uppmaxable {
     val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
     projId = setupReader.getUppmaxProjectId()
     uppmaxQoSFlag = setupReader.getUppmaxQoSFlag()
+    projectName = setupReader.getProjectName()
 
     val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
     val tophatUtils = new TophatAligmentUtils(tophatPath, tophatThreads, projectName, projId, uppmaxQoSFlag)
