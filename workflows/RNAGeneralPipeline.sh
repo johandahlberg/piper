@@ -51,6 +51,9 @@ function alignWithTophat {
 function cufflinks {
     source piper -S ${SCRIPTS_DIR}/Cufflinks.scala \
 	    -i $1 \
+        --project_id ${PROJECT_ID} \
+        --project_name ${PROJECT_NAME} \
+        --quality_of_service ${QOS} \
 	    --annotations ${ANNOTATIONS} \
 	    --library_type ${LIBRARY_TYPE} \
 	    --mask ${RRNA_TARGETS} \
@@ -86,7 +89,9 @@ function cuffdiff {
             --path_to_cuffdiff ${PATH_TO_CUFFDIFF} \
             -outputDir ${CUFFDIFF_OUTPUT}/ \
             --threads ${NBR_OF_THREADS} \
-            --project_id ${PROJECT_ID} \
+        	--project_id ${PROJECT_ID} \
+            --project_name ${PROJECT_NAME} \
+            --quality_of_service ${QOS} \
             -jobRunner ${JOB_RUNNER} \
             -jobNative "${JOB_NATIVE_ARGS}" \
             --job_walltime 259200 \
@@ -112,7 +117,9 @@ function RNA_QC {
     source piper -S ${SCRIPTS_DIR}/RNAQC.scala \
 	    -i $1 \
 	    --downsample 1000 \
-	    --project_id ${PROJECT_ID} \
+		--project_id ${PROJECT_ID} \
+        --project_name ${PROJECT_NAME} \
+        --quality_of_service ${QOS} \
 		-R ${GENOME_REFERENCE} \
 	    --transcripts ${ANNOTATIONS} \
 	    --rRNA_targets ${RRNA_TARGETS} \

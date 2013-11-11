@@ -55,14 +55,16 @@ function alignWithBwa {
 #------------------------------------------------------------------------------------------
 function mergeBySampleName {
     source piper -S ${SCRIPTS_DIR}/MergeBamsBySample.scala \
-                            -i $1 \
-                            -outputDir ${RAW_MERGED_BAM_OUTPUT}/ \
-			    --project ${PROJECT_NAME} \
-                    -jobRunner ${JOB_RUNNER} \
-                        -jobNative "${JOB_NATIVE_ARGS}" \
-                            --job_walltime 86400 \
-                            -run \
-                            ${DEBUG} >> ${LOGS}/mergeBySampleName.log  2>&1
+                 -i $1 \
+                 -outputDir ${RAW_MERGED_BAM_OUTPUT}/ \
+			     --project_id ${PROJECT_ID} \
+                 --project_name ${PROJECT_NAME} \
+                 --quality_of_service ${QOS} \
+                 -jobRunner ${JOB_RUNNER} \
+                 -jobNative "${JOB_NATIVE_ARGS}" \
+                 --job_walltime 86400 \
+                 -run \
+                 ${DEBUG} >> ${LOGS}/mergeBySampleName.log  2>&1
 
 
     # Check the script exit status, and if it did not finish, clean up and exit
@@ -84,7 +86,9 @@ function alignmentQC {
     source piper -S ${SCRIPTS_DIR}/AlignmentQC.scala \
 			    -i $1 \
     			-R ${GENOME_REFERENCE} \
-    			--project_id ${PROJECT_ID} \
+			    --project_id ${PROJECT_ID} \
+                --project_name ${PROJECT_NAME} \
+                --quality_of_service ${QOS} \
  			    -intervals ${INTERVALS} \
 			    -outputDir ${ALIGNMENT_QC_OUTPUT}/ \
 			    -nt ${NBR_OF_THREADS} \
@@ -113,7 +117,9 @@ function dataPreprocessing {
 
     source piper -S ${SCRIPTS_DIR}/DataProcessingPipeline.scala \
 			      -R ${GENOME_REFERENCE} \
-			      --project ${PROJECT_NAME} \
+   			     --project_id ${PROJECT_ID} \
+                 --project_name ${PROJECT_NAME} \
+                 --quality_of_service ${QOS} \
 			      -i $1 \
 			      -outputDir ${PROCESSED_BAM_OUTPUT}/ \
         		  --dbsnp ${DB_SNP_B37} \
@@ -146,19 +152,21 @@ function dataPreprocessing {
 function variantCalling {
 
     source piper -S ${SCRIPTS_DIR}/VariantCalling.scala \
-			      -R ${GENOME_REFERENCE} \
-			      -res ${GATK_BUNDLE_B37} \
-			      --project ${PROJECT_NAME} \
-			      -i $1 \
-			      -intervals ${INTERVALS} \
-			      -outputDir ${VCF_OUTPUT}/ \
-			      -run \
-		          -jobRunner ${JOB_RUNNER} \
-                  -jobNative "${JOB_NATIVE_ARGS}" \
-			      --job_walltime 36000 \
-			      -nt  ${NBR_OF_THREADS} \
-			      -retry 2 \
-			      ${DEBUG} >> ${LOGS}/variantCalling.log  2>&1
+			     -R ${GENOME_REFERENCE} \
+			     -res ${GATK_BUNDLE_B37} \
+   			     --project_id ${PROJECT_ID} \
+                 --project_name ${PROJECT_NAME} \
+                 --quality_of_service ${QOS} \
+			     -i $1 \
+			     -intervals ${INTERVALS} \
+			     -outputDir ${VCF_OUTPUT}/ \
+			     -run \
+		         -jobRunner ${JOB_RUNNER} \
+                 -jobNative "${JOB_NATIVE_ARGS}" \
+			     --job_walltime 36000 \
+			     -nt  ${NBR_OF_THREADS} \
+			     -retry 2 \
+			     ${DEBUG} >> ${LOGS}/variantCalling.log  2>&1
 
     # Check the script exit status, and if it did not finish, clean up and exit
     if [ $? -ne 0 ]; then 
