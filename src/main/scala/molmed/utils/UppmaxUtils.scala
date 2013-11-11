@@ -14,19 +14,22 @@ class UppmaxUtils(projId: String, uppmaxQoSFlag: Option[String]) {
     this.isIntermediate = false
   }
 
-  trait SixGbRamJobs extends ExternalCommonArgs {
+  trait SixGbRamJobs extends CommandLineFunction {
     this.jobNativeArgs +:= "-p core -n 2 " + projectBaseString
     this.memoryLimit = Some(6)
+    this.isIntermediate = false
   }
 
-  trait NineGbRamJobs extends ExternalCommonArgs {
+  trait NineGbRamJobs extends CommandLineFunction {
     this.jobNativeArgs +:= "-p core -n 3 " + projectBaseString
     this.memoryLimit = Some(9)
+    this.isIntermediate = false
   }
   
-  trait FatNode extends ExternalCommonArgs {
+  trait FatNode extends CommandLineFunction {
     this.jobNativeArgs +:= "-p node -C fat" + projectBaseString
-    this.memoryLimit = Some(48)    
+    this.memoryLimit = Some(48)
+    this.isIntermediate = false
   }
 
 }
