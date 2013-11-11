@@ -67,6 +67,7 @@ class AlignWithBWA extends QScript with Uppmaxable {
     val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
     projId = setupReader.getUppmaxProjectId()
     uppmaxQoSFlag = setupReader.getUppmaxQoSFlag()
+    projectName = setupReader.getProjectName()
 
     val alignmentHelper = new BwaAlignmentUtils(this, bwaPath, bwaThreads, samtoolsPath, projectName, projId, uppmaxQoSFlag)
     val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
