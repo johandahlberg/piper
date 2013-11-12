@@ -12,6 +12,7 @@ import scala.io.Source
 import java.io.PrintWriter
 import molmed.utils.ReadGroupUtils._
 import molmed.utils.Uppmaxable
+import molmed.utils.GeneralUtils
 
 /**
  * Generate RNA QC metrics and merge the results from the individuals files
@@ -67,6 +68,8 @@ class RNAQC extends QScript with Uppmaxable {
 
     // Get the bam files to analyze
     val bams = QScriptUtils.createSeqFromFile(input)
+    
+    val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
 
     // Create output dir if it does not exist
     val outDir = if (getOutputDir == "") new File("RNA_QC") else new File(outputDir)
@@ -78,8 +81,8 @@ class RNAQC extends QScript with Uppmaxable {
       val sampleOutputDir = new File(getOutputDir + sampleName)
       sampleOutputDir.mkdir()
 
-      val index = new File(bam + ".bai")
-      add(samtools_index(bam, index))
+      val index = new File(bam.replace(".bam", ".bai"))
+      add(generalUtils.createIndex(bam, index))
 
       val placeHolderFile = new File(sampleOutputDir + "/qscript_RNASeQC.stdout.log")
       add(RNA_QC(bam, index, reference, sampleOutputDir, transcripts, placeHolderFile, pathToRNASeQC))
@@ -148,16 +151,5 @@ class RNAQC extends QScript with Uppmaxable {
       writer.close()
 
     }
-  }
-
-  // Perform alignment of single end reads
-  case class samtools_index(@Input bam: File, @Output bai: File) extends ExternalCommonArgs {
-
-    // The output from this is a samfile, which can be removed later
-    this.isIntermediate = false
-
-    def commandLine = samtoolsPath + " index " + bam + " " + bai
-    this.analysisName = projectName.get + "_samtools_index"
-    this.jobName = projectName.get + "_samtools_index"
   }
 }

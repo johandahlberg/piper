@@ -15,10 +15,16 @@ import org.broadinstitute.sting.queue.extensions.picard.AddOrReplaceReadGroups
 import molmed.queue.extensions.picard.FixMateInformation
 import org.broadinstitute.sting.queue.extensions.picard.RevertSam
 import org.broadinstitute.sting.queue.extensions.picard.SamToFastq
+import molmed.queue.extensions.picard.BuildBamIndex
 
 class GeneralUtils(projectName: Option[String], projId: String, uppmaxQoSFlag: Option[String]) extends UppmaxUtils(projId, uppmaxQoSFlag) {
 
-  case class joinBams(inBams: Seq[File], outBam: File) extends MergeSamFiles with ExternalCommonArgs {
+  case class createIndex(@Input bam: File, @Output index: File) extends BuildBamIndex with SixGbRamJobs {
+    this.input = bam
+    this.output = index
+  }
+
+  case class joinBams(inBams: Seq[File], outBam: File) extends MergeSamFiles with SixGbRamJobs {
     this.input = inBams
     this.output = outBam
 
@@ -43,7 +49,7 @@ class GeneralUtils(projectName: Option[String], projId: String, uppmaxQoSFlag: O
   }
 
   case class cutadapt(@Input fastq: File, cutFastq: File, @Argument adaptor: String, @Argument cutadaptPath: String, @Argument syncPath: String = "resources/FixEmptyReads.pl") extends SixGbRamJobs {
-    
+
     @Output val fastqCut: File = cutFastq
     this.isIntermediate = true
     // Run cutadapt and sync via perl script by adding N's in all empty reads.  

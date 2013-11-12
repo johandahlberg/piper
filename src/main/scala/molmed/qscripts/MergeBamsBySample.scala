@@ -70,10 +70,21 @@ class MergeBamsBySample extends QScript with Uppmaxable {
     def run() {
 
       import scala.sys.process.Process
+      
+      def linkProcess(inputFile: File, outputFile: File) = 
+        Process("""ln """ + inputFile.getAbsolutePath() + """ """ + outputFile.getAbsolutePath())
 
-      val linkProcess = Process("""ln """ + inBam.getAbsolutePath() + """ """ + outBam.getAbsolutePath())
-      val exitCode = linkProcess.!
-      assert(exitCode == 0, "Couldn't create hard link from: " + inBam.getAbsolutePath() + " to: " + outBam.getAbsolutePath())
+      // Link bam
+      val bamExitCode = linkProcess(inBam, outBam).!
+      assert(bamExitCode == 0, "Couldn't create hard link from: " + inBam.getAbsolutePath() + " to: " + outBam.getAbsolutePath())
+      
+      // Link index
+      val index = new File(inBam.getAbsolutePath() + ".bai")
+      val linkedIndex = new File(outBam.getAbsolutePath() + ".bai")
+      assert(index.exists(), "Couldn't find matching index for " + inBam)
+      val indexExitCode = linkProcess(index, linkedIndex)
+      assert(bamExitCode == 0, "Couldn't create hard link from: " + index.getAbsolutePath() + " to: " + linkedIndex.getAbsolutePath())
+      
     }
 
   }
