@@ -122,7 +122,6 @@ class Cufflinks extends QScript with Uppmaxable {
     this.listFile = transcriptList
     this.inputFiles = outputDirList.map(file => { file.getAbsolutePath() + "/transcripts.gtf" })
     this.analysisName = "writeTranscriptList"
-    this.jobName = "writeTranscriptList"
 
   }
 
@@ -151,7 +150,6 @@ class Cufflinks extends QScript with Uppmaxable {
       " 1> " + stdOut
 
       this.analysisName = projectName.get + "_cufflinks"
-      this.jobName = projectName.get + "_cufflinks"
     }
 
     case class cuffmerge(assemblies: File, outputDir: File, reference: File, outputFile: File) extends ExternalCommonArgs {
@@ -177,8 +175,6 @@ class Cufflinks extends QScript with Uppmaxable {
         " 1> " + stdOut
 
       this.analysisName = projectName.get + "_cuffmerge"
-      this.jobName = projectName.get + "_cuffmerge"
-
     }
   }
 }

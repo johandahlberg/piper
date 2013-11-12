@@ -207,6 +207,5 @@ class AlignWithTophat extends QScript with Uppmaxable {
     this.inputFiles = inBams
     this.listFile = outBamList
     this.analysisName = projectName.get + "_bamList"
-    this.jobName = projectName.get + "_bamList"
   }
 }

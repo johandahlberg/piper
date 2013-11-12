@@ -403,8 +403,7 @@ class DataProcessingPipeline extends QScript with Uppmaxable {
     this.RGPL = readGroup.pl
     this.RGPU = readGroup.pu
     this.RGSM = readGroup.sm
-    this.analysisName = projectName.get + "_addRG"
-    this.jobName = projectName.get + "_addRG"
+    this.analysisName = projectName.get + "_addRG"   
   }
 
   case class bwa_aln_se(inBam: File, outSai: File) extends CommandLineFunction with ExternalCommonArgs {
@@ -412,7 +411,7 @@ class DataProcessingPipeline extends QScript with Uppmaxable {
     @Output(doc = "output sai file") var sai = outSai
     def commandLine = bwaPath + " aln -t " + bwaThreads + " -q 5 " + reference + " -b " + bam + " > " + sai
     this.analysisName = queueLogDir + outSai + ".bwa_aln_se"
-    this.jobName = queueLogDir + outSai + ".bwa_aln_se"
+    
   }
 
   case class bwa_aln_pe(inBam: File, outSai1: File, index: Int) extends CommandLineFunction with ExternalCommonArgs {
@@ -420,7 +419,7 @@ class DataProcessingPipeline extends QScript with Uppmaxable {
     @Output(doc = "output sai file for 1st mating pair") var sai = outSai1
     def commandLine = bwaPath + " aln -t " + bwaThreads + " -q 5 " + reference + " -b" + index + " " + bam + " > " + sai
     this.analysisName = queueLogDir + outSai1 + ".bwa_aln_pe1"
-    this.jobName = queueLogDir + outSai1 + ".bwa_aln_pe1"
+    
   }
 
   case class bwa_sam_se(inBam: File, inSai: File, outBam: File) extends CommandLineFunction with ExternalCommonArgs {
@@ -429,7 +428,7 @@ class DataProcessingPipeline extends QScript with Uppmaxable {
     @Output(doc = "output aligned bam file") var alignedBam = outBam
     def commandLine = bwaPath + " samse " + reference + " " + sai + " " + bam + " > " + alignedBam
     this.analysisName = queueLogDir + outBam + ".bwa_sam_se"
-    this.jobName = queueLogDir + outBam + ".bwa_sam_se"
+    
   }
 
   case class bwa_sam_pe(inBam: File, inSai1: File, inSai2: File, outBam: File) extends CommandLineFunction with ExternalCommonArgs {
@@ -439,7 +438,7 @@ class DataProcessingPipeline extends QScript with Uppmaxable {
     @Output(doc = "output aligned bam file") var alignedBam = outBam
     def commandLine = bwaPath + " sampe " + reference + " " + sai1 + " " + sai2 + " " + bam + " " + bam + " > " + alignedBam
     this.analysisName = queueLogDir + outBam + ".bwa_sam_pe"
-    this.jobName = queueLogDir + outBam + ".bwa_sam_pe"
+    
   }
 
   case class bwa_sw(inFastQ: File, outBam: File) extends CommandLineFunction with ExternalCommonArgs {
@@ -447,6 +446,6 @@ class DataProcessingPipeline extends QScript with Uppmaxable {
     @Output(doc = "output bam file") var bam = outBam
     def commandLine = bwaPath + " bwasw -t " + bwaThreads + " " + reference + " " + fq + " > " + bam
     this.analysisName = queueLogDir + outBam + ".bwasw"
-    this.jobName = queueLogDir + outBam + ".bwasw"
+    
   }
 }
