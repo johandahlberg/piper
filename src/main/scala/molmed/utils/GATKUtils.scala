@@ -6,6 +6,7 @@ import java.io.File
 import org.broadinstitute.sting.queue.extensions.gatk._
 import org.broadinstitute.sting.utils.baq.BAQ.CalculationMode
 import org.broadinstitute.sting.gatk.walkers.indels.IndelRealigner.ConsensusDeterminationModel
+import org.broadinstitute.sting.commandline.Argument
 
 class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], projId: String, uppmaxQoSFlag: Option[String]) extends UppmaxUtils(projId, uppmaxQoSFlag) {
 
@@ -24,7 +25,7 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], projId: S
     this.omitBaseOutput = true
   }
 
-  case class target(inBams: Seq[File], outIntervals: File, cleanModelEnum: ConsensusDeterminationModel) extends RealignerTargetCreator with CommandLineGATKArgs {
+  case class target(inBams: Seq[File], outIntervals: File, @Argument cleanModelEnum: ConsensusDeterminationModel) extends RealignerTargetCreator with CommandLineGATKArgs {
 
     this.num_threads = gatkOptions.nbrOfThreads
 
@@ -41,7 +42,7 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], projId: S
     this.jobName = projectName.get + "_targets"
   }
 
-  case class clean(inBams: Seq[File], tIntervals: File, outBam: File, cleanModelEnum: ConsensusDeterminationModel, testMode: Boolean) extends IndelRealigner with CommandLineGATKArgs {
+  case class clean(inBams: Seq[File], tIntervals: File, outBam: File, @Argument cleanModelEnum: ConsensusDeterminationModel, testMode: Boolean) extends IndelRealigner with CommandLineGATKArgs {
 
     //TODO This should probably be a core job since it does not support parallel exection.         
 
@@ -59,7 +60,7 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], projId: S
     this.jobName = projectName.get + "_clean"
   }
 
-  case class cov(inBam: File, outRecalFile: File, defaultPlatform: String) extends BaseRecalibrator with CommandLineGATKArgs {
+  case class cov(inBam: File, outRecalFile: File, @Argument defaultPlatform: String) extends BaseRecalibrator with CommandLineGATKArgs {
 
     this.num_cpu_threads_per_data_thread = gatkOptions.nbrOfThreads
 
