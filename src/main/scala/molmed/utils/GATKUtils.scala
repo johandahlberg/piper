@@ -19,8 +19,8 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], projId: S
     this.out = outputDir
     if (!gatkOptions.intervalFile.isEmpty) this.intervals :+= gatkOptions.intervalFile.get
     this.isIntermediate = false
-    this.analysisName = "DepthOfCoverage"
-    this.jobName = "DepthOfCoverage"
+    this.analysisName = projectName.get + "_depth_of_coverage"
+    this.jobName = projectName.get + "_depth_of_coverage"
     this.omitBaseOutput = true
   }
 
