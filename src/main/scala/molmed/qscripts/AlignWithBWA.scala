@@ -76,7 +76,7 @@ class AlignWithBWA extends QScript with Uppmaxable {
     var cohortList: Seq[File] = samples.values.flatten.map(sample => alignmentHelper.align(sample, outputDir, false)).toSeq
 
     // output a BAM list with all the processed files
-    val cohortFile = new File(qscript.outputDir + setupReader.getProjectName() + ".cohort.list")
+    val cohortFile = new File(qscript.outputDir + projectName.get + ".cohort.list")
     add(generalUtils.writeList(cohortList, cohortFile))
   }
 

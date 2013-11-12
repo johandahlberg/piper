@@ -191,7 +191,7 @@ class AlignWithTophat extends QScript with Uppmaxable {
         alignSamples(samples, tophatUtils)
 
     // output a BAM list with all the processed files
-    val cohortFile = new File(qscript.outputDir + setupReader.getProjectName() + ".cohort.list")
+    val cohortFile = new File(qscript.outputDir + projectName.get + ".cohort.list")
     add(writeList(cohortList, cohortFile, placeHolderList))
 
   }
