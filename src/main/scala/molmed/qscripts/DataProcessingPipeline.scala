@@ -437,8 +437,7 @@ class DataProcessingPipeline extends QScript with Uppmaxable {
     @Input(doc = "bwa alignment index file for 2nd mating pair") var sai2 = inSai2
     @Output(doc = "output aligned bam file") var alignedBam = outBam
     def commandLine = bwaPath + " sampe " + reference + " " + sai1 + " " + sai2 + " " + bam + " " + bam + " > " + alignedBam
-    this.analysisName = queueLogDir + outBam + ".bwa_sam_pe"
-    
+    this.analysisName = queueLogDir + outBam + ".bwa_sam_pe"    
   }
 
   case class bwa_sw(inFastQ: File, outBam: File) extends CommandLineFunction with ExternalCommonArgs {
