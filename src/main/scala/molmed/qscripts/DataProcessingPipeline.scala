@@ -21,8 +21,8 @@ import molmed.utils.GeneralUtils
 
 /**
  * Runs the GATK recommended best practice analysis for data processing.
- * Base quality recalibration, indel realignment, etc. 
- * 
+ * Base quality recalibration, indel realignment, etc.
+ *
  * @TODO
  * - Update to new best practice.
  * - Look at node/core optimization.
@@ -58,7 +58,7 @@ class DataProcessingPipeline extends QScript with Uppmaxable {
 
   @Input(doc = "The path to the binary of bwa (usually BAM files have already been mapped - but if you want to remap this is the option)", fullName = "path_to_bwa", shortName = "bwa", required = false)
   var bwaPath: File = _
-  
+
   @Argument(doc = "Output path for the processed BAM files.", fullName = "output_directory", shortName = "outputDir", required = false)
   var outputDir: String = ""
 
@@ -256,6 +256,17 @@ class DataProcessingPipeline extends QScript with Uppmaxable {
 
   def script() {
 
+    // Setup the scatter/gather counts.
+    if (nContigs < 0)
+    {
+      val fastaFileIndex = new IndexedFastaSequenceFile(reference)
+      val seqDictionary = fastaFileIndex.getSequenceDictionary()
+      nContigs = if (seqDictionary != null)
+        scala.math.min(seqDictionary.size(), 23)
+      else
+        throw new FileNotFoundException("Could not find a dict file for the reference: " + reference.toString + ". Make one using picards: CreateSequenceDictionary")
+    }
+
     // Setup of options utility classes.
     val gatkOptions = new GATKOptions(reference, nbrOfThreads, nContigs, Some(intervals), Some(dbSNP), Some(indels))
     val gatkUtils = new GATKUtils(gatkOptions, projectName, projId, uppmaxQoSFlag)
@@ -269,15 +280,6 @@ class DataProcessingPipeline extends QScript with Uppmaxable {
 
     // keep a record of the number of contigs in the reference.
     val bams = QScriptUtils.createSeqFromFile(input)
-    if (nContigs < 0) //nContigs = QScriptUtils.getNumberOfContigs(realignedBAMs(0))
-    {
-      val fastaFileIndex = new IndexedFastaSequenceFile(reference)
-      val seqDictionary = fastaFileIndex.getSequenceDictionary()
-      nContigs = if (seqDictionary != null)
-        seqDictionary.size()
-      else
-        throw new FileNotFoundException("Could not find a dict file for the reference: " + reference.toString + ". Make one using picards: CreateSequenceDictionary")
-    }
 
     // In some cases it might be necessary to realign samples from the bam files. This will
     // handle this.
