@@ -28,7 +28,7 @@ class MergeBamsBySample extends QScript with Uppmaxable {
   def script() {
 
     val bams = QScriptUtils.createSeqFromFile(input)
-    
+
     val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
 
     val sampleNamesAndFiles = for (bam <- bams) yield {
@@ -52,9 +52,8 @@ class MergeBamsBySample extends QScript with Uppmaxable {
         if (files.size > 1) {
           add(generalUtils.joinBams(files, mergedFile))
           mergedFile
-        }
-        else {
-          add(createLink(files(0), mergedFile))
+        } else {
+          add(createLink(files(0), mergedFile, new File(files(0) + ".bai"), new File(mergedFile + ".bai")))
           mergedFile
         }
       }
@@ -65,26 +64,23 @@ class MergeBamsBySample extends QScript with Uppmaxable {
 
   }
 
-  case class createLink(@Input inBam: File, @Output outBam: File) extends InProcessFunction {
+  case class createLink(@Input inBam: File, @Output outBam: File, @Input index: File, @Output outIndex: File) extends InProcessFunction {
 
     def run() {
 
       import scala.sys.process.Process
-      
-      def linkProcess(inputFile: File, outputFile: File) = 
+
+      def linkProcess(inputFile: File, outputFile: File) =
         Process("""ln """ + inputFile.getAbsolutePath() + """ """ + outputFile.getAbsolutePath())
+
+      // Link index
+      val indexExitCode = linkProcess(index, outIndex)
+      assert(bamExitCode == 0, "Couldn't create hard link from: " + index.getAbsolutePath() + " to: " + outIndex.getAbsolutePath())
 
       // Link bam
       val bamExitCode = linkProcess(inBam, outBam).!
       assert(bamExitCode == 0, "Couldn't create hard link from: " + inBam.getAbsolutePath() + " to: " + outBam.getAbsolutePath())
-      
-      // Link index
-      val index = new File(inBam.getAbsolutePath() + ".bai")
-      val linkedIndex = new File(outBam.getAbsolutePath() + ".bai")
-      assert(index.exists(), "Couldn't find matching index for " + inBam)
-      val indexExitCode = linkProcess(index, linkedIndex)
-      assert(bamExitCode == 0, "Couldn't create hard link from: " + index.getAbsolutePath() + " to: " + linkedIndex.getAbsolutePath())
-      
+
     }
 
   }
