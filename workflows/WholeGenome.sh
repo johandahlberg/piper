@@ -90,7 +90,6 @@ function alignmentQC {
                 --quality_of_service ${QOS} \
  			    -intervals ${INTERVALS} \
 			    -outputDir ${ALIGNMENT_QC_OUTPUT}/ \
-			    -nt ${NBR_OF_THREADS} \
 	            -jobRunner ${JOB_RUNNER} \
         		-jobNative "${JOB_NATIVE_ARGS}" \
 			    --job_walltime 345600 \
