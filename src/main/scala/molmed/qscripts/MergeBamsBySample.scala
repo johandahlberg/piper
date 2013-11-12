@@ -75,7 +75,7 @@ class MergeBamsBySample extends QScript with Uppmaxable {
 
       // Link index
       val indexExitCode = linkProcess(index, outIndex)
-      assert(bamExitCode == 0, "Couldn't create hard link from: " + index.getAbsolutePath() + " to: " + outIndex.getAbsolutePath())
+      assert(indexExitCode == 0, "Couldn't create hard link from: " + index.getAbsolutePath() + " to: " + outIndex.getAbsolutePath())
 
       // Link bam
       val bamExitCode = linkProcess(inBam, outBam).!
