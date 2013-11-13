@@ -17,7 +17,7 @@ import molmed.utils.VariantCallingUtils
 
 /**
  * Run variant calling using GATK.
- * 
+ *
  * TODO
  * - Clean up the argument list
  */
@@ -103,19 +103,20 @@ class VariantCalling extends QScript with Uppmaxable {
   def script = {
 
     val bams = QScriptUtils.createSeqFromFile(input)
+
+    // By default scatter over the contigs
+    if (nContigs < 0)
+      nContigs = scala.math.min(QScriptUtils.getNumberOfContigs(bams(0)),23)
+
     resources = new Resources(resourcesPath, testMode)
     val gatkOptions = new GATKOptions(reference, nbrOfThreads, nContigs, Some(intervals), None, None)
     val variantCallingUtils = new VariantCallingUtils(gatkOptions, projectName, projId, uppmaxQoSFlag)
 
-    // By default scatter over the contigs
-    if (nContigs < 0)
-      nContigs = QScriptUtils.getNumberOfContigs(bams(0))
-
     val targets = (runSeparatly, notHuman) match {
-      case (true, false) => bams.map(bam => new VariantCallingTarget(outputDir,bam.getName(), reference, bam, intervals, isLowpass, isExome, 1, resources))
+      case (true, false) => bams.map(bam => new VariantCallingTarget(outputDir, bam.getName(), reference, bam, intervals, isLowpass, isExome, 1, resources))
       case (true, true) => bams.map(bam => new VariantCallingTarget(outputDir, bam.getName(), reference, bam, intervals, isLowpass, false, 1, resources))
-      case (false, true) => Seq(new VariantCallingTarget(outputDir,projectName.get, reference, input, intervals, isLowpass, false, bams.size, resources))
-      case (false, false) => Seq(new VariantCallingTarget(outputDir,projectName.get, reference, input, intervals, isLowpass, isExome, bams.size, resources))
+      case (false, true) => Seq(new VariantCallingTarget(outputDir, projectName.get, reference, input, intervals, isLowpass, false, bams.size, resources))
+      case (false, false) => Seq(new VariantCallingTarget(outputDir, projectName.get, reference, input, intervals, isLowpass, isExome, bams.size, resources))
     }
 
     for (target <- targets) {
