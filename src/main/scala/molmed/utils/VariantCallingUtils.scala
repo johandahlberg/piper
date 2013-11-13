@@ -30,8 +30,8 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     this.stand_call_conf = if (t.isLowpass) { Some(4.0) } else { Some(30.0) }
     this.stand_emit_conf = if (t.isLowpass) { Some(4.0) } else { Some(30.0) }
     this.input_file :+= t.bamList
-    if (!t.dbsnpFile.isEmpty())
-      this.D = new File(t.dbsnpFile)      
+    if (t.resources.dbsnp.exists())
+      this.D = t.resources.dbsnp
   }
 
   // 1a.) Call SNPs with UG
@@ -46,7 +46,6 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.SNP
     this.baq = if (noBAQ || t.isExome) { org.broadinstitute.sting.utils.baq.BAQ.CalculationMode.OFF } else { org.broadinstitute.sting.utils.baq.BAQ.CalculationMode.CALCULATE_AS_NECESSARY }
     this.analysisName = projectName.get + "_UGs"
-    this.jobName = projectName.get + "_snpCall"
   }
 
   // 1b.) Call Indels with UG
@@ -55,7 +54,6 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.INDEL
     this.baq = org.broadinstitute.sting.utils.baq.BAQ.CalculationMode.OFF
     this.analysisName = projectName.get + "_UGi"
-    this.jobName = projectName.get + "_indelcall"
   }
 
   // 2.) Hard Filtering for indels
@@ -74,7 +72,6 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     }
 
     this.analysisName = projectName.get + "_VF"
-    this.jobName = projectName.get + "_indelfilter"
   }
 
   class VQSRBase(t: VariantCallingTarget) extends VariantRecalibrator with CommandLineGATKArgs {
@@ -89,25 +86,28 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
 
     this.input :+= t.rawSnpVCF
 
-    // Whole Genome sequencing    
-    if (t.resources.hapmap.exists() && !t.resources.omni.exists() && !t.resources.dbsnp.exists()) {
-      this.resource :+= new TaggedFile(t.resources.hapmap, "known=false,training=true,truth=true,prior=15.0")
-      this.resource :+= new TaggedFile(t.resources.omni, "known=false,training=true,truth=true,prior=12.0")
-      this.resource :+= new TaggedFile(t.resources.dbsnp, "known=true,training=false,truth=false,prior=6.0")
-    }
+    // Check resource files are present
+    assert(t.resources.hapmap.exists(), "Couln't locate hapmap file: " + t.resources.hapmap)
+    assert(t.resources.omni.exists(), "Couln't locate omni file: " + t.resources.omni)
+    assert(t.resources.dbsnp.exists(), "Couln't locate dbSNP file: " + t.resources.dbsnp)
 
     //  From best practice: -an QD -an MQRankSum -an ReadPosRankSum -an FS -an DP
     this.use_annotation ++= List("QD", "HaplotypeScore", "MQRankSum", "ReadPosRankSum", "MQ", "FS", "DP")
     if (t.nSamples >= 10)
       this.use_annotation ++= List("InbreedingCoeff") // InbreedingCoeff is a population-wide statistic that requires at least 10 samples to calculate
 
-    if (!t.isExome)
-      this.use_annotation ++= List("DP")
-    else { // exome specific parameters 
+    // Whole genome case
+    if (!t.isExome) {
+      this.resource :+= new TaggedFile(t.resources.hapmap, "known=false,training=true,truth=true,prior=15.0")
+      this.resource :+= new TaggedFile(t.resources.omni, "known=false,training=true,truth=true,prior=12.0")
+      this.resource :+= new TaggedFile(t.resources.dbsnp, "known=true,training=false,truth=false,prior=6.0")
 
+      this.use_annotation ++= List("DP")
+    } else // exome specific parameters
+    {
       this.mG = Some(6)
 
-    if (t.resources.hapmap.exists() && !t.resources.omni.exists() && !t.resources.dbsnp.exists()) {
+      if (t.resources.hapmap.exists() && t.resources.omni.exists() && t.resources.dbsnp.exists()) {
         this.resource :+= new TaggedFile(t.resources.hapmap, "known=false,training=true,truth=true,prior=15.0")
         this.resource :+= new TaggedFile(t.resources.omni, "known=false,training=true,truth=false,prior=12.0")
         this.resource :+= new TaggedFile(t.resources.dbsnp, "known=true,training=false,truth=false,prior=6.0")
@@ -124,7 +124,6 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     this.rscript_file = t.vqsrSnpRscript
     this.mode = org.broadinstitute.sting.gatk.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.SNP
     this.analysisName = projectName.get + "_VQSRs"
-    this.jobName = projectName.get + "_snprecal"
   }
 
   class indelRecal(t: VariantCallingTarget) extends VQSRBase(t) {
@@ -149,7 +148,6 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     this.rscript_file = t.vqsrIndelRscript
     this.mode = org.broadinstitute.sting.gatk.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.INDEL
     this.analysisName = projectName.get + "_VQSRi"
-    this.jobName = projectName.get + "_indelRecal"
   }
 
   // 4.) Apply the recalibration table to the appropriate tranches
@@ -169,7 +167,6 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     this.mode = org.broadinstitute.sting.gatk.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.SNP
     this.out = t.recalibratedSnpVCF
     this.analysisName = projectName.get + "_AVQSRs"
-    this.jobName = projectName.get + "_snpcut"
   }
 
   class indelCut(t: VariantCallingTarget) extends applyVQSRBase(t) {
@@ -182,15 +179,14 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     this.mode = org.broadinstitute.sting.gatk.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.INDEL
     this.out = t.recalibratedIndelVCF
     this.analysisName = projectName.get + "_AVQSRi"
-    this.jobName = projectName.get + "_indelcut"
   }
 
   // 5.) Variant Evaluation Base(OPTIONAL)
   class EvalBase(t: VariantCallingTarget) extends VariantEval with CommandLineGATKArgs {
-    if (!t.hapmapFile.isEmpty())
-      this.comp :+= new TaggedFile(t.hapmapFile, "hapmap")
-    if (!t.dbsnpFile.isEmpty())
-      this.D = new File(t.dbsnpFile)
+    if (t.resources.hapmap.exists())
+      this.comp :+= new TaggedFile(t.resources.hapmap, "hapmap")
+    if (t.resources.dbsnp.exists())
+      this.D = t.resources.dbsnp
     this.reference_sequence = t.reference
     if (t.intervals != null) this.intervals :+= t.intervals
   }
@@ -202,7 +198,6 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     this.eval :+= t.recalibratedSnpVCF
     this.out = t.evalFile
     this.analysisName = projectName.get + "_VEs"
-    this.jobName = projectName.get + "_snpeval"
   }
 
   // 5b.) Indel Evaluation (OPTIONAL)
@@ -216,7 +211,6 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     //this.evalModule = List("CompOverlap", "CountVariants", "TiTvVariantEvaluator", "ValidationReport", "IndelStatistics")
     this.out = t.evalIndelFile
     this.analysisName = projectName.get + "_VEi"
-    this.jobName = projectName.get + "_indeleval"
   }
 
 }

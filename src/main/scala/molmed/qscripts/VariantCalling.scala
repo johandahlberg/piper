@@ -112,10 +112,10 @@ class VariantCalling extends QScript with Uppmaxable {
       nContigs = QScriptUtils.getNumberOfContigs(bams(0))
 
     val targets = (runSeparatly, notHuman) match {
-      case (true, false) => bams.map(bam => new VariantCallingTarget(outputDir,bam.getName(), reference, resources.dbsnp, resources.hapmap, bam, resources.mills, intervals, isLowpass, isExome, 1, resources))
-      case (true, true) => bams.map(bam => new VariantCallingTarget(outputDir, bam.getName(), reference, "", "", bam, "", intervals, isLowpass, false, 1, resources))
-      case (false, true) => Seq(new VariantCallingTarget(outputDir,projectName.get, reference, "", "", input, "", intervals, isLowpass, false, bams.size, resources))
-      case (false, false) => Seq(new VariantCallingTarget(outputDir,projectName.get, reference, resources.dbsnp, resources.hapmap, input, resources.mills, intervals, isLowpass, isExome, bams.size, resources))
+      case (true, false) => bams.map(bam => new VariantCallingTarget(outputDir,bam.getName(), reference, bam, intervals, isLowpass, isExome, 1, resources))
+      case (true, true) => bams.map(bam => new VariantCallingTarget(outputDir, bam.getName(), reference, bam, intervals, isLowpass, false, 1, resources))
+      case (false, true) => Seq(new VariantCallingTarget(outputDir,projectName.get, reference, input, intervals, isLowpass, false, bams.size, resources))
+      case (false, false) => Seq(new VariantCallingTarget(outputDir,projectName.get, reference, input, intervals, isLowpass, isExome, bams.size, resources))
     }
 
     for (target <- targets) {
