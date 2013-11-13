@@ -107,11 +107,9 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     {
       this.mG = Some(6)
 
-      if (t.resources.hapmap.exists() && t.resources.omni.exists() && t.resources.dbsnp.exists()) {
-        this.resource :+= new TaggedFile(t.resources.hapmap, "known=false,training=true,truth=true,prior=15.0")
-        this.resource :+= new TaggedFile(t.resources.omni, "known=false,training=true,truth=false,prior=12.0")
-        this.resource :+= new TaggedFile(t.resources.dbsnp, "known=true,training=false,truth=false,prior=6.0")
-      }
+      this.resource :+= new TaggedFile(t.resources.hapmap, "known=false,training=true,truth=true,prior=15.0")
+      this.resource :+= new TaggedFile(t.resources.omni, "known=false,training=true,truth=false,prior=12.0")
+      this.resource :+= new TaggedFile(t.resources.dbsnp, "known=true,training=false,truth=false,prior=6.0")
 
       if (t.nSamples <= 30) { // very few exome samples means very few variants
         this.mG = Some(4)
