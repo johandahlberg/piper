@@ -129,8 +129,8 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     // Note that for indel recalication the same settings are used both for WGS and Exome Seq.
 
     this.input :+= t.rawIndelVCF
-    if (!t.resources.mills.exists())
-      this.resource :+= new TaggedFile(t.resources.mills, "known=true,training=true,truth=true,prior=12.0")
+    assert(t.resources.mills.exists(), "Couln't locate mills file: " + t.resources.mills)
+    this.resource :+= new TaggedFile(t.resources.mills, "known=true,training=true,truth=true,prior=12.0")
 
     // From best practice: -an DP -an FS -an ReadPosRankSum -an MQRankSum
     this.use_annotation ++= List("QD", "ReadPosRankSum", "FS", "DP", "MQRankSum")
