@@ -23,7 +23,7 @@ check_errs()
 #TODO Reset this to the normal broad branch when jobRunnerName patch has been included
 # there.
 #git clone https://github.com/broadgsa/gatk-protected.git gatk-protected
-git clone git@github.com:johandahlberg/gatk-protected.git gatk-protected
+git clone https://github.com/johandahlberg/gatk-protected.git gatk-protected
 check_errs $? "git clone FAILED"
 
 cd gatk-protected
