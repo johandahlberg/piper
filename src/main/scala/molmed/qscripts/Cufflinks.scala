@@ -97,7 +97,7 @@ class Cufflinks extends QScript with Uppmaxable {
 
     for (bam <- bams) {
       val outDir = createOutputDir(bam)
-      val placeHolderFile = new File(getOutputDir + "qscript_cufflinks.stdout.log")
+      val placeHolderFile = new File(outDir + "/qscript_cufflinks.stdout.log")
 
       add(cufflinksUtils.cufflinks(bam, outDir, placeHolderFile))
       placeHolderList :+= placeHolderFile
