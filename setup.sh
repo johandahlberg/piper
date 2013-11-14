@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -l
 
 #Load needed module for build on uppmax
 module load java/sun_jdk1.7.0_25
@@ -20,14 +20,17 @@ check_errs()
   fi
 }
 
-git clone https://github.com/broadgsa/gatk-protected.git gatk-protected
+#TODO Reset this to the normal broad branch when jobRunnerName patch has been included
+# there.
+#git clone https://github.com/broadgsa/gatk-protected.git gatk-protected
+git clone git@github.com:johandahlberg/gatk-protected.git gatk-protected
 check_errs $? "git clone FAILED"
 
 cd gatk-protected
 
 # Validated gatk-version
-git checkout 6bda5696664da40bc2baef4f4cb69e4ef1f86ce5
-check_errs $? "git checkout FAILED"
+#git checkout 6bda5696664da40bc2baef4f4cb69e4ef1f86ce5
+#check_errs $? "git checkout FAILED"
 
 ant
 check_errs $? "gatk compilation FAILED"

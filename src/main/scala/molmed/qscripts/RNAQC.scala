@@ -127,7 +127,7 @@ class RNAQC extends QScript with Uppmaxable {
     this.pathToRNASeQC = pathRNASeQC
 
     this.isIntermediate = false
-    this.analysisName = projectName.get + "_RNA_QC"
+    override def jobRunnerJobName = projectName.get + "_RNA_QC"
   }
 
   case class createAggregatedMetrics(@Input placeHolderSeq: Seq[File], @Input outputDir: File, @Output aggregatedMetricsFile: File) extends InProcessFunction {

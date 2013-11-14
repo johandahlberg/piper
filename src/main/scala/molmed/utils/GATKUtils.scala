@@ -20,7 +20,7 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], projId: S
     this.out = outputDir
     if (!gatkOptions.intervalFile.isEmpty) this.intervals :+= gatkOptions.intervalFile.get
     this.isIntermediate = false
-    this.analysisName = projectName.get + "_depth_of_coverage"
+    override def jobRunnerJobName = projectName.get + "_depth_of_coverage"
     
     this.omitBaseOutput = true
   }
@@ -38,7 +38,7 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], projId: S
     if (!gatkOptions.indels.isEmpty)
       this.known ++= gatkOptions.indels.get
     this.scatterCount = gatkOptions.scatterGatherCount.get
-    this.analysisName = projectName.get + "_targets"
+    override def jobRunnerJobName = projectName.get + "_targets"
     
   }
 
@@ -56,7 +56,7 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], projId: S
     this.consensusDeterminationModel = cleanModelEnum
     this.noPGTag = testMode;
     this.scatterCount = gatkOptions.scatterGatherCount.get
-    this.analysisName = projectName.get + "_clean"
+    override def jobRunnerJobName = projectName.get + "_clean"
     
   }
 
@@ -74,7 +74,7 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], projId: S
     if (!gatkOptions.intervalFile.isEmpty) this.intervals :+= gatkOptions.intervalFile.get
 
     this.scatterCount = gatkOptions.scatterGatherCount.get
-    this.analysisName = projectName.get + "_cov"
+    override def jobRunnerJobName = projectName.get + "_cov"
     
   }
 
@@ -90,7 +90,7 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], projId: S
     this.scatterCount = gatkOptions.scatterGatherCount.get
     this.num_cpu_threads_per_data_thread = gatkOptions.nbrOfThreads
     this.isIntermediate = false
-    this.analysisName = projectName.get + "_recal"
+    override def jobRunnerJobName = projectName.get + "_recal"
     
   }
 

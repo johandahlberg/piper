@@ -45,7 +45,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     this.out = t.rawSnpVCF
     this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.SNP
     this.baq = if (noBAQ || t.isExome) { org.broadinstitute.sting.utils.baq.BAQ.CalculationMode.OFF } else { org.broadinstitute.sting.utils.baq.BAQ.CalculationMode.CALCULATE_AS_NECESSARY }
-    this.analysisName = projectName.get + "_UGs"
+    override def jobRunnerJobName = projectName.get + "_UGs"
   }
 
   // 1b.) Call Indels with UG
@@ -53,7 +53,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     this.out = t.rawIndelVCF
     this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.INDEL
     this.baq = org.broadinstitute.sting.utils.baq.BAQ.CalculationMode.OFF
-    this.analysisName = projectName.get + "_UGi"
+    override def jobRunnerJobName = projectName.get + "_UGi"
   }
 
   // 2.) Hard Filtering for indels
@@ -71,7 +71,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
       this.filterExpression ++= List("InbreedingCoeff < -0.8")
     }
 
-    this.analysisName = projectName.get + "_VF"
+    override def jobRunnerJobName = projectName.get + "_VF"
   }
 
   class VQSRBase(t: VariantCallingTarget) extends VariantRecalibrator with CommandLineGATKArgs {
@@ -121,7 +121,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
 
     this.rscript_file = t.vqsrSnpRscript
     this.mode = org.broadinstitute.sting.gatk.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.SNP
-    this.analysisName = projectName.get + "_VQSRs"
+    override def jobRunnerJobName = projectName.get + "_VQSRs"
   }
 
   class indelRecal(t: VariantCallingTarget) extends VQSRBase(t) {
@@ -145,7 +145,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     this.recal_file = t.recalIndelFile
     this.rscript_file = t.vqsrIndelRscript
     this.mode = org.broadinstitute.sting.gatk.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.INDEL
-    this.analysisName = projectName.get + "_VQSRi"
+    override def jobRunnerJobName = projectName.get + "_VQSRi"
   }
 
   // 4.) Apply the recalibration table to the appropriate tranches
@@ -164,7 +164,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     // this.ts_filter_level = t.snpTrancheTarget
     this.mode = org.broadinstitute.sting.gatk.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.SNP
     this.out = t.recalibratedSnpVCF
-    this.analysisName = projectName.get + "_AVQSRs"
+    override def jobRunnerJobName = projectName.get + "_AVQSRs"
   }
 
   class indelCut(t: VariantCallingTarget) extends applyVQSRBase(t) {
@@ -176,7 +176,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     //this.ts_filter_level = t.indelTranchTarget
     this.mode = org.broadinstitute.sting.gatk.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.INDEL
     this.out = t.recalibratedIndelVCF
-    this.analysisName = projectName.get + "_AVQSRi"
+    override def jobRunnerJobName = projectName.get + "_AVQSRi"
   }
 
   // 5.) Variant Evaluation Base(OPTIONAL)
@@ -195,7 +195,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     //if (t.reference == b37 || t.reference == hg19) this.comp :+= new TaggedFile( omni_b37, "omni" )
     this.eval :+= t.recalibratedSnpVCF
     this.out = t.evalFile
-    this.analysisName = projectName.get + "_VEs"
+    override def jobRunnerJobName = projectName.get + "_VEs"
   }
 
   // 5b.) Indel Evaluation (OPTIONAL)
@@ -208,7 +208,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     //TODO Check, if no eval modules are assigned, the standard ones are used.
     //this.evalModule = List("CompOverlap", "CountVariants", "TiTvVariantEvaluator", "ValidationReport", "IndelStatistics")
     this.out = t.evalIndelFile
-    this.analysisName = projectName.get + "_VEi"
+    override def jobRunnerJobName = projectName.get + "_VEi"
   }
 
 }

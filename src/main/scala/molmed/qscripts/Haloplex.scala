@@ -360,8 +360,8 @@ class Haloplex extends QScript with Uppmaxable {
     this.output_mode = org.broadinstitute.sting.gatk.walkers.genotyper.UnifiedGenotyperEngine.OUTPUT_MODE.EMIT_VARIANTS_ONLY
     this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.BOTH
 
-    this.analysisName = projectName.get + "_genotype"
-    this.jobName = projectName.get + "_genotype"
+    override def jobRunnerJobName = projectName.get + "_genotype"
+    
   }
 
   case class target(@Input candidateIndels: File, outIntervals: File, reference: File) extends RealignerTargetCreator with CommandLineGATKArgs {
@@ -375,8 +375,8 @@ class Haloplex extends QScript with Uppmaxable {
     this.known :+= resources.phase1
     this.known :+= candidateIndels
     this.scatterCount = nContigs
-    this.analysisName = projectName.get + "_target"
-    this.jobName = projectName.get + "_target"
+    override def jobRunnerJobName = projectName.get + "_target"
+    
   }
 
   case class clean(inBams: Seq[File], tIntervals: File, outBam: File, reference: File) extends IndelRealigner with CommandLineGATKArgs {
@@ -392,8 +392,8 @@ class Haloplex extends QScript with Uppmaxable {
     this.consensusDeterminationModel = org.broadinstitute.sting.gatk.walkers.indels.IndelRealigner.ConsensusDeterminationModel.KNOWNS_ONLY
     this.compress = 0
     this.scatterCount = nContigs
-    this.analysisName = projectName.get + "_clean"
-    this.jobName = projectName.get + "_clean"
+    override def jobRunnerJobName = projectName.get + "_clean"
+    
   }
 
   case class cov(inBam: Seq[File], outRecalFile: File, reference: File) extends BaseRecalibrator with CommandLineGATKArgs {
@@ -416,8 +416,8 @@ class Haloplex extends QScript with Uppmaxable {
     this.intervals = Seq(qscript.intervals)
 
     this.scatterCount = nContigs
-    this.analysisName = projectName.get + "_cov"
-    this.jobName = projectName.get + "_cov"
+    override def jobRunnerJobName = projectName.get + "_cov"
+    
   }
 
   case class clip(@Input inBam: File, @Output @Gather(classOf[BamGatherFunction]) outBam: File, covariates: File, reference: File) extends ClipReads with CommandLineGATKArgs {
@@ -430,8 +430,8 @@ class Haloplex extends QScript with Uppmaxable {
     this.clipRepresentation = org.broadinstitute.sting.utils.clipping.ClippingRepresentation.WRITE_NS
     this.BQSR = covariates
 
-    this.analysisName = projectName.get + "_clean"
-    this.jobName = projectName.get + "_clean"
+    override def jobRunnerJobName = projectName.get + "_clean"
+    
   }
 
   case class filterVariations(@Input inVcf: File, @Output outVcf: File, reference: File) extends VariantFiltration with CommandLineGATKArgs {
@@ -453,8 +453,8 @@ class Haloplex extends QScript with Uppmaxable {
 
     this.filterName = Seq("HARD_TO_VALIDATE", "LowCoverage", "VeryLowQual", "LowQual", "LowQD")
 
-    this.analysisName = projectName.get + "_filterVariants"
-    this.jobName = projectName.get + "_filterVariants"
+    override def jobRunnerJobName = projectName.get + "_filterVariants"
+    
 
   }
 
@@ -469,8 +469,8 @@ class Haloplex extends QScript with Uppmaxable {
     this.targets = targetIntevalFile
     this.reference = ref
 
-    this.analysisName = projectName + "_collectPCRMetrics"
-    this.jobName = projectName + "_collectPCRMetrics"
+    override def jobRunnerJobName = projectName + "_collectPCRMetrics"
+    
 
   }
 

@@ -28,7 +28,7 @@ class GeneralUtils(projectName: Option[String], projId: String, uppmaxQoSFlag: O
     this.input = inBams
     this.output = outBam
 
-    this.analysisName = projectName.get + "_joinBams"
+    override def jobRunnerJobName = projectName.get + "_joinBams"
 
     this.isIntermediate = false
   }
@@ -36,14 +36,14 @@ class GeneralUtils(projectName: Option[String], projId: String, uppmaxQoSFlag: O
   case class writeList(inBams: Seq[File], outBamList: File) extends ListWriterFunction {
     this.inputFiles = inBams
     this.listFile = outBamList
-    this.analysisName = projectName.get + "_bamList"
+    override def jobRunnerJobName = projectName.get + "_bamList"
   }
 
   case class sortSam(inSam: File, outBam: File, sortOrderP: SortOrder) extends SortSam with ExternalCommonArgs {
     this.input :+= inSam
     this.output = outBam
     this.sortOrder = sortOrderP
-    this.analysisName = projectName.get + "_sortSam"
+    override def jobRunnerJobName = projectName.get + "_sortSam"
   }
 
   case class cutadapt(@Input fastq: File, cutFastq: File, @Argument adaptor: String, @Argument cutadaptPath: String, @Argument syncPath: String = "resources/FixEmptyReads.pl") extends SixGbRamJobs {
@@ -52,7 +52,7 @@ class GeneralUtils(projectName: Option[String], projId: String, uppmaxQoSFlag: O
     this.isIntermediate = true
     // Run cutadapt and sync via perl script by adding N's in all empty reads.  
     def commandLine = cutadaptPath + " -a " + adaptor + " " + fastq + " | perl " + syncPath + " -o " + fastqCut
-    this.analysisName = projectName.get + "_cutadapt"
+    override def jobRunnerJobName = projectName.get + "_cutadapt"
   }
 
   case class dedup(inBam: File, outBam: File, metricsFile: File) extends MarkDuplicates with ExternalCommonArgs {
@@ -61,7 +61,7 @@ class GeneralUtils(projectName: Option[String], projId: String, uppmaxQoSFlag: O
     this.output = outBam
     this.metrics = metricsFile
     this.memoryLimit = Some(16)
-    this.analysisName = projectName.get + "_dedup"
+    override def jobRunnerJobName = projectName.get + "_dedup"
   }
 
   case class validate(inBam: File, outLog: File, reference: File) extends ValidateSamFile with ExternalCommonArgs {
@@ -69,13 +69,13 @@ class GeneralUtils(projectName: Option[String], projId: String, uppmaxQoSFlag: O
     this.output = outLog
     this.REFERENCE_SEQUENCE = reference
     this.isIntermediate = false
-    this.analysisName = projectName.get + "_validate"
+    override def jobRunnerJobName = projectName.get + "_validate"
   }
 
   case class fixMatePairs(inBam: Seq[File], outBam: File) extends FixMateInformation with ExternalCommonArgs {
     this.input = inBam
     this.output = outBam
-    this.analysisName = projectName.get + "_fixMates"
+    override def jobRunnerJobName = projectName.get + "_fixMates"
   }
 
   case class revert(inBam: File, outBam: File, removeAlignmentInfo: Boolean) extends RevertSam with ExternalCommonArgs {
@@ -83,14 +83,14 @@ class GeneralUtils(projectName: Option[String], projId: String, uppmaxQoSFlag: O
     this.input :+= inBam
     this.removeAlignmentInformation = removeAlignmentInfo;
     this.sortOrder = if (removeAlignmentInfo) { SortOrder.queryname } else { SortOrder.coordinate }
-    this.analysisName = projectName.get + "_revert"
+    override def jobRunnerJobName = projectName.get + "_revert"
 
   }
 
   case class convertToFastQ(inBam: File, outFQ: File) extends SamToFastq with ExternalCommonArgs {
     this.input :+= inBam
     this.fastq = outFQ
-    this.analysisName = projectName.get + "_convert2fastq"
+    override def jobRunnerJobName = projectName.get + "_convert2fastq"
   }
 
 }

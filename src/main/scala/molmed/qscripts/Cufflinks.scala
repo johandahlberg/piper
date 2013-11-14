@@ -121,7 +121,7 @@ class Cufflinks extends QScript with Uppmaxable {
     @Input val ph = placeHolder
     this.listFile = transcriptList
     this.inputFiles = outputDirList.map(file => { file.getAbsolutePath() + "/transcripts.gtf" })
-    this.analysisName = "writeTranscriptList"
+    override def jobRunnerJobName = "writeTranscriptList"
 
   }
 
@@ -149,7 +149,7 @@ class Cufflinks extends QScript with Uppmaxable {
         bamFile + " "
       " 1> " + stdOut
 
-      this.analysisName = projectName.get + "_cufflinks"
+      override def jobRunnerJobName = projectName.get + "_cufflinks"
     }
 
     case class cuffmerge(assemblies: File, outputDir: File, reference: File, outputFile: File) extends ExternalCommonArgs {
@@ -174,7 +174,7 @@ class Cufflinks extends QScript with Uppmaxable {
         assemblies +
         " 1> " + stdOut
 
-      this.analysisName = projectName.get + "_cuffmerge"
+      override def jobRunnerJobName = projectName.get + "_cuffmerge"
     }
   }
 }

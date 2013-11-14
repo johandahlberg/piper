@@ -36,7 +36,7 @@ class TophatAligmentUtils(tophatPath: String, tophatThreads: Int, projectName: O
 
     @Output var stdOut = outputFile
 
-    this.analysisName =  projectName.get + "_tophat"
+    override def jobRunnerJobName =  projectName.get + "_tophat"
     this.jobName = projectName.get + "_tophat"
     
     val file1String = files1.getAbsolutePath()
@@ -118,8 +118,7 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
     this.isIntermediate = true
 
     def commandLine = bwaPath + " aln -t " + bwaThreads + " -q 5 " + ref + " " + fastq + " > " + sai
-    this.analysisName = projectName.get + "_bwaAln"
-    this.jobName = projectName.get + "_bwaAln"
+    override def jobRunnerJobName = projectName.get + "_bwaAln"
   }
 
   // Help function to create samtools sorting and indexing paths
@@ -138,8 +137,7 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
 
     def commandLine = bwaPath + " samse " + ref + " " + sai + " " + mate1 + " -r " + readGroupInfo +
       sortAndIndex(alignedBam)
-    this.analysisName =  projectName.get + "_bwaSamSe"
-    this.jobName = projectName.get + "_bwaSamSe"
+    override def jobRunnerJobName =  projectName.get + "_bwaSamSe"
   }
 
   // Perform alignment of paired end reads
@@ -157,8 +155,7 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
     def commandLine = bwaPath + " sampe " + ref + " " + sai1 + " " + sai2 + " " + mate1 + " " + mate2 +
       " -r " + readGroupInfo +
       sortAndIndex(alignedBam)
-    this.analysisName = projectName.get + "_bwaSamPe"
-    this.jobName = projectName.get + "_bwaSamPe"
+    override def jobRunnerJobName = projectName.get + "_bwaSamPe"
   }
 
   // Perform Smith-Watherman aligment of single end reads
@@ -172,7 +169,6 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
 
     def commandLine = bwaPath + " bwasw -t " + bwaThreads + " " + ref + " " + fq +
       sortAndIndex(bam)
-    this.analysisName = projectName.get + "_bwaSw"
-    this.jobName = projectName.get + "_bwaSw"
+    override def jobRunnerJobName = projectName.get + "_bwaSw"
   }
 }
