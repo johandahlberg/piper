@@ -3,5 +3,6 @@ scala:
    - "2.9.2"
 jdk:
    - oraclejdk7
+   - openjdk7
 install: ./setup.sh
-test: sbt/bin/sbt test 
+script: sbt/bin/sbt test 
