@@ -10,9 +10,15 @@ import molmed.queue.extensions.RNAQC.RNASeQC
 import org.broadinstitute.sting.queue.function.InProcessFunction
 import scala.io.Source
 import java.io.PrintWriter
-import molmed.utils.AlignmentUtils._
+import molmed.utils.ReadGroupUtils._
+import molmed.utils.Uppmaxable
+import molmed.utils.GeneralUtils
 
-class RNAQC extends QScript {
+/**
+ * Generate RNA QC metrics and merge the results from the individuals files
+ * to a tab separated file with all the results.
+ */
+class RNAQC extends QScript with Uppmaxable {
   qscript =>
 
   /**
@@ -39,9 +45,6 @@ class RNAQC extends QScript {
   @Input(doc = "The path to the binary of samtools", fullName = "path_to_samtools", shortName = "samtools", required = false)
   var samtoolsPath: File = "/usr/bin/samtools"
 
-  @Argument(doc = "UPPMAX project id", fullName = "project_id", shortName = "pid", required = false)
-  var projId: String = _
-
   @Argument(doc = "Output path for the QC results", fullName = "output_directory", shortName = "outputDir", required = false)
   var outputDir: String = ""
   def getOutputDir: String = if (outputDir.isEmpty()) "" else outputDir + "/"
@@ -65,6 +68,8 @@ class RNAQC extends QScript {
 
     // Get the bam files to analyze
     val bams = QScriptUtils.createSeqFromFile(input)
+    
+    val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
 
     // Create output dir if it does not exist
     val outDir = if (getOutputDir == "") new File("RNA_QC") else new File(outputDir)
@@ -76,8 +81,8 @@ class RNAQC extends QScript {
       val sampleOutputDir = new File(getOutputDir + sampleName)
       sampleOutputDir.mkdir()
 
-      val index = swapExt(sampleOutputDir, bam, ".bam", ".bai")
-      add(samtools_index(bam, index))
+      val index = new File(bam.replace(".bam", ".bai"))
+      add(generalUtils.createIndex(bam, index))
 
       val placeHolderFile = new File(sampleOutputDir + "/qscript_RNASeQC.stdout.log")
       add(RNA_QC(bam, index, reference, sampleOutputDir, transcripts, placeHolderFile, pathToRNASeQC))
@@ -96,9 +101,11 @@ class RNAQC extends QScript {
 
   // General arguments to non-GATK tools
   trait ExternalCommonArgs extends CommandLineFunction {
+
+    val qosFlag = if (!uppmaxQoSFlag.isEmpty) " --qos=" + uppmaxQoSFlag.get else ""
+    this.jobNativeArgs +:= "-p node -A " + projId + " " + qosFlag
     this.memoryLimit = 24
     this.isIntermediate = true
-    this.jobNativeArgs +:= "-p node -A " + projId
   }
 
   case class RNA_QC(@Input bamfile: File, @Input bamIndex: File, referenceFile: File, outDir: File, transcriptFile: File, placeHolder: File, pathRNASeQC: File) extends RNASeQC with ExternalCommonArgs {
@@ -120,8 +127,7 @@ class RNAQC extends QScript {
     this.pathToRNASeQC = pathRNASeQC
 
     this.isIntermediate = false
-    this.analysisName = "RNA_QC"
-    this.jobName = "RNA_QC"
+    override def jobRunnerJobName = projectName.get + "_RNA_QC"
   }
 
   case class createAggregatedMetrics(@Input placeHolderSeq: Seq[File], @Input outputDir: File, @Output aggregatedMetricsFile: File) extends InProcessFunction {
@@ -132,7 +138,7 @@ class RNAQC extends QScript {
         f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)
         else Stream.empty)
 
-      val writer = new PrintWriter(aggregatedMetricsFile)      
+      val writer = new PrintWriter(aggregatedMetricsFile)
       val metricsFiles = getFileTree(outputDir).filter(file => file.getName().matches("metrics.tsv"))
       val header = Source.fromFile(metricsFiles(0)).getLines.take(1).next.toString()
 
@@ -144,16 +150,5 @@ class RNAQC extends QScript {
       writer.close()
 
     }
-  }
-
-  // Perform alignment of single end reads
-  case class samtools_index(@Input bam: File, @Output bai: File) extends ExternalCommonArgs {
-
-    // The output from this is a samfile, which can be removed later
-    this.isIntermediate = false
-
-    def commandLine = samtoolsPath + " index " + bam + " " + bai
-    this.analysisName = "samtools_index"
-    this.jobName = "samtools_index"
   }
 }

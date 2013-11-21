@@ -55,14 +55,16 @@ function alignWithBwa {
 #------------------------------------------------------------------------------------------
 function mergeBySampleName {
     source piper -S ${SCRIPTS_DIR}/MergeBamsBySample.scala \
-                            -i $1 \
-                            -outputDir ${RAW_MERGED_BAM_OUTPUT}/ \
-                            --project ${PROJECT_NAME} \
-                    -jobRunner ${JOB_RUNNER} \
-                        -jobNative "${JOB_NATIVE_ARGS}" \
-                            --job_walltime 86400 \
-                            -run \
-                            ${DEBUG} >> ${LOGS}/mergeBySampleName.log  2>&1
+                 -i $1 \
+                 -outputDir ${RAW_MERGED_BAM_OUTPUT}/ \
+         		 --project_id ${PROJECT_ID} \
+                 --project_name ${PROJECT_NAME} \
+                 --quality_of_service ${QOS} \
+                 -jobRunner ${JOB_RUNNER} \
+                 -jobNative "${JOB_NATIVE_ARGS}" \
+                 --job_walltime 86400 \
+                 -run \
+                 ${DEBUG} >> ${LOGS}/mergeBySampleName.log  2>&1
 
 
     # Check the script exit status, and if it did not finish, clean up and exit
@@ -83,10 +85,11 @@ function alignmentQC {
     source piper -S ${SCRIPTS_DIR}/AlignmentQC.scala \
 			    -i $1 \
     			-R ${GENOME_REFERENCE} \
-    			--project_id ${PROJECT_ID} \
+                --project_id ${PROJECT_ID} \
+                --project_name ${PROJECT_NAME} \
+                --quality_of_service ${QOS} \
  			    -intervals ${INTERVALS} \
 			    -outputDir ${ALIGNMENT_QC_OUTPUT}/ \
-			    -nt ${NBR_OF_THREADS} \
 	            -jobRunner ${JOB_RUNNER} \
         		-jobNative "${JOB_NATIVE_ARGS}" \
 			    --job_walltime 345600 \
@@ -111,8 +114,10 @@ function alignmentQC {
 function dataPreprocessing {
 
     source piper -S ${SCRIPTS_DIR}/DataProcessingPipeline.scala \
-			      -R ${GENOME_REFERENCE} \
-			      --project ${PROJECT_NAME} \
+			     -R ${GENOME_REFERENCE} \
+			     --project_id ${PROJECT_ID} \
+                 --project_name ${PROJECT_NAME} \
+                 --quality_of_service ${QOS} \
 			      -i $1 \
 			      -outputDir ${PROCESSED_BAM_OUTPUT}/ \
         		  --dbsnp ${DB_SNP_B37} \
@@ -148,7 +153,9 @@ function variantCalling {
     source piper -S ${SCRIPTS_DIR}/VariantCalling.scala \
 			      -R ${GENOME_REFERENCE} \
 			      -res ${GATK_BUNDLE_B37} \
-			      --project ${PROJECT_NAME} \
+			     --project_id ${PROJECT_ID} \
+                 --project_name ${PROJECT_NAME} \
+                 --quality_of_service ${QOS} \
 			      -i $1 \
 			      -intervals ${INTERVALS} \
 			      -outputDir ${VCF_OUTPUT}/ \
@@ -172,7 +179,7 @@ function variantCalling {
 }
 
 # We also need the correct java engine and R version
-module load java/sun_jdk1.6.0_45
+module load java/sun_jdk1.7.0_25
 module load R/2.15.0
 
 #---------------------------------------------

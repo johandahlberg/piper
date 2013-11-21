@@ -34,6 +34,7 @@ import org.broadinstitute.sting.gatk.CommandLineGATK;
 import org.broadinstitute.sting.gatk.GenomeAnalysisEngine;
 import org.broadinstitute.sting.gatk.phonehome.GATKRunReport;
 import org.broadinstitute.sting.utils.Utils;
+import org.broadinstitute.sting.utils.classloader.JVMUtils;
 import org.broadinstitute.variant.bcf2.BCF2Utils;
 import org.broadinstitute.sting.utils.collections.Pair;
 import org.broadinstitute.variant.vcf.VCFCodec;
@@ -53,6 +54,7 @@ public class WalkerTest extends BaseTest {
     private static final boolean GENERATE_SHADOW_BCF = true;
     private static final boolean ENABLE_PHONE_HOME_FOR_TESTS = false;
     private static final boolean ENABLE_ON_THE_FLY_CHECK_FOR_VCF_INDEX = false;
+    private static final boolean ENABLE_AUTO_INDEX_CREATION_AND_LOCKING_FOR_TESTS = false;
 
     private static MD5DB md5DB = new MD5DB();
 
@@ -70,10 +72,6 @@ public class WalkerTest extends BaseTest {
 
     public static MD5DB getMd5DB() {
         return md5DB;
-    }
-
-    public MD5DB.MD5Match assertMatchingMD5(final String name, final File resultsFile, final String expectedMD5) {
-        return getMd5DB().assertMatchingMD5(name, resultsFile, expectedMD5, parameterize());
     }
 
     public void validateOutputBCFIfPossible(final String name, final File resultFile) {
@@ -113,15 +111,15 @@ public class WalkerTest extends BaseTest {
         }
     }
 
-    public List<String> assertMatchingMD5s(final String name, List<File> resultFiles, List<String> expectedMD5s) {
+    public List<String> assertMatchingMD5s(final String testName, final String testClassName, List<File> resultFiles, List<String> expectedMD5s) {
         List<String> md5s = new ArrayList<String>();
         List<MD5DB.MD5Match> fails = new ArrayList<MD5DB.MD5Match>();
 
         for (int i = 0; i < resultFiles.size(); i++) {
-            MD5DB.MD5Match result = assertMatchingMD5(name, resultFiles.get(i), expectedMD5s.get(i));
-            validateOutputBCFIfPossible(name, resultFiles.get(i));
+            MD5DB.MD5Match result = getMd5DB().testFileMD5(testName, testClassName, resultFiles.get(i), expectedMD5s.get(i), parameterize());
+            validateOutputBCFIfPossible(testName, resultFiles.get(i));
             if ( ! result.failed ) {
-                validateOutputIndex(name, resultFiles.get(i));
+                validateOutputIndex(testName, resultFiles.get(i));
                 md5s.add(result.expectedMD5);
             } else {
                 fails.add(result);
@@ -131,14 +129,17 @@ public class WalkerTest extends BaseTest {
         if ( ! fails.isEmpty() ) {
             List<String> actuals = new ArrayList<String>();
             List<String> expecteds = new ArrayList<String>();
+            List<String> diffEngineOutputs = new ArrayList<String>();
+
             for ( final MD5DB.MD5Match fail : fails ) {
                 actuals.add(fail.actualMD5);
                 expecteds.add(fail.expectedMD5);
+                diffEngineOutputs.add(fail.diffEngineOutput);
                 logger.warn("Fail: " + fail.failMessage);
             }
 
-            final MD5Mismatch failure = new MD5Mismatch(actuals, expecteds);
-            Assert.fail(failure.toString(), failure);
+            final MD5Mismatch failure = new MD5Mismatch(actuals, expecteds, diffEngineOutputs);
+            Assert.fail(failure.toString());
         }
 
         return md5s;
@@ -169,6 +170,9 @@ public class WalkerTest extends BaseTest {
         boolean includeImplicitArgs = true;
         boolean includeShadowBCF = true;
 
+        // Name of the test class that created this test case
+        private Class testClass;
+
         // the default output path for the integration test
         private File outputFileLocation = null;
 
@@ -182,6 +186,7 @@ public class WalkerTest extends BaseTest {
             this.args = args;
             this.nOutputFiles = md5s.size();
             this.md5s = md5s;
+            this.testClass = getCallingTestClass();
         }
 
         public WalkerTestSpec(String args, List<String> exts, List<String> md5s) {
@@ -193,22 +198,34 @@ public class WalkerTest extends BaseTest {
             this.nOutputFiles = md5s.size();
             this.md5s = md5s;
             this.exts = exts;
+            this.testClass = getCallingTestClass();
         }
 
         public WalkerTestSpec(String args, int nOutputFiles, Class expectedException) {
             this.args = args;
             this.nOutputFiles = nOutputFiles;
             this.expectedException = expectedException;
+            this.testClass = getCallingTestClass();
+        }
+
+        private Class getCallingTestClass() {
+            return JVMUtils.getCallingClass(getClass());
+        }
+
+        public String getTestClassName() {
+            return testClass.getSimpleName();
         }
 
         public String getArgsWithImplicitArgs() {
             String args = this.args;
             if ( includeImplicitArgs ) {
                 args = args + (ENABLE_PHONE_HOME_FOR_TESTS ?
-                        String.format(" -et %s ", GATKRunReport.PhoneHomeOption.STANDARD) :
+                        String.format(" -et %s ", GATKRunReport.PhoneHomeOption.AWS) :
                         String.format(" -et %s -K %s ", GATKRunReport.PhoneHomeOption.NO_ET, gatkKeyFile));
                 if ( includeShadowBCF && GENERATE_SHADOW_BCF )
                     args = args + " --generateShadowBCF ";
+                if ( ! ENABLE_AUTO_INDEX_CREATION_AND_LOCKING_FOR_TESTS )
+                    args = args + " --disable_auto_index_creation_and_locking_when_reading_rods ";
             }
 
             return args;
@@ -295,6 +312,10 @@ public class WalkerTest extends BaseTest {
         for (int i = 0; i < spec.nOutputFiles; i++) {
             String ext = spec.exts == null ? ".tmp" : "." + spec.exts.get(i);
             File fl = createTempFile(String.format("walktest.tmp_param.%d", i), ext);
+
+            // Mark corresponding *.idx for deletion on exit as well just in case an index is created for the temp file:
+            new File(fl.getAbsolutePath() + ".idx").deleteOnExit();
+
             tmpFiles.add(fl);
         }
 
@@ -303,7 +324,7 @@ public class WalkerTest extends BaseTest {
 
         if ( spec.expectsException() ) {
             // this branch handles the case were we are testing that a walker will fail as expected
-            return executeTest(name, spec.getOutputFileLocation(), null, tmpFiles, args, spec.getExpectedException());
+            return executeTest(name, spec.getTestClassName(), spec.getOutputFileLocation(), null, tmpFiles, args, spec.getExpectedException());
         } else {
             List<String> md5s = new LinkedList<String>();
             md5s.addAll(spec.md5s);
@@ -313,7 +334,7 @@ public class WalkerTest extends BaseTest {
                 md5s.add(md5);
                 tmpFiles.add(spec.auxillaryFiles.get(md5));
             }
-            return executeTest(name, spec.getOutputFileLocation(), md5s, tmpFiles, args, null);
+            return executeTest(name, spec.getTestClassName(), spec.getOutputFileLocation(), md5s, tmpFiles, args, null);
         }
     }
 
@@ -334,35 +355,37 @@ public class WalkerTest extends BaseTest {
 
     /**
      * execute the test, given the following:
-     * @param name     the name of the test
+     * @param testName     the name of the test
+     * @param testClassName the name of the class that contains the test
      * @param md5s     the list of md5s
      * @param tmpFiles the temp file corresponding to the md5 list
      * @param args     the argument list
      * @param expectedException the expected exception or null
      * @return a pair of file and string lists
      */
-    private Pair<List<File>, List<String>> executeTest(String name, File outputFileLocation, List<String> md5s, List<File> tmpFiles, String args, Class expectedException) {
-        if ( md5s != null ) qcMD5s(name, md5s);
+    private Pair<List<File>, List<String>> executeTest(String testName, String testClassName, File outputFileLocation, List<String> md5s, List<File> tmpFiles, String args, Class expectedException) {
+        if ( md5s != null ) qcMD5s(testName, md5s);
 
         if (outputFileLocation != null)
             args += " -o " + outputFileLocation.getAbsolutePath();
-        executeTest(name, args, expectedException);
+        executeTest(testName, testClassName, args, expectedException);
 
         if ( expectedException != null ) {
             return null;
         } else {
             // we need to check MD5s
-            return new Pair<List<File>, List<String>>(tmpFiles, assertMatchingMD5s(name, tmpFiles, md5s));
+            return new Pair<List<File>, List<String>>(tmpFiles, assertMatchingMD5s(testName, testClassName, tmpFiles, md5s));
         }
     }
     
     /**
      * execute the test, given the following:
-     * @param name     the name of the test
-     * @param args     the argument list
+     * @param testName      the name of the test
+     * @param testClassName the name of the class that contains the test
+     * @param args          the argument list
      * @param expectedException the expected exception or null
      */
-    private void executeTest(String name, String args, Class expectedException) {
+    private void executeTest(String testName, String testClassName, String args, Class expectedException) {
         CommandLineGATK instance = new CommandLineGATK();
         String[] command = Utils.escapeExpressions(args);
 
@@ -371,7 +394,7 @@ public class WalkerTest extends BaseTest {
         try {
             final String now = new SimpleDateFormat("HH:mm:ss").format(new Date());
             final String cmdline = Utils.join(" ",command);
-            System.out.println(String.format("[%s] Executing test %s with GATK arguments: %s", now, name, cmdline));
+            System.out.println(String.format("[%s] Executing test %s:%s with GATK arguments: %s", now, testClassName, testName, cmdline));
             // also write the command line to the HTML log for convenient follow-up
             // do the replaceAll so paths become relative to the current
             BaseTest.log(cmdline.replaceAll(publicTestDirRoot, "").replaceAll(privateTestDirRoot, ""));
@@ -385,8 +408,8 @@ public class WalkerTest extends BaseTest {
                     // it's the type we expected
                     //System.out.println(String.format("  => %s PASSED", name));
                 } else {
-                    final String message = String.format("Test %s expected exception %s but instead got %s with error message %s",
-                            name, expectedException, e.getClass(), e.getMessage());
+                    final String message = String.format("Test %s:%s expected exception %s but instead got %s with error message %s",
+                            testClassName, testName, expectedException, e.getClass(), e.getMessage());
                     if ( e.getCause() != null ) {
                         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
                         final PrintStream ps = new PrintStream(baos);
@@ -406,7 +429,7 @@ public class WalkerTest extends BaseTest {
         if ( expectedException != null ) {
             if ( ! gotAnException )
                 // we expected an exception but didn't see it
-                Assert.fail(String.format("Test %s expected exception %s but none was thrown", name, expectedException.toString()));
+                Assert.fail(String.format("Test %s:%s expected exception %s but none was thrown", testClassName, testName, expectedException.toString()));
         } else {
             if ( CommandLineExecutable.result != 0) {
                 throw new RuntimeException("Error running the GATK with arguments: " + args);

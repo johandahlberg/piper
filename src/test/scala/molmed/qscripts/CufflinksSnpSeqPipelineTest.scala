@@ -23,29 +23,30 @@ class CufflinksSnpSeqPipelineTest {
     this.run = runpipeline
   }
 
-    @Test
-    def testBasicCufflinks {
-      val projectName = "test1"
-  
-      val transcripts = "cufflinks/Pairend_StrandSpecific_51mer_Human_hg19.with.rg/transcripts.gtf"
-      val genesFpkmTracking = "cufflinks/Pairend_StrandSpecific_51mer_Human_hg19.with.rg/genes.fpkm_tracking"
-  
-      val spec = new PipelineTestSpec
-      spec.jobRunners = Seq("Shell")
-      spec.name = "BasicCufflinks"
-      spec.args = Array(
-        pathToScript,
-        " -i " + snpSeqBaseTest.pathToCuffdiffCohortFile,
-        " --reference " + snpSeqBaseTest.hg19,
-        " --annotations " + snpSeqBaseTest.hg19annotations,
-        " --path_to_cufflinks " + snpSeqBaseTest.pathToCufflinks,
-        " -startFromScratch ").mkString
-  
-      spec.fileMD5s += transcripts -> "25d32dd6c9833687aa18b96383a0b088"
-      spec.fileMD5s += genesFpkmTracking -> "cd9619944c297f98595cf5838466e8c7"
-  
-      PipelineTest.executeTest(spec, run)
-    }
+  @Test
+  def testBasicCufflinks {
+    val projectName = "test1"
+
+    val transcripts = "cufflinks/Pairend_StrandSpecific_51mer_Human_hg19.with.rg/transcripts.gtf"
+    val genesFpkmTracking = "cufflinks/Pairend_StrandSpecific_51mer_Human_hg19.with.rg/genes.fpkm_tracking"
+
+    val spec = new PipelineTestSpec
+    spec.jobRunners = Seq("Shell")
+    spec.name = "BasicCufflinks"
+    spec.args = Array(
+      pathToScript,
+      " -i " + snpSeqBaseTest.pathToCuffdiffCohortFile,
+      " --reference " + snpSeqBaseTest.hg19,
+      " --annotations " + snpSeqBaseTest.hg19annotations,
+      " --path_to_cufflinks " + snpSeqBaseTest.pathToCufflinks,
+      " -startFromScratch ").mkString
+
+    spec.fileMD5s += transcripts -> "25d32dd6c9833687aa18b96383a0b088"
+    spec.fileMD5s += genesFpkmTracking -> "cd9619944c297f98595cf5838466e8c7"
+
+    spec.run = run
+    PipelineTest.executeTest(spec)
+  }
 
   // @TODO Excluding this from the workflow for now as it takes way to long to run.
   // plust that it seems experimental at best. Maybe this will be tested in the future.

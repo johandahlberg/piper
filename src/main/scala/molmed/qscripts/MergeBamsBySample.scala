@@ -3,10 +3,18 @@ package molmed.qscripts
 import org.broadinstitute.sting.queue.QScript
 import org.broadinstitute.sting.queue.util.QScriptUtils
 import org.broadinstitute.sting.queue.extensions.picard.MergeSamFiles
-import molmed.utils.AlignmentUtils._
+import molmed.utils.ReadGroupUtils._
 import org.broadinstitute.sting.queue.function.ListWriterFunction
+import org.broadinstitute.sting.queue.function.InProcessFunction
+import molmed.utils.Uppmaxable
+import molmed.utils.GeneralUtils
 
-class MergeBamsBySample extends QScript {
+/**
+ * Merge the bams by the sample names defined by in the read groups.
+ * If there is only one file with a specific file name, it will
+ * create a hard inlink to the file instead of writing the file again.
+ */
+class MergeBamsBySample extends QScript with Uppmaxable {
 
   qscript =>
 
@@ -15,21 +23,22 @@ class MergeBamsBySample extends QScript {
 
   @Argument(doc = "Output path for the processed BAM files.", fullName = "output_directory", shortName = "outputDir", required = false)
   var outputDir: String = ""
-  def getOutputDir: String = if(outputDir.isEmpty()) "" else outputDir + "/"
-
-  @Argument(doc = "the project name determines the final output (BAM file) base name. Example NA12878 yields NA12878.processed.bam", fullName = "project", shortName = "p", required = false)
-  var projectName: String = ""
+  def getOutputDir: String = if (outputDir.isEmpty()) "" else outputDir + "/"
 
   def script() {
 
     val bams = QScriptUtils.createSeqFromFile(input)
 
+    val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
+
     val sampleNamesAndFiles = for (bam <- bams) yield {
       (getSampleNameFromReadGroups(bam), bam)
     }
 
-    val filesGroupedBySampleName = sampleNamesAndFiles.groupBy(f => f._1).
-      mapValues(f => f.map(g => g._2))
+    val filesGroupedBySampleName =
+      sampleNamesAndFiles.
+        groupBy(f => f._1).
+        mapValues(f => f.map(g => g._2))
 
     val cohortList =
       for (sampleNamesAndFiles <- filesGroupedBySampleName) yield {
@@ -38,34 +47,42 @@ class MergeBamsBySample extends QScript {
         val mergedFile: File = getOutputDir + sampleName + ".bam"
         val files = sampleNamesAndFiles._2
 
-        add(joinBams(files, mergedFile))
-        mergedFile
+        // If there is only on file associated with the sample name, just create a
+        // hard link instead of merging.
+        if (files.size > 1) {
+          add(generalUtils.joinBams(files, mergedFile))
+          mergedFile
+        } else {
+          add(createLink(files(0), mergedFile, new File(files(0) + ".bai"), new File(mergedFile + ".bai")))
+          mergedFile
+        }
       }
 
     // output a BAM list with all the processed files
-    val cohortFile = new File(getOutputDir + projectName + ".cohort.list")
-    add(writeList(cohortList.toSeq, cohortFile))
+    val cohortFile = new File(getOutputDir + projectName.get + ".cohort.list")
+    add(generalUtils.writeList(cohortList.toSeq, cohortFile))
 
   }
 
-  // General arguments to non-GATK tools
-  trait ExternalCommonArgs extends CommandLineFunction {
-    this.memoryLimit = 24
-    this.isIntermediate = false
-  }
+  case class createLink(@Input inBam: File, @Output outBam: File, @Input index: File, @Output outIndex: File) extends InProcessFunction {
 
-  case class joinBams(inBams: Seq[File], outBam: File) extends MergeSamFiles with ExternalCommonArgs {
-    this.input = inBams
-    this.output = outBam
-    this.analysisName = "joinBams" + outBam.getName()
-    this.jobName = "joinBams" + outBam.getName()
-  }
+    def run() {
 
-  case class writeList(inBams: Seq[File], outBamList: File) extends ListWriterFunction {
-    this.inputFiles = inBams
-    this.listFile = outBamList
-    this.analysisName = "bamList"
-    this.jobName = "bamList"
+      import scala.sys.process.Process
+
+      def linkProcess(inputFile: File, outputFile: File) =
+        Process("""ln """ + inputFile.getAbsolutePath() + """ """ + outputFile.getAbsolutePath())
+
+      // Link index
+      val indexExitCode = linkProcess(index, outIndex).!
+      assert(indexExitCode == 0, "Couldn't create hard link from: " + index.getAbsolutePath() + " to: " + outIndex.getAbsolutePath())
+
+      // Link bam
+      val bamExitCode = linkProcess(inBam, outBam).!
+      assert(bamExitCode == 0, "Couldn't create hard link from: " + inBam.getAbsolutePath() + " to: " + outBam.getAbsolutePath())
+
+    }
+
   }
 
 }

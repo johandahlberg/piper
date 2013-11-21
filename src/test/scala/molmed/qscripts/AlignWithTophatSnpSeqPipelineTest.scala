@@ -11,32 +11,34 @@ import org.broadinstitute.sting.queue.pipeline._
 
 class AlignWithTophatSnpSeqPipelineTest {
 
-    val pathToScript = "-S src/main/scala/molmed/qscripts/AlignWithTophat.scala"
+  val pathToScript = "-S src/main/scala/molmed/qscripts/AlignWithTophat.scala"
 
-    val snpSeqBaseTest = SnpSeqBaseTest
+  val snpSeqBaseTest = SnpSeqBaseTest
 
-    var run: Boolean = false
+  var run: Boolean = false
 
-    @BeforeClass
-    @Parameters(Array("runpipeline"))
-    def init(runpipeline: Boolean): Unit = {
-        this.run = runpipeline
-    }
+  @BeforeClass
+  @Parameters(Array("runpipeline"))
+  def init(runpipeline: Boolean): Unit = {
+    this.run = runpipeline
+  }
 
-    @Test
-    def testBasicAlignWithTophat {
-        val projectName = "test1"
-        val testBam = "1/accepted_hits.bam"
-        val spec = new PipelineTestSpec
-        spec.jobRunners = Seq("Shell")
-        spec.name = "AlignWithTophatPipeline"
-        spec.args = Array(
-            pathToScript,
-            " -i " + snpSeqBaseTest.pathSetupFile,
-            " -tophat " + "/usr/local/bin/tophat2",
-            " -samtools " + "/usr/bin/samtools",
-            " -startFromScratch ").mkString
-        spec.fileMD5s += testBam -> "3cb50b0cf1d39c303eccfd74bfff62dc"
-        PipelineTest.executeTest(spec, run)
-    }
+  @Test
+  def testBasicAlignWithTophat {
+    val projectName = "test1"
+    val testBam = "1/accepted_hits.bam"
+    val spec = new PipelineTestSpec
+    spec.jobRunners = Seq("Shell")
+    spec.name = "AlignWithTophatPipeline"
+    spec.args = Array(
+      pathToScript,
+      " -i " + snpSeqBaseTest.pathSetupFile,
+      " -tophat " + "/usr/local/bin/tophat2",
+      " -samtools " + "/usr/bin/samtools",
+      " -startFromScratch ").mkString
+    spec.fileMD5s += testBam -> "3cb50b0cf1d39c303eccfd74bfff62dc"
+    spec.run = run
+    PipelineTest.executeTest(spec)
+
+  }
 }

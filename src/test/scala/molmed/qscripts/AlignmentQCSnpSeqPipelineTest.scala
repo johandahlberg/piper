@@ -49,6 +49,8 @@ class AlignmentQCSnpSeqPipelineTest {
         spec.fileMD5s += sampleIntervalSummary -> "d41d8cd98f00b204e9800998ecf8427e"
         spec.fileMD5s += sampleStatistics -> "c312888f7767ebe1100ff4d7749d593a"
         spec.fileMD5s += sampleSummary -> "50cecb3e09dc226b3640c617ec9657b7"
-        PipelineTest.executeTest(spec, run)
+        
+        spec.run = run        
+        PipelineTest.executeTest(spec)
     }
 }

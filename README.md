@@ -25,7 +25,7 @@ All supported workflows are available in the `workflows` directory in the projec
 Prerequisites and installation
 ==============================
 
-Piper has been tested on the Java(TM) SE Runtime Environment (build 1.6.0_45) on the [UPPMAX](http://www.uppmax.uu.se) cluster Kalkyl. It might run in other environments, but this is untested. Besides the JVM Piper depends on [ant](http://ant.apache.org/) for building (the GATK) and [git](http://git-scm.com/) to checkout the source. To install piper, make sure that these programs are in you path, then clone this repository and run the setup script:
+Piper has been tested on the Java(TM) SE Runtime Environment (build 1.7.0_25) on the [UPPMAX](http://www.uppmax.uu.se) cluster Kalkyl. It might run in other environments, but this is untested. Besides the JVM Piper depends on [ant](http://ant.apache.org/) for building (the GATK) and [git](http://git-scm.com/) to checkout the source. To install piper, make sure that these programs are in you path, then clone this repository and run the setup script:
 
     git clone https://github.com/johandahlberg/piper.git
     cd piper
@@ -80,6 +80,13 @@ and answer the questions. This will create your setup file, which should look so
 
 
 This is the file you should assign to the `PIPELINE_SETUP_XML` variable to in the workflow scripts.
+
+The `createSetupXml.sh` script will look for a file in each run folder named `report.xml` or `report.tsv`. The `report.xml` file should have the standard format used at the SNP&SEQ Technology platform, the tsv file format is provided to make it easier for project which have not been sequenced at the SNP&SEQ Technology platform to use Piper. This is a simple tab separated file which should look like the following example:
+
+	#SampleName	Lane	ReadLibrary	FlowcellId
+	MyFirstSample	1	FirstLib	9767892AVF
+	MyFirstSample   2	SecondLib	9767892AVF
+	MySecondSample	1	SomeOtherLib	9767892AVF
 
 Run
 ---

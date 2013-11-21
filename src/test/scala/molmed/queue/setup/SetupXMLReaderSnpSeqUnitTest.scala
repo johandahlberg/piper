@@ -52,15 +52,15 @@ class SetupXMLReaderSnpSeqUnitTest {
 
     @Test
     def TestGetProjectName() = {
-        val expected: String = "TestProject"
-        val actual: String = setupXMLReader.getProjectName()
+        val expected = Some("TestProject")
+        val actual = setupXMLReader.getProjectName()
         assert(actual.equals(expected))
     }
 
     @Test
     def TestGetSamples() = {
 
-        val illuminaXMLReportReader: IlluminaXMLReportReaderAPI = new IlluminaXMLReportReaderStub()
+        val illuminaXMLReportReader: ReportReaderAPI = new IlluminaXMLReportReaderStub()
 
         val actual = setupXMLReader.getSamples()
 
@@ -143,8 +143,8 @@ class SetupXMLReaderSnpSeqUnitTest {
     
     @Test
     def testGetUppmaxQoSFlag() = {
-        val expected: String = "seqver"
-        val actual: String = setupXMLReader.getUppmaxQoSFlag()
+        val expected: Option[String] = Some("seqver")
+        val actual: Option[String] = setupXMLReader.getUppmaxQoSFlag()
         assert(actual.equals(expected))
     }
 

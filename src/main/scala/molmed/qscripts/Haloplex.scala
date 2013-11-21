@@ -32,9 +32,15 @@ import net.sf.samtools.SAMFileHeader
 import net.sf.samtools.SAMFileHeader.SortOrder
 import net.sf.samtools.SAMFileReader
 import net.sf.samtools.SAMTextHeaderCodec
-import molmed.utils.AlignmentUtils
+import molmed.utils.ReadGroupUtils._
+import molmed.utils.Uppmaxable
+import molmed.utils.BwaAlignmentUtils
+import molmed.utils.GeneralUtils
 
-class Haloplex extends QScript {
+/**
+ * Haloplex best practice analysis from fastqs to variant calls.
+ */
+class Haloplex extends QScript with Uppmaxable {
 
   qscript =>
 
@@ -94,18 +100,9 @@ class Haloplex extends QScript {
   @Input(doc = "Path to the sync script", fullName = "path_to_sync", shortName = "sync", required = false)
   var pathToSyncScript: File = "resources/FixEmptyReads.pl"
 
-  @Hidden
-  @Argument(doc = "Uppmax qos flag", fullName = "quality_of_service", shortName = "qos", required = false)
-  var uppmaxQoSFlag: String = ""
-  def getUppmaxQosFlag(): String = if (uppmaxQoSFlag.isEmpty()) "" else " --qos=" + uppmaxQoSFlag
-
   /**
    * Private variables
    */
-
-  private var uppmaxProjId: String = ""
-  def getUppmaxProjId() = uppmaxProjId
-  private var projectName: String = ""
   private var resources: Resources = null
 
   /**
@@ -116,7 +113,7 @@ class Haloplex extends QScript {
     if (outputDir.isEmpty()) "" else outputDir + "/"
   }
 
-  def cutSamples(sampleMap: Map[String, Seq[SampleAPI]]): Map[String, Seq[SampleAPI]] = {
+  def cutSamples(sampleMap: Map[String, Seq[SampleAPI]], generalUtils: GeneralUtils): Map[String, Seq[SampleAPI]] = {
 
     // Standard Illumina adaptors    
     val adaptor1 = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC"
@@ -138,15 +135,18 @@ class Haloplex extends QScript {
             name.replace("fastq", "trimmed.fastq.gz")
         }
 
-        val readpairContainer = sample.getFastqs
-
-        val mate1SyncedFastq = new File(cutadaptOutputDir + "/" + sample.getReadGroupInformation.platformUnitId + "/" + constructTrimmedName(sample.getFastqs.mate1.getName()))
-        add(cutadapt(readpairContainer.mate1, mate1SyncedFastq, adaptor1))
+        val readpairContainer = sample.getFastqs        
+        
+        val platformUnitOutputDir = new File(cutadaptOutputDir + "/" + sample.getReadGroupInformation.platformUnitId)
+        platformUnitOutputDir.mkdirs()
+        
+        val mate1SyncedFastq = new File( platformUnitOutputDir + "/" + constructTrimmedName(sample.getFastqs.mate1.getName()))
+        add(new generalUtils.cutadapt(readpairContainer.mate1, mate1SyncedFastq, adaptor1, cutadaptPath, pathToSyncScript))
 
         val mate2SyncedFastq =
           if (readpairContainer.isMatePaired) {
-            val mate2SyncedFastq = new File(cutadaptOutputDir + "/" + sample.getReadGroupInformation.platformUnitId + "/" + constructTrimmedName(sample.getFastqs.mate2.getName()))
-            add(cutadapt(readpairContainer.mate2, mate2SyncedFastq, adaptor2))
+            val mate2SyncedFastq = new File(platformUnitOutputDir + "/" + constructTrimmedName(sample.getFastqs.mate2.getName()))
+            add(new generalUtils.cutadapt(readpairContainer.mate2, mate2SyncedFastq, adaptor2, cutadaptPath, pathToSyncScript))
             mate2SyncedFastq
           } else null
 
@@ -174,27 +174,12 @@ class Haloplex extends QScript {
   }
 
   /**
-   * Ugly hack help method to handle if there are no input files found (as when running the travis CI builds), in which
-   * case we create a fake sample map for the script to compile.
-   */
-  private def createFakeSamples(): Map[String, Seq[SampleAPI]] = {
-    uppmaxProjId = "fakeprojid"
-    projectName = "TestProject"
-    Map(
-      "1" -> List(
-        Sample("1", new File("src/test/resources/testdata/exampleFASTA.fasta"),
-          ReadGroupInformation("1", "C0HNDACXX.1.1", "SNP_SEQ_PLATFORM", "CEP_C13-NA11992", "Illumina", "C0HNDACXX.1.1"),
-          ReadPairContainer(new File("src/test/resources/testdata/smallTestFastqDataFolder/Sample_1/exampleFASTQ_L001_R1_file.fastq").getAbsoluteFile(),
-            new File("src/test/resources/testdata/smallTestFastqDataFolder/Sample_1/exampleFASTQ_L001_R2_file.fastq").getAbsoluteFile(), "1"))))
-  }
-
-  /**
    * The actual script
    */
 
   def script() = {
 
-    resources = new Resources(resourcesPath, testMode)
+    resources = new Resources(resourcesPath, testMode)    
 
     // Create output dirs
     val vcfOutputDir = new File(getOutputDir() + "/vcf_files")
@@ -206,40 +191,31 @@ class Haloplex extends QScript {
 
     def setupSamples(): Map[String, Seq[SampleAPI]] = {
       val setupReader: SetupXMLReaderAPI = new SetupXMLReader(input)
-      uppmaxProjId = setupReader.getUppmaxProjectId()
+      projId = setupReader.getUppmaxProjectId()
       projectName = setupReader.getProjectName()
       uppmaxQoSFlag = setupReader.getUppmaxQoSFlag()
       setupReader.getSamples()
     }
 
     // Get and setup input files
-    val samples: Map[String, Seq[SampleAPI]] = if (!testMode) {
-      setupSamples()
-    } else {
-      try {
-        setupSamples()
-      } catch {
-        case e: FileNotFoundException => createFakeSamples()
-        case e: Throwable => throw e
-      }
-    }
-
-    // Run cutadapt       
-    val cutAndSyncedSamples = cutSamples(samples)
-
-    val alignmentHelper = new AlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, uppmaxProjId, getUppmaxQosFlag)
+    val samples: Map[String, Seq[SampleAPI]] = setupSamples()
+    
+    // Run cutadapt           
+    val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
+    val cutAndSyncedSamples = cutSamples(samples, generalUtils)       
 
     // Align with bwa
+    val alignmentHelper = new BwaAlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, projectName, projId, uppmaxQoSFlag)
     val cohortList =
       cutAndSyncedSamples.values.flatten.map(sample => alignmentHelper.align(sample, bamOutputDir, false)).toSeq
 
     // Make raw variation calls
-    val preliminaryVariantCalls = new File(vcfOutputDir + "/" + projectName + ".pre.vcf")
+    val preliminaryVariantCalls = new File(vcfOutputDir + "/" + projectName.get + ".pre.vcf")
     val reference = samples.values.flatten.toList(0).getReference
     add(genotype(cohortList.toSeq, reference, preliminaryVariantCalls, false))
 
     // Create realignment targets
-    val targets = new File(miscOutputDir + "/" + projectName + ".targets.intervals")
+    val targets = new File(miscOutputDir + "/" + projectName.get + ".targets.intervals")
     add(target(preliminaryVariantCalls, targets, reference))
 
     // Do indel realignment
@@ -293,66 +269,18 @@ class Haloplex extends QScript {
   /**
    * Case class wappers for external programs
    */
-  
+
   // General arguments to non-GATK tools
   trait ExternalCommonArgs extends CommandLineFunction {
 
-    this.jobNativeArgs +:= "-p node -A " + uppmaxProjId + " " + getUppmaxQosFlag()
+    val qosFlag = if (!uppmaxQoSFlag.isEmpty) " --qos=" + uppmaxQoSFlag.get else ""
+    this.jobNativeArgs +:= "-p node -A " + projId + " " + qosFlag
     this.memoryLimit = 24
     this.isIntermediate = false
   }
 
   // General arguments to GATK walkers
-  trait CommandLineGATKArgs extends CommandLineGATK with ExternalCommonArgs {}
-
-  case class cutadapt(@Input fastq: File, @Output cutFastq: File, @Argument adaptor: String) extends ExternalCommonArgs {
-
-    this.isIntermediate = true
-
-    this.jobNativeArgs +:= "-p core -n 2 -A " + uppmaxProjId + " " + getUppmaxQosFlag()
-    this.memoryLimit = 6
-
-    // Run cutadapt and sync via perl script by adding N's in all empty reads.  
-    def commandLine = cutadaptPath + " -a " + adaptor + " " + fastq + " | perl " + pathToSyncScript + " -o " + cutFastq
-
-  }
-
-  case class joinBams(inBams: Seq[File], outBam: File, index: File) extends MergeSamFiles with ExternalCommonArgs {
-    this.input = inBams
-    this.output = outBam
-    this.outputIndex = index
-
-    this.analysisName = "joinBams"
-    this.jobName = "joinBams"
-    this.isIntermediate = false
-  }
-
-  case class writeList(inBams: Seq[File], outBamList: File) extends ListWriterFunction {
-    this.inputFiles = inBams
-    this.listFile = outBamList
-    this.analysisName = "bamList"
-    this.jobName = "bamList"
-  }
-
-  case class sortSam(inSam: File, outBam: File, sortOrderP: SortOrder) extends SortSam with ExternalCommonArgs {
-    this.input :+= inSam
-    this.output = outBam
-    this.sortOrder = sortOrderP
-    this.analysisName = "sortSam"
-    this.jobName = "sortSam"
-  }
-
-  case class removeIntermeditateFiles(@Input files: Seq[File], @Input placeHolder: File) extends InProcessFunction {
-    def run(): Unit = {
-      files.foreach(f => {
-        val success = f.delete()
-        if (success)
-          logger.debug("Successfully deleted intermediate file: " + f.getAbsoluteFile())
-        else
-          logger.error("Failed deleted intermediate file: " + f.getAbsoluteFile())
-      })
-    }
-  }
+  trait CommandLineGATKArgs extends CommandLineGATK with ExternalCommonArgs {} 
 
   def intervalFormatString(contig: String, start: String, end: String, strand: String, intervalName: String): String =
     "%s\t%s\t%s\t%s\t%s".format(contig, start, end, strand, intervalName)
@@ -403,6 +331,9 @@ class Haloplex extends QScript {
 
   case class genotype(@Input bam: Seq[File], reference: File, @Output @Gather(classOf[VcfGatherFunction]) vcf: File, isSecondPass: Boolean) extends UnifiedGenotyper with CommandLineGATKArgs {
 
+    if (qscript.testMode)
+      this.no_cmdline_in_header = true
+
     this.isIntermediate = false
 
     this.input_file = bam
@@ -423,11 +354,14 @@ class Haloplex extends QScript {
       this.annotation = Seq("AlleleBalance")
       this.filterMBQ = true
     } else {
-      this.downsample_to_coverage = 30
+      this.downsample_to_coverage = 200
     }
 
     this.output_mode = org.broadinstitute.sting.gatk.walkers.genotyper.UnifiedGenotyperEngine.OUTPUT_MODE.EMIT_VARIANTS_ONLY
     this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.BOTH
+
+    override def jobRunnerJobName = projectName.get + "_genotype"
+    
   }
 
   case class target(@Input candidateIndels: File, outIntervals: File, reference: File) extends RealignerTargetCreator with CommandLineGATKArgs {
@@ -441,8 +375,8 @@ class Haloplex extends QScript {
     this.known :+= resources.phase1
     this.known :+= candidateIndels
     this.scatterCount = nContigs
-    this.analysisName = outIntervals + ".target"
-    this.jobName = outIntervals + ".target"
+    override def jobRunnerJobName = projectName.get + "_target"
+    
   }
 
   case class clean(inBams: Seq[File], tIntervals: File, outBam: File, reference: File) extends IndelRealigner with CommandLineGATKArgs {
@@ -458,22 +392,22 @@ class Haloplex extends QScript {
     this.consensusDeterminationModel = org.broadinstitute.sting.gatk.walkers.indels.IndelRealigner.ConsensusDeterminationModel.KNOWNS_ONLY
     this.compress = 0
     this.scatterCount = nContigs
-    this.analysisName = outBam + ".clean"
-    this.jobName = outBam + ".clean"
+    override def jobRunnerJobName = projectName.get + "_clean"
+    
   }
 
   case class cov(inBam: Seq[File], outRecalFile: File, reference: File) extends BaseRecalibrator with CommandLineGATKArgs {
 
     // Ask for a fat node
     this.jobNativeArgs :+= " -C fat "
-    
+
     this.reference_sequence = reference
     this.isIntermediate = false
 
     this.num_cpu_threads_per_data_thread = nbrOfThreads
 
-    if(qscript.downsampleBQSR != -1)
-    	this.downsample_to_coverage = qscript.downsampleBQSR
+    if (qscript.downsampleBQSR != -1)
+      this.downsample_to_coverage = qscript.downsampleBQSR
     this.knownSites :+= resources.dbsnp
     this.covariate ++= Seq("ReadGroupCovariate", "QualityScoreCovariate", "CycleCovariate", "ContextCovariate")
     this.input_file = inBam
@@ -482,8 +416,8 @@ class Haloplex extends QScript {
     this.intervals = Seq(qscript.intervals)
 
     this.scatterCount = nContigs
-    this.analysisName = outRecalFile + ".covariates"
-    this.jobName = outRecalFile + ".covariates"
+    override def jobRunnerJobName = projectName.get + "_cov"
+    
   }
 
   case class clip(@Input inBam: File, @Output @Gather(classOf[BamGatherFunction]) outBam: File, covariates: File, reference: File) extends ClipReads with CommandLineGATKArgs {
@@ -495,9 +429,16 @@ class Haloplex extends QScript {
     this.scatterCount = nContigs
     this.clipRepresentation = org.broadinstitute.sting.utils.clipping.ClippingRepresentation.WRITE_NS
     this.BQSR = covariates
+
+    override def jobRunnerJobName = projectName.get + "_clean"
+    
   }
 
   case class filterVariations(@Input inVcf: File, @Output outVcf: File, reference: File) extends VariantFiltration with CommandLineGATKArgs {
+
+    if (qscript.testMode)
+      this.no_cmdline_in_header = true
+
     this.reference_sequence = reference
     this.variant = inVcf
     this.out = outVcf
@@ -512,6 +453,9 @@ class Haloplex extends QScript {
 
     this.filterName = Seq("HARD_TO_VALIDATE", "LowCoverage", "VeryLowQual", "LowQual", "LowQD")
 
+    override def jobRunnerJobName = projectName.get + "_filterVariants"
+    
+
   }
 
   case class collectTargetedPCRMetrics(bam: File, generalStatisticsOutput: File, perTargetStat: File, ampliconIntervalFile: File, targetIntevalFile: File, ref: File) extends CollectTargetedPcrMetrics with ExternalCommonArgs {
@@ -524,6 +468,9 @@ class Haloplex extends QScript {
     this.amplicons = ampliconIntervalFile
     this.targets = targetIntevalFile
     this.reference = ref
+
+    override def jobRunnerJobName = projectName + "_collectPCRMetrics"
+    
 
   }
 

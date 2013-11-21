@@ -5,8 +5,18 @@ import org.broadinstitute.sting.queue.function.ListWriterFunction
 import org.broadinstitute.sting.queue.util.QScriptUtils
 import java.io.File
 import net.sf.samtools.SAMFileReader
+import molmed.utils.ReadGroupUtils
+import molmed.utils.Uppmaxable
+import molmed.utils.UppmaxUtils
 
-class Cuffdiff extends QScript {
+/**
+ * Runs cuffdiff to calculate differential expression between samples. By default
+ * it will compare all samples against all. A replicate file can be used to 
+ * specify that files should go under the same label. (See below for format).
+ * If samples have identical names they will also be concidered replicates and
+ * be run under the same label. 
+ */
+class Cuffdiff extends QScript with Uppmaxable {
 
   qscript =>
 
@@ -48,14 +58,9 @@ class Cuffdiff extends QScript {
   @Argument(doc = "Annotations of known transcripts in GTF 2.2 or GFF 3 format.", fullName = "annotations", shortName = "a", required = false)
   var annotations: Option[File] = None
 
-  @Argument(doc = "Project id fom cluster.", fullName = "project_id", shortName = "pid", required = false)
-  var projId: String = ""
-
   /**
    *  Help methods
    */
-
-  import molmed.utils.AlignmentUtils._
 
   def getReplicatesFromFile(file: File): Map[String, List[String]] = {
     val lines = scala.io.Source.fromFile(file).getLines
@@ -82,78 +87,82 @@ class Cuffdiff extends QScript {
     val bams = QScriptUtils.createSeqFromFile(input)
     val replicates: Map[String, List[String]] = if (replicatesFile.isDefined) getReplicatesFromFile(replicatesFile.get) else Map.empty
 
-    val samplesAndLables = bams.map(file => (file, getSampleNameFromReadGroups(file))).toMap
+    val samplesAndLables = bams.map(file => (file, ReadGroupUtils.getSampleNameFromReadGroups(file))).toMap
 
+    val cuffDiffUtils = new CuffDiffUtils
     val placeHolderFile = new File(getOutputDir + "qscript_cufflinks.stdout.log")
-    add(cuffdiff(samplesAndLables, replicates, placeHolderFile))
+    add(cuffDiffUtils.cuffdiff(samplesAndLables, replicates, placeHolderFile))
 
   }
 
-  case class cuffdiff(samplesAndLables: Map[File, String], replicates: Map[String, List[String]], outputFile: File) extends CommandLineFunction {
+  /**
+   * Cuffdiff commandline case classes.
+   */
+  class CuffDiffUtils extends UppmaxUtils(projId, uppmaxQoSFlag) {
+    case class cuffdiff(samplesAndLables: Map[File, String], replicates: Map[String, List[String]], outputFile: File) extends FatNode {
 
-    this.jobNativeArgs +:= "-p node -C fat -A " + projId
-    this.memoryLimit = 48
-    this.isIntermediate = false
+      this.isIntermediate = false
 
-    @Input var bamFiles: Seq[File] = samplesAndLables.keys.toSeq
-    @Argument var labels: String = samplesAndLables.map(f => f._2).mkString(",")
-    @Output var stdOut: File = outputFile
+      @Input var bamFiles: Seq[File] = samplesAndLables.keys.toSeq
+      @Argument var labels: String = samplesAndLables.map(f => f._2).mkString(",")
+      @Output var stdOut: File = outputFile
 
-    /**
-     * This function will merge all samples with identical names into the same condition
-     * and check the if there are further replications to handle from the replication file.
-     */
-    def mapFilesToConditions(): Map[String, Seq[File]] = {
+      /**
+       * This function will merge all samples with identical names into the same condition
+       * and check the if there are further replications to handle from the replication file.
+       */
+      def mapFilesToConditions(): Map[String, Seq[File]] = {
 
-      def mergeIdenticalSamplesToReplicates(): Map[String, Seq[File]] = {
-        samplesAndLables.foldLeft(Map.empty[String, Seq[File]])((map, tupple) => {
-          val sampleName = tupple._2
-          val file = tupple._1
+        def mergeIdenticalSamplesToReplicates(): Map[String, Seq[File]] = {
+          samplesAndLables.foldLeft(Map.empty[String, Seq[File]])((map, tupple) => {
+            val sampleName = tupple._2
+            val file = tupple._1
 
-          if (map.contains(sampleName))
-            map.updated(sampleName, map(sampleName) :+ file)
-          else
-            map.updated(sampleName, Seq(file))
-        })
-      }
-
-      if (replicates.isEmpty)
-        mergeIdenticalSamplesToReplicates()
-      else {
-
-        val identicalSamplesToFileMap = mergeIdenticalSamplesToReplicates()
-        val conditionsAndFiles = for (
-          (condition, sampleNames) <- replicates
-        ) yield {
-          val samplesAndFileFoundInReplicateFile = identicalSamplesToFileMap.filterKeys(sampleName => sampleNames.contains(sampleName))
-          (condition, samplesAndFileFoundInReplicateFile.values.flatten.toSeq)
+            if (map.contains(sampleName))
+              map.updated(sampleName, map(sampleName) :+ file)
+            else
+              map.updated(sampleName, Seq(file))
+          })
         }
 
-        val samplesAndfilesNotInRelicatesFile = identicalSamplesToFileMap.
-          filterNot(f =>
-            { replicates.values.flatten.contains(f._1) })
+        if (replicates.isEmpty)
+          mergeIdenticalSamplesToReplicates()
+        else {
 
-        conditionsAndFiles ++ samplesAndfilesNotInRelicatesFile
+          val identicalSamplesToFileMap = mergeIdenticalSamplesToReplicates()
+          val conditionsAndFiles = for (
+            (condition, sampleNames) <- replicates
+          ) yield {
+            val samplesAndFileFoundInReplicateFile = identicalSamplesToFileMap.filterKeys(sampleName => sampleNames.contains(sampleName))
+            (condition, samplesAndFileFoundInReplicateFile.values.flatten.toSeq)
+          }
+
+          val samplesAndfilesNotInRelicatesFile = identicalSamplesToFileMap.
+            filterNot(f =>
+              { replicates.values.flatten.contains(f._1) })
+
+          conditionsAndFiles ++ samplesAndfilesNotInRelicatesFile
+        }
       }
+
+      val conditionsAndFiles = mapFilesToConditions
+      val labelsString: String = conditionsAndFiles.keys.mkString(",")
+      val inputFilesString: String = conditionsAndFiles.values.map(fileList => fileList.mkString(",")).mkString(" ")
+
+      require(!labelsString.isEmpty(), "Lables string in empty. Something went wrong!")
+      require(!inputFilesString.isEmpty(), "Input file string in empty. Something went wrong!")
+
+      def commandLine = cuffdiffPath + "/cuffdiff" +
+        " --library-type " + libraryType + " " +
+        " -p " + threads +
+        (if (!getOutputDir.isEmpty) " -o " + getOutputDir + " " else "") +
+        " --labels " + labelsString + " " +
+        annotations.get.getAbsolutePath() + " " +
+        inputFilesString +
+        " 1> " + stdOut
+
+      override def jobRunnerJobName = projectName.get + "_cuffdiff"
     }
-
-    val conditionsAndFiles = mapFilesToConditions
-    val labelsString: String = conditionsAndFiles.keys.mkString(",")
-    val inputFilesString: String = conditionsAndFiles.values.map(fileList => fileList.mkString(",")).mkString(" ")
-
-    require(!labelsString.isEmpty(), "Lables string in empty. Something went wrong!")
-    require(!inputFilesString.isEmpty(), "Input file string in empty. Something went wrong!")
-
-    def commandLine = cuffdiffPath + "/cuffdiff" +
-      " --library-type " + libraryType + " " +
-      " -p " + threads +
-      (if (!getOutputDir.isEmpty) " -o " + getOutputDir + " " else "") +
-      " --labels " + labelsString + " " +
-      annotations.get.getAbsolutePath() + " " +
-      inputFilesString +
-      " 1> " + stdOut
-
-    this.analysisName = "cuffdiff"
-    this.jobName = "cuffdiff"
   }
+
 }

@@ -50,18 +50,21 @@ function alignWithTophat {
 
 function cufflinks {
     source piper -S ${SCRIPTS_DIR}/Cufflinks.scala \
-	    -i $1 \
-	    --annotations ${ANNOTATIONS} \
-	    --library_type ${LIBRARY_TYPE} \
-	    --mask ${RRNA_TARGETS} \
-	    -tophat ${PATH_TO_CUFFLINKS} \
-	    -outputDir ${CUFFLINKS_OUTPUT}/ \
-	    --threads ${NBR_OF_THREADS} \
-	    -jobRunner ${JOB_RUNNER} \
-	    -jobNative "${JOB_NATIVE_ARGS}" \
-	    --job_walltime 518400 \
-	    -run \
-	    ${DEBUG} >> ${LOGS}/cufflinks.log  2>&1
+          	     -i $1 \
+			     --project_id ${PROJECT_ID} \
+                 --project_name ${PROJECT_NAME} \
+                 --quality_of_service ${QOS} \
+          	     --annotations ${ANNOTATIONS} \
+	             --library_type ${LIBRARY_TYPE} \
+	             --mask ${RRNA_TARGETS} \
+	             --path_to_cufflinks ${PATH_TO_CUFFLINKS} \
+	             -outputDir ${CUFFLINKS_OUTPUT}/ \
+	             --threads ${NBR_OF_THREADS} \
+         	     -jobRunner ${JOB_RUNNER} \
+	             -jobNative "${JOB_NATIVE_ARGS}" \
+	             --job_walltime 518400 \
+	             -run \
+	             ${DEBUG} >> ${LOGS}/cufflinks.log  2>&1
 
 
     # Check the script exit status, and if it did not finish, clean up and exit
@@ -82,11 +85,14 @@ function RNA_QC {
     source piper -S ${SCRIPTS_DIR}/RNAQC.scala \
 	    -i $1 \
 	    --downsample 1000 \
-	    --project_id ${PROJECT_ID} \
+		--project_id ${PROJECT_ID} \
+        --project_name ${PROJECT_NAME} \
+        --quality_of_service ${QOS} \
 		-R ${GENOME_REFERENCE} \
 	    --transcripts ${ANNOTATIONS} \
 	    --rRNA_targets ${RRNA_TARGETS} \
 	    -outputDir ${RNA_QC_OUTPUT}/ \
+	    --path_to_samtools ${PATH_TO_SAMTOOLS} \
 	    -jobRunner ${JOB_RUNNER} \
 	    -jobNative "${JOB_NATIVE_ARGS}" \
 	    --job_walltime 259200 \
@@ -106,7 +112,7 @@ function RNA_QC {
 
 
 # We also need the correct java engine and R version
-module load java/sun_jdk1.6.0_45
+module load java/sun_jdk1.7.0_25
 module load R/2.15.0
 module load bioinfo-tools
 module load tophat/2.0.4

@@ -12,7 +12,7 @@ then
 	PATH_TO_SAMTOOLS="/bubo/sw/apps/bioinfo/samtools/0.1.12-10/samtools"	
 	PATH_TO_TOPHAT="/bubo/sw/apps/bioinfo/tophat/2.0.4/kalkyl/bin/tophat2"
 	PATH_TO_CUTADAPT="/bubo/sw/apps/bioinfo/cutadapt/1.2.1/kalkyl/bin/cutadapt"
-	PATH_TO_CUFFLINKS="/bubo/sw/apps/bioinfo/cufflinks/2.1.1/kalkyl/cufflinks"
+	PATH_TO_CUFFLINKS="/bubo/sw/apps/bioinfo/cufflinks/2.1.1/kalkyl/"
 	GATK_BUNDLE_B37="/proj/b2010028/references/piper_references/gatk_bundle/2.2/b37"
 	GATK_BUNDLE_HG19="/proj/b2010028/references/piper_references/gatk_bundle/2.2/hg19"
 else
@@ -35,9 +35,9 @@ DB_SNP_B37=${GATK_BUNDLE_B37}"/dbsnp_137.b37.vcf"
 MILLS_B37=${GATK_BUNDLE_B37}"/Mills_and_1000G_gold_standard.indels.b37.vcf"
 ONE_K_G_B37=${GATK_BUNDLE_B37}"/1000G_phase1.indels.b37.vcf"
 
-DB_SNP_H19=${GATK_BUNDLE_H19}"/dbsnp_137.hg19.vcf"
-MILLS_H19=${GATK_BUNDLE_H19}"/Mills_and_1000G_gold_standard.indels.hg19.vcf"
-ONE_K_G_H19=${GATK_BUNDLE_H19}"/1000G_phase1.indels.hg19.vcf"
+DB_SNP_HG19=${GATK_BUNDLE_H19}"/dbsnp_137.hg19.vcf"
+MILLS_HG19=${GATK_BUNDLE_H19}"/Mills_and_1000G_gold_standard.indels.hg19.vcf"
+ONE_K_G_HG19=${GATK_BUNDLE_H19}"/1000G_phase1.indels.hg19.vcf"
 
 #---------------------------------------------
 # Global variables

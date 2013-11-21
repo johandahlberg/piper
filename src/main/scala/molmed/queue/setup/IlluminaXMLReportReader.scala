@@ -9,7 +9,7 @@ import molmed.xml.illuminareport.Read
 import javax.xml.bind.Marshaller
 import collection.JavaConversions._
 
-class IlluminaXMLReportReader(file: File) extends IlluminaXMLReportReaderAPI {
+class IlluminaXMLReportReader(file: File) extends ReportReaderAPI {
 
   /**
    * XML related fields
@@ -68,13 +68,6 @@ class IlluminaXMLReportReader(file: File) extends IlluminaXMLReportReaderAPI {
 
   def getFlowcellId(): String =
     illuminaProject.getMetaData().getFlowCellId()
-
-  def getPlatformUnitID(sampleName: String, lane: Int): String =
-    getFlowcellId + "." + sampleName + "." + lane
-
-  def getReadGroupID(sampleName: String, lane: Int): String = {
-    getPlatformUnitID(sampleName, lane)
-  }
 
   def getLanes(sampleName: String): List[Int] = {
     getMatchingSamples(sampleName).flatMap(f =>

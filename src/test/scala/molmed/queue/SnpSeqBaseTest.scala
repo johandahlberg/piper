@@ -30,13 +30,16 @@ object SnpSeqBaseTest {
   val pathToSetupFileForSameSampleAcrossMultipleLanes = pathToBaseDir + "pipelineSetupSameSampleAcrossMultipleLanes.xml"
   
   val differentRgsCohortList = pathToBaseDir + "bam.cohort.list"
+  val singleFileCohortList = pathToBaseDir + "bam.single.file.cohort.list"
 
+  val pathToFlatFileReport: String = pathToBaseDir + "report.tsv"
+  
   val pathToReportXML: String = pathToBaseDir + "smallTestFastqDataFolder/report.xml"
   val pathToReportXMLForSameSampleAcrossMultipleLanes = pathToBaseDir + "runFolderWithSameSampleInMultipleLanes/report.xml"
   val pathToReportWithMultipleLibraries = pathToBaseDir + "reportWithMultipleLibraryNames.xml"
 
   val rnaSeqBaseDir = "/local/data/rna_seq_test_data/"
-  val pathToRNAtestBam = rnaSeqBaseDir + "Pairend_StrandSpecific_51mer_Human_hg19.reordered.with.rg.bam"
+  val pathToRNAtestBam = rnaSeqBaseDir + "Pairend_StrandSpecific_51mer_Human_hg19.reordered.with.rg.sorted.bam"
   val pathToCuffdiffCohortFile = pathToBaseDir + "cuffdiff.cohort.list"
   val pathToCufflinksCohortFile = pathToBaseDir + "cufflinks.cohort.list"
   val hg19_rRNA = rnaSeqBaseDir + "hg19_rRNA.bed"
