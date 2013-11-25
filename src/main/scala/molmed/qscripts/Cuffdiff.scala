@@ -8,6 +8,7 @@ import net.sf.samtools.SAMFileReader
 import molmed.utils.ReadGroupUtils
 import molmed.utils.Uppmaxable
 import molmed.utils.UppmaxUtils
+import molmed.utils.UppmaxConfig
 
 /**
  * Runs cuffdiff to calculate differential expression between samples. By default
@@ -89,7 +90,8 @@ class Cuffdiff extends QScript with Uppmaxable {
 
     val samplesAndLables = bams.map(file => (file, ReadGroupUtils.getSampleNameFromReadGroups(file))).toMap
 
-    val cuffDiffUtils = new CuffDiffUtils
+    val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
+    val cuffDiffUtils = new CuffDiffUtils(uppmaxConfig)
     val placeHolderFile = new File(getOutputDir + "qscript_cufflinks.stdout.log")
     add(cuffDiffUtils.cuffdiff(samplesAndLables, replicates, placeHolderFile))
 
@@ -98,7 +100,7 @@ class Cuffdiff extends QScript with Uppmaxable {
   /**
    * Cuffdiff commandline case classes.
    */
-  class CuffDiffUtils extends UppmaxUtils(projId, uppmaxQoSFlag) {
+  class CuffDiffUtils(uppmaxConfig: UppmaxConfig) extends UppmaxUtils(uppmaxConfig) {
     case class cuffdiff(samplesAndLables: Map[File, String], replicates: Map[String, List[String]], outputFile: File) extends FatNode {
 
       this.isIntermediate = false

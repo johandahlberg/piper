@@ -7,11 +7,12 @@ import molmed.utils.ReadGroupUtils._
 import org.broadinstitute.sting.queue.function.ListWriterFunction
 import molmed.utils.Uppmaxable
 import molmed.utils.GeneralUtils
+import molmed.utils.UppmaxConfig
 
 /**
  * Merge bams by the library specified in the read group.
  */
-class MergeBamsByLibrary extends QScript with Uppmaxable{
+class MergeBamsByLibrary extends QScript with Uppmaxable {
 
   qscript =>
 
@@ -22,15 +23,15 @@ class MergeBamsByLibrary extends QScript with Uppmaxable{
   var outputDir: String = ""
   def getOutputDir: String = if (outputDir.isEmpty()) "" else outputDir + "/"
 
-
   case class Sample(library: String, file: File)
 
   def script() {
 
     val bams = QScriptUtils.createSeqFromFile(input)
 
-    val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
-    
+    val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
+    val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
+
     val samples = for (bam <- bams) yield {
       new Sample(getLibraryNameFromReadGroups(bam), bam)
     }

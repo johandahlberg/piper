@@ -7,6 +7,7 @@ import java.io.File
 import molmed.utils.ReadGroupUtils
 import molmed.utils.UppmaxUtils
 import molmed.utils.Uppmaxable
+import molmed.utils.UppmaxConfig
 
 /**
  * Run cufflinks on a cohort to generate FPKMs for the known transcripts.
@@ -93,7 +94,8 @@ class Cufflinks extends QScript with Uppmaxable {
 
     val bams = QScriptUtils.createSeqFromFile(input)
     
-    val cufflinksUtils = new CufflinksUtils
+    val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
+    val cufflinksUtils = new CufflinksUtils(uppmaxConfig)
 
     for (bam <- bams) {
       val outDir = createOutputDir(bam)
@@ -125,7 +127,7 @@ class Cufflinks extends QScript with Uppmaxable {
 
   }
 
-  class CufflinksUtils extends UppmaxUtils(projId, uppmaxQoSFlag) {
+  class CufflinksUtils(uppmaxConfig: UppmaxConfig) extends UppmaxUtils(uppmaxConfig) {
     case class cufflinks(inputBamFile: File, sampleOutputDir: File, outputFile: File) extends ExternalCommonArgs {
 
       // Sometime this should be kept, sometimes it shouldn't

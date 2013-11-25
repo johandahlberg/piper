@@ -14,6 +14,7 @@ import molmed.utils.VariantCallingTarget
 import molmed.utils.VariantCallingUtils
 import molmed.utils.GATKOptions
 import molmed.utils.VariantCallingUtils
+import molmed.utils.UppmaxConfig
 
 /**
  * Run variant calling using GATK.
@@ -106,11 +107,12 @@ class VariantCalling extends QScript with Uppmaxable {
 
     // By default scatter over the contigs
     if (nContigs < 0)
-      nContigs = scala.math.min(QScriptUtils.getNumberOfContigs(bams(0)),23)
+      nContigs = scala.math.min(QScriptUtils.getNumberOfContigs(bams(0)), 23)
 
-    resources = new Resources(resourcesPath, testMode)
+    resources = new Resources(resourcesPath, testMode)   
+    val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
     val gatkOptions = new GATKOptions(reference, nbrOfThreads, nContigs, Some(intervals), None, None)
-    val variantCallingUtils = new VariantCallingUtils(gatkOptions, projectName, projId, uppmaxQoSFlag)
+    val variantCallingUtils = new VariantCallingUtils(gatkOptions, projectName, uppmaxConfig)
 
     val targets = (runSeparatly, notHuman) match {
       case (true, false) => bams.map(bam => new VariantCallingTarget(outputDir, bam.getName(), reference, bam, intervals, isLowpass, isExome, 1, resources))

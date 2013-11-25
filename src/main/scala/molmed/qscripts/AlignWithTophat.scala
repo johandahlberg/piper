@@ -14,6 +14,7 @@ import molmed.utils.Uppmaxable
 import molmed.utils.GeneralUtils
 import molmed.utils.UppmaxUtils
 import molmed.utils.TophatAligmentUtils
+import molmed.utils.UppmaxConfig
 
 /**
  * Align paired end reads to a reference using Tophat. By default cutadapt is not
@@ -182,8 +183,10 @@ class AlignWithTophat extends QScript with Uppmaxable {
     uppmaxQoSFlag = setupReader.getUppmaxQoSFlag()
     projectName = setupReader.getProjectName()
 
-    val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
-    val tophatUtils = new TophatAligmentUtils(tophatPath, tophatThreads, projectName, projId, uppmaxQoSFlag)
+    val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
+    val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
+    val tophatUtils = new TophatAligmentUtils(tophatPath, tophatThreads, projectName, uppmaxConfig)
+    
     val (cohortList, placeHolderList) =
       if (runCutadapt)
         alignSamples(cutSamples(generalUtils, samples), tophatUtils)

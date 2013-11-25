@@ -8,6 +8,7 @@ import org.broadinstitute.sting.queue.function.ListWriterFunction
 import org.broadinstitute.sting.queue.function.InProcessFunction
 import molmed.utils.Uppmaxable
 import molmed.utils.GeneralUtils
+import molmed.utils.UppmaxConfig
 
 /**
  * Merge the bams by the sample names defined by in the read groups.
@@ -28,9 +29,10 @@ class MergeBamsBySample extends QScript with Uppmaxable {
   def script() {
 
     val bams = QScriptUtils.createSeqFromFile(input)
-
-    val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
-
+    
+    val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
+    val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
+    
     val sampleNamesAndFiles = for (bam <- bams) yield {
       (getSampleNameFromReadGroups(bam), bam)
     }

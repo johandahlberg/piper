@@ -36,6 +36,7 @@ import molmed.utils.ReadGroupUtils._
 import molmed.utils.Uppmaxable
 import molmed.utils.BwaAlignmentUtils
 import molmed.utils.GeneralUtils
+import molmed.utils.UppmaxConfig
 
 /**
  * Haloplex best practice analysis from fastqs to variant calls.
@@ -197,15 +198,17 @@ class Haloplex extends QScript with Uppmaxable {
       setupReader.getSamples()
     }
 
+    val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
+    
     // Get and setup input files
     val samples: Map[String, Seq[SampleAPI]] = setupSamples()
     
-    // Run cutadapt           
-    val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
+    // Run cutadapt    
+    val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
     val cutAndSyncedSamples = cutSamples(samples, generalUtils)       
 
     // Align with bwa
-    val alignmentHelper = new BwaAlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, projectName, projId, uppmaxQoSFlag)
+    val alignmentHelper = new BwaAlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, projectName, uppmaxConfig)
     val cohortList =
       cutAndSyncedSamples.values.flatten.map(sample => alignmentHelper.align(sample, bamOutputDir, false)).toSeq
 

@@ -6,12 +6,15 @@ import org.broadinstitute.sting.commandline.Argument
 trait Uppmaxable {
 
   @Argument(doc = "Uppmax qos flag", fullName = "quality_of_service", shortName = "qos", required = false)
-  var uppmaxQoSFlag: Option[String] = None
+  var uppmaxQoSFlag: Option[String] = UppmaxConfig.defaultUppmaxQoSFlag
 
   @Argument(doc = "Uppmax project id", fullName = "project_id", shortName = "upid", required = false)
-  var projId: String = ""
+  var projId: String = UppmaxConfig.defaultProjectId
 
   @Argument(doc = "Project name", fullName = "project_name", shortName = "name", required = false)
   var projectName: Option[String] = Some("DefaultProject")
+  
+  @Argument(doc = "Cluster name", fullName = "cluster", shortName = "cl", required = false)
+  var clusterName: Option[String] = UppmaxConfig.defaultClusterName
 
 }

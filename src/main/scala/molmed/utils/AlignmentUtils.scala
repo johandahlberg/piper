@@ -20,9 +20,9 @@ import net.sf.samtools.SAMFileReader
 
 import molmed.utils.ReadGroupUtils._
 
-abstract class AligmentUtils(projectName: Option[String], projId: String, uppmaxQoSFlag: Option[String]) extends UppmaxUtils(projId, uppmaxQoSFlag)
+abstract class AligmentUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) extends UppmaxUtils(uppmaxConfig)
 
-class TophatAligmentUtils(tophatPath: String, tophatThreads: Int, projectName: Option[String], projId: String, uppmaxQoSFlag: Option[String]) extends AligmentUtils(projectName, projId, uppmaxQoSFlag) {
+class TophatAligmentUtils(tophatPath: String, tophatThreads: Int, projectName: Option[String], uppmaxConfig: UppmaxConfig) extends AligmentUtils(projectName, uppmaxConfig) {
 
   case class tophat(fastqs1: File, fastqs2: File, sampleOutputDir: File, reference: File, annotations: Option[File], libraryType: String, outputFile: File, readGroupInfo: String, fusionSearch: Boolean = false) extends ExternalCommonArgs {
 
@@ -51,7 +51,7 @@ class TophatAligmentUtils(tophatPath: String, tophatThreads: Int, projectName: O
     // Only do fussion search if it has been defined on the command line.
     // Since it requires a lot of ram, make sure it requests a fat node.    
     def fusionSearchString = if (fusionSearch) {
-      this.jobNativeArgs +:= "-p node -C fat -A " + projId
+      this.jobNativeArgs +:= "-p node -C fat -A " + uppmaxConfig.projId
       this.memoryLimit = Some(48)
       " --fusion-search --bowtie1 --no-coverage-search "
     } else ""
@@ -69,7 +69,7 @@ class TophatAligmentUtils(tophatPath: String, tophatThreads: Int, projectName: O
   }
 }
 
-class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samtoolsPath: String, projectName: Option[String], projId: String, uppmaxQoSFlag: Option[String]) extends AligmentUtils(projectName, projId, uppmaxQoSFlag) {
+class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samtoolsPath: String, projectName: Option[String], uppmaxConfig: UppmaxConfig) extends AligmentUtils(projectName, uppmaxConfig) {
 
   // Takes a list of processed BAM files and realign them using the BWA option requested  (bwase or bwape).
   // Returns a list of realigned BAM files.

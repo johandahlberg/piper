@@ -16,6 +16,7 @@ import molmed.utils.GeneralUtils._
 import molmed.utils.BwaAlignmentUtils
 import molmed.utils.Uppmaxable
 import molmed.utils.GeneralUtils
+import molmed.utils.UppmaxConfig
 
 /**
  * 
@@ -69,8 +70,10 @@ class AlignWithBWA extends QScript with Uppmaxable {
     uppmaxQoSFlag = setupReader.getUppmaxQoSFlag()
     projectName = setupReader.getProjectName()
 
-    val alignmentHelper = new BwaAlignmentUtils(this, bwaPath, bwaThreads, samtoolsPath, projectName, projId, uppmaxQoSFlag)
-    val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
+    
+    val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
+    val alignmentHelper = new BwaAlignmentUtils(this, bwaPath, bwaThreads, samtoolsPath, projectName, uppmaxConfig)
+    val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
     
     // final output list of bam files
     var cohortList: Seq[File] = samples.values.flatten.map(sample => alignmentHelper.align(sample, outputDir, false)).toSeq

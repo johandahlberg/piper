@@ -18,6 +18,7 @@ import molmed.utils.Uppmaxable
 import molmed.utils.GATKUtils
 import molmed.utils.GATKOptions
 import molmed.utils.GeneralUtils
+import molmed.utils.UppmaxConfig
 
 /**
  * Runs the GATK recommended best practice analysis for data processing.
@@ -268,9 +269,10 @@ class DataProcessingPipeline extends QScript with Uppmaxable {
     }
 
     // Setup of options utility classes.
+    val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
     val gatkOptions = new GATKOptions(reference, nbrOfThreads, nContigs, Some(intervals), Some(dbSNP), Some(indels))
-    val gatkUtils = new GATKUtils(gatkOptions, projectName, projId, uppmaxQoSFlag)
-    val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
+    val gatkUtils = new GATKUtils(gatkOptions, projectName, uppmaxConfig)    
+    val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
 
     // final output list of processed bam files
     var cohortList: Seq[File] = Seq()

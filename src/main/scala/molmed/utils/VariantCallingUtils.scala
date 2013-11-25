@@ -8,7 +8,7 @@ import org.broadinstitute.sting.queue.extensions.gatk.TaggedFile
 import org.broadinstitute.sting.queue.extensions.gatk.ApplyRecalibration
 import org.broadinstitute.sting.queue.extensions.gatk.VariantEval
 
-class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String], projId: String, uppmaxQoSFlag: Option[String]) extends GATKUtils(gatkOptions, projectName, projId, uppmaxQoSFlag) {
+class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxConfig: UppmaxConfig) extends GATKUtils(gatkOptions, projectName, uppmaxConfig) {
 
   def bai(bam: File): File = new File(bam + ".bai")
 

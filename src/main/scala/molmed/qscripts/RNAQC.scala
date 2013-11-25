@@ -13,6 +13,7 @@ import java.io.PrintWriter
 import molmed.utils.ReadGroupUtils._
 import molmed.utils.Uppmaxable
 import molmed.utils.GeneralUtils
+import molmed.utils.UppmaxConfig
 
 /**
  * Generate RNA QC metrics and merge the results from the individuals files
@@ -68,8 +69,9 @@ class RNAQC extends QScript with Uppmaxable {
 
     // Get the bam files to analyze
     val bams = QScriptUtils.createSeqFromFile(input)
-    
-    val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
+
+    val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
+    val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
 
     // Create output dir if it does not exist
     val outDir = if (getOutputDir == "") new File("RNA_QC") else new File(outputDir)

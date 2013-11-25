@@ -17,7 +17,7 @@ import org.broadinstitute.sting.queue.extensions.picard.RevertSam
 import org.broadinstitute.sting.queue.extensions.picard.SamToFastq
 import molmed.queue.extensions.picard.BuildBamIndex
 
-class GeneralUtils(projectName: Option[String], projId: String, uppmaxQoSFlag: Option[String]) extends UppmaxUtils(projId, uppmaxQoSFlag) {
+class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) extends UppmaxUtils(uppmaxConfig) {
 
   case class createIndex(@Input bam: File, @Output index: File) extends BuildBamIndex with SixGbRamJobs {
     this.input = bam

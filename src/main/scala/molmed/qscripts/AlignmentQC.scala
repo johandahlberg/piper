@@ -9,6 +9,7 @@ import org.broadinstitute.sting.queue.util.QScriptUtils
 import molmed.utils.GATKUtils
 import molmed.utils.Uppmaxable
 import molmed.utils.GATKOptions
+import molmed.utils.UppmaxConfig
 
 /**
  * Simple Alignment quality control using the DepthOfCoverage walker from GATK. 
@@ -51,8 +52,9 @@ class AlignmentQC extends QScript with Uppmaxable {
 
         // Get the bam files to analyze
         val bams = QScriptUtils.createSeqFromFile(input)
+        val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
         val gatkOptions = new GATKOptions(reference, 8, 1, Some(intervals), None, None)
-        val gatkUtils = new GATKUtils(gatkOptions, projectName, projId, uppmaxQoSFlag)
+        val gatkUtils = new GATKUtils(gatkOptions, projectName, uppmaxConfig)
 
         // Run QC for each of them and output to a separate dir for each sample.
         for (bam <- bams) {

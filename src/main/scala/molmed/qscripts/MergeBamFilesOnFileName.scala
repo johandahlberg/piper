@@ -14,6 +14,7 @@ import org.broadinstitute.sting.queue.function.InProcessFunction
 import org.broadinstitute.sting.utils.io.IOUtils
 import molmed.utils.Uppmaxable
 import molmed.utils.GeneralUtils
+import molmed.utils.UppmaxConfig
 
 /**
  * This is just a ugly hack I use onced to merge bam file on
@@ -39,7 +40,8 @@ class MergeBamFilesOnFileName extends QScript with Uppmaxable {
         // Get all the input files form the list
         val files: Seq[File] = QScriptUtils.createSeqFromFile(input)
         
-        val generalUtils = new GeneralUtils(projectName, projId, uppmaxQoSFlag)
+        val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
+        val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
 
         // Create Map of all the input files with the file names as keys
         val fileMap = createSampleFileMap(files)
