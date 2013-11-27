@@ -176,10 +176,19 @@ module load R/2.15.0
 # Run template - setup which files to run etc
 #---------------------------------------------
 
-PIPELINE_SETUP_XML="pipelineSetup.xml"
+PIPELINE_SETUP_XML=$1
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
-source globalConfig.sh
-INTERVALS="/proj/b2010028/references/piper_references/Enrichments/Illumina/TruSeq_exome_targeted_regions-gatk.interval_list"
+source globalConfig.shi
+
+if [ "$2" == "TruSeq" ]; then
+    INTERVALS="/proj/b2010028/references/piper_references/Enrichments/Illumina/TruSeq_exome_targeted_regions-gatk.interval_list"
+elif [ "$2" == "SureSelect" ]; then
+    INTERVALS="/proj/b2010028/references/piper_references/Enrichments/Agilent/SureSelect_All_Exon_50mb_with_annotation_hg19-gatk.interval_list"
+else
+    echo "Didn't recognize exome capture type: $2. Please use: TruSeq or SureSelect."
+    exit 1
+fi
+
 GENOME_REFERENCE=${GATK_BUNDLE_B37}"/human_g1k_v37.fasta"
 
 
@@ -217,11 +226,15 @@ fi
 # in a different way.
 #---------------------------------------------
 
-ALIGN_OUTPUT=$(alignWithBwa ${PIPELINE_SETUP_XML})
-MERGED_BAMS_OUTPUT=$(mergeBySampleName ${ALIGN_OUTPUT})
-ALIGN_QC_OUTPUT=$(alignmentQC ${MERGED_BAMS_OUTPUT})
-DATAPROCESSING_OUTPUT=$(dataPreprocessing ${MERGED_BAMS_OUTPUT})
-VARIANTCALLING_OUTPUT=$(variantCalling ${DATAPROCESSING_OUTPUT})
+if [ "$3" == "onlyalignment" ]; then
+    ALIGN_OUTPUT=$(alignWithBwa ${PIPELINE_SETUP_XML})
+else
+    ALIGN_OUTPUT=$(alignWithBwa ${PIPELINE_SETUP_XML})
+    MERGED_BAMS_OUTPUT=$(mergeBySampleName ${ALIGN_OUTPUT})
+    ALIGN_QC_OUTPUT=$(alignmentQC ${MERGED_BAMS_OUTPUT})
+    DATAPROCESSING_OUTPUT=$(dataPreprocessing ${MERGED_BAMS_OUTPUT})
+    VARIANTCALLING_OUTPUT=$(variantCalling ${DATAPROCESSING_OUTPUT})
+fi
 
 # Perform final clean up
 final_clean_up
