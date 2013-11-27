@@ -19,6 +19,7 @@ import molmed.utils.GATKUtils
 import molmed.utils.GATKOptions
 import molmed.utils.GeneralUtils
 import molmed.utils.UppmaxConfig
+import molmed.utils.UppmaxXMLConfiguration
 
 /**
  * Runs the GATK recommended best practice analysis for data processing.
@@ -30,7 +31,7 @@ import molmed.utils.UppmaxConfig
  * - Might want to include reduce bam, etc. in this to increase the effectivity.
  */
 
-class DataProcessingPipeline extends QScript with Uppmaxable {
+class DataProcessingPipeline extends QScript with UppmaxXMLConfiguration {
   qscript =>
 
   /**
@@ -257,6 +258,8 @@ class DataProcessingPipeline extends QScript with Uppmaxable {
 
   def script() {
 
+    val uppmaxConfig = loadUppmaxConfigFromXML()
+    
     // Setup the scatter/gather counts.
     if (nContigs < 0)
     {
@@ -269,7 +272,6 @@ class DataProcessingPipeline extends QScript with Uppmaxable {
     }
 
     // Setup of options utility classes.
-    val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
     val gatkOptions = new GATKOptions(reference, nbrOfThreads, nContigs, Some(intervals), Some(dbSNP), Some(indels))
     val gatkUtils = new GATKUtils(gatkOptions, projectName, uppmaxConfig)    
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)

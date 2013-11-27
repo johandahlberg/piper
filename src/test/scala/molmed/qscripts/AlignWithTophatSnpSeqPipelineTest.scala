@@ -32,7 +32,7 @@ class AlignWithTophatSnpSeqPipelineTest {
     spec.name = "AlignWithTophatPipeline"
     spec.args = Array(
       pathToScript,
-      " -i " + snpSeqBaseTest.pathSetupFile,
+      " -xi " + snpSeqBaseTest.pathSetupFile,
       " -tophat " + "/usr/local/bin/tophat2",
       " -samtools " + "/usr/bin/samtools",
       " -startFromScratch ").mkString

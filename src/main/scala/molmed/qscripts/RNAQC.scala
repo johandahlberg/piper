@@ -14,12 +14,13 @@ import molmed.utils.ReadGroupUtils._
 import molmed.utils.Uppmaxable
 import molmed.utils.GeneralUtils
 import molmed.utils.UppmaxConfig
+import molmed.utils.UppmaxXMLConfiguration
 
 /**
  * Generate RNA QC metrics and merge the results from the individuals files
  * to a tab separated file with all the results.
  */
-class RNAQC extends QScript with Uppmaxable {
+class RNAQC extends QScript with UppmaxXMLConfiguration {
   qscript =>
 
   /**
@@ -70,7 +71,7 @@ class RNAQC extends QScript with Uppmaxable {
     // Get the bam files to analyze
     val bams = QScriptUtils.createSeqFromFile(input)
 
-    val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
+    val uppmaxConfig = loadUppmaxConfigFromXML()
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
 
     // Create output dir if it does not exist

@@ -37,11 +37,12 @@ import molmed.utils.Uppmaxable
 import molmed.utils.BwaAlignmentUtils
 import molmed.utils.GeneralUtils
 import molmed.utils.UppmaxConfig
+import molmed.utils.UppmaxXMLConfiguration
 
 /**
  * Haloplex best practice analysis from fastqs to variant calls.
  */
-class Haloplex extends QScript with Uppmaxable {
+class Haloplex extends QScript with UppmaxXMLConfiguration {
 
   qscript =>
 
@@ -54,9 +55,6 @@ class Haloplex extends QScript with Uppmaxable {
    * Required Parameters
    * **************************************************************************
    */
-
-  @Input(doc = "input pipeline setup xml", fullName = "input", shortName = "i", required = true)
-  var input: File = _
 
   @Input(doc = "Location of resource files such as dbSnp, hapmap, etc.", fullName = "resources", shortName = "res", required = true)
   var resourcesPath: File = _
@@ -189,19 +187,10 @@ class Haloplex extends QScript with Uppmaxable {
     miscOutputDir.mkdirs()
     val bamOutputDir = new File(getOutputDir() + "/bam_files")
     bamOutputDir.mkdirs()
-
-    def setupSamples(): Map[String, Seq[SampleAPI]] = {
-      val setupReader: SetupXMLReaderAPI = new SetupXMLReader(input)
-      projId = setupReader.getUppmaxProjectId()
-      projectName = setupReader.getProjectName()
-      uppmaxQoSFlag = setupReader.getUppmaxQoSFlag()
-      setupReader.getSamples()
-    }
-
-    val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
     
     // Get and setup input files
-    val samples: Map[String, Seq[SampleAPI]] = setupSamples()
+    val uppmaxConfig = loadUppmaxConfigFromXML()
+    val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
     
     // Run cutadapt    
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)

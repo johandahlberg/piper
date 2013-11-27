@@ -15,6 +15,7 @@ import molmed.utils.GeneralUtils
 import molmed.utils.UppmaxUtils
 import molmed.utils.TophatAligmentUtils
 import molmed.utils.UppmaxConfig
+import molmed.utils.UppmaxXMLConfiguration
 
 /**
  * Align paired end reads to a reference using Tophat. By default cutadapt is not
@@ -26,18 +27,9 @@ import molmed.utils.UppmaxConfig
  * - Add single end capabilities.
  */
 
-class AlignWithTophat extends QScript with Uppmaxable {
+class AlignWithTophat extends QScript with UppmaxXMLConfiguration {
 
   qscript =>
-
-  /**
-   * **************************************************************************
-   * Required Parameters
-   * **************************************************************************
-   */
-
-  @Input(doc = "input pipeline setup xml", fullName = "input", shortName = "i", required = true)
-  var input: File = _
 
   /**
    * **************************************************************************
@@ -176,14 +168,8 @@ class AlignWithTophat extends QScript with Uppmaxable {
    */
   def script {
 
-    val setupReader: SetupXMLReaderAPI = new SetupXMLReader(input)
-
-    val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
-    projId = setupReader.getUppmaxProjectId()
-    uppmaxQoSFlag = setupReader.getUppmaxQoSFlag()
-    projectName = setupReader.getProjectName()
-
-    val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
+    val uppmaxConfig = loadUppmaxConfigFromXML()    
+    val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()    
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
     val tophatUtils = new TophatAligmentUtils(tophatPath, tophatThreads, projectName, uppmaxConfig)
     

@@ -36,6 +36,7 @@ class CuffdiffSnpSeqPipelineTest {
     spec.args = Array(
       pathToScript,
       " -i " + snpSeqBaseTest.pathToCuffdiffCohortFile,
+      " --xml_input " + snpSeqBaseTest.pathSetupFile,
       " --reference " + snpSeqBaseTest.hg19,
       " --annotations " + snpSeqBaseTest.hg19annotations,
       " --path_to_cuffdiff " + snpSeqBaseTest.pathToCuffdiff,

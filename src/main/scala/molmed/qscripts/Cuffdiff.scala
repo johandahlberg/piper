@@ -9,15 +9,16 @@ import molmed.utils.ReadGroupUtils
 import molmed.utils.Uppmaxable
 import molmed.utils.UppmaxUtils
 import molmed.utils.UppmaxConfig
+import molmed.utils.UppmaxXMLConfiguration
 
 /**
  * Runs cuffdiff to calculate differential expression between samples. By default
- * it will compare all samples against all. A replicate file can be used to 
+ * it will compare all samples against all. A replicate file can be used to
  * specify that files should go under the same label. (See below for format).
  * If samples have identical names they will also be concidered replicates and
- * be run under the same label. 
+ * be run under the same label.
  */
-class Cuffdiff extends QScript with Uppmaxable {
+class Cuffdiff extends QScript with UppmaxXMLConfiguration {
 
   qscript =>
 
@@ -80,6 +81,8 @@ class Cuffdiff extends QScript with Uppmaxable {
    */
   def script {
 
+    val uppmaxConfig = loadUppmaxConfigFromXML()
+
     // final output lists
     var cohortList: Seq[File] = Seq()
     var placeHolderList: Seq[File] = Seq()
@@ -89,8 +92,6 @@ class Cuffdiff extends QScript with Uppmaxable {
     val replicates: Map[String, List[String]] = if (replicatesFile.isDefined) getReplicatesFromFile(replicatesFile.get) else Map.empty
 
     val samplesAndLables = bams.map(file => (file, ReadGroupUtils.getSampleNameFromReadGroups(file))).toMap
-
-    val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
     val cuffDiffUtils = new CuffDiffUtils(uppmaxConfig)
     val placeHolderFile = new File(getOutputDir + "qscript_cufflinks.stdout.log")
     add(cuffDiffUtils.cuffdiff(samplesAndLables, replicates, placeHolderFile))

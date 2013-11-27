@@ -17,6 +17,7 @@ import molmed.utils.BwaAlignmentUtils
 import molmed.utils.Uppmaxable
 import molmed.utils.GeneralUtils
 import molmed.utils.UppmaxConfig
+import molmed.utils.UppmaxXMLConfiguration
 
 /**
  * 
@@ -24,17 +25,8 @@ import molmed.utils.UppmaxConfig
  * 
  */
 
-class AlignWithBWA extends QScript with Uppmaxable {
+class AlignWithBWA extends QScript with UppmaxXMLConfiguration {
   qscript =>
-
-  /**
-   * **************************************************************************
-   * Required Parameters
-   * **************************************************************************
-   */
-
-  @Input(doc = "input pipeline setup xml", fullName = "input", shortName = "i", required = true)
-  var input: File = _
 
   /**
    * **************************************************************************
@@ -62,16 +54,9 @@ class AlignWithBWA extends QScript with Uppmaxable {
 
   def script() {
 
-    // Load the setup
-    val setupReader: SetupXMLReaderAPI = new SetupXMLReader(input)
-
+    val uppmaxConfig = loadUppmaxConfigFromXML()    
     val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
-    projId = setupReader.getUppmaxProjectId()
-    uppmaxQoSFlag = setupReader.getUppmaxQoSFlag()
-    projectName = setupReader.getProjectName()
-
     
-    val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
     val alignmentHelper = new BwaAlignmentUtils(this, bwaPath, bwaThreads, samtoolsPath, projectName, uppmaxConfig)
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
     

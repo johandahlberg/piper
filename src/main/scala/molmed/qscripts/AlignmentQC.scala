@@ -10,11 +10,12 @@ import molmed.utils.GATKUtils
 import molmed.utils.Uppmaxable
 import molmed.utils.GATKOptions
 import molmed.utils.UppmaxConfig
+import molmed.utils.UppmaxXMLConfiguration
 
 /**
  * Simple Alignment quality control using the DepthOfCoverage walker from GATK. 
  */
-class AlignmentQC extends QScript with Uppmaxable {
+class AlignmentQC extends QScript with UppmaxXMLConfiguration {
     qscript =>
 
     /**
@@ -49,10 +50,10 @@ class AlignmentQC extends QScript with Uppmaxable {
      */
 
     def script() {
-
+      
         // Get the bam files to analyze
         val bams = QScriptUtils.createSeqFromFile(input)
-        val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
+        val uppmaxConfig = loadUppmaxConfigFromXML()
         val gatkOptions = new GATKOptions(reference, 8, 1, Some(intervals), None, None)
         val gatkUtils = new GATKUtils(gatkOptions, projectName, uppmaxConfig)
 

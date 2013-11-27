@@ -9,13 +9,14 @@ import org.broadinstitute.sting.queue.function.InProcessFunction
 import molmed.utils.Uppmaxable
 import molmed.utils.GeneralUtils
 import molmed.utils.UppmaxConfig
+import molmed.utils.UppmaxXMLConfiguration
 
 /**
  * Merge the bams by the sample names defined by in the read groups.
  * If there is only one file with a specific file name, it will
  * create a hard inlink to the file instead of writing the file again.
  */
-class MergeBamsBySample extends QScript with Uppmaxable {
+class MergeBamsBySample extends QScript with UppmaxXMLConfiguration {
 
   qscript =>
 
@@ -29,10 +30,10 @@ class MergeBamsBySample extends QScript with Uppmaxable {
   def script() {
 
     val bams = QScriptUtils.createSeqFromFile(input)
-    
-    val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
+
+    val uppmaxConfig = loadUppmaxConfigFromXML()
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
-    
+
     val sampleNamesAndFiles = for (bam <- bams) yield {
       (getSampleNameFromReadGroups(bam), bam)
     }

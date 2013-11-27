@@ -15,6 +15,7 @@ import molmed.utils.VariantCallingUtils
 import molmed.utils.GATKOptions
 import molmed.utils.VariantCallingUtils
 import molmed.utils.UppmaxConfig
+import molmed.utils.UppmaxXMLConfiguration
 
 /**
  * Run variant calling using GATK.
@@ -23,7 +24,7 @@ import molmed.utils.UppmaxConfig
  * - Clean up the argument list
  */
 
-class VariantCalling extends QScript with Uppmaxable {
+class VariantCalling extends QScript with UppmaxXMLConfiguration {
   qscript =>
 
   /**
@@ -110,7 +111,7 @@ class VariantCalling extends QScript with Uppmaxable {
       nContigs = scala.math.min(QScriptUtils.getNumberOfContigs(bams(0)), 23)
 
     resources = new Resources(resourcesPath, testMode)   
-    val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
+    val uppmaxConfig = loadUppmaxConfigFromXML()
     val gatkOptions = new GATKOptions(reference, nbrOfThreads, nContigs, Some(intervals), None, None)
     val variantCallingUtils = new VariantCallingUtils(gatkOptions, projectName, uppmaxConfig)
 

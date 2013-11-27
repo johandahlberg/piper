@@ -32,7 +32,7 @@ class HaloplexSnpSeqPipelineTest {
     spec.args = Array(
       pathToScript,
       " -res " + "/local/data/gatk_bundle/hg19/",
-      " -i " + snpSeqBaseTest.pathHaloplexSetupFile,
+      " --xml_input " + snpSeqBaseTest.pathHaloplexSetupFile,
       " -intervals " + "/local/data/haloplex_test_data/design_files/test.roi.bed",
       " --amplicons " + "/local/data/haloplex_test_data/design_files/test.selection.bed",
       " -bwa " + "/usr/bin/bwa",

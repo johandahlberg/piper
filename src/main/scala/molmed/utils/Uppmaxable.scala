@@ -13,8 +13,5 @@ trait Uppmaxable {
 
   @Argument(doc = "Project name", fullName = "project_name", shortName = "name", required = false)
   var projectName: Option[String] = Some("DefaultProject")
-  
-  @Argument(doc = "Cluster name", fullName = "cluster", shortName = "cl", required = false)
-  var clusterName: Option[String] = UppmaxConfig.defaultClusterName
 
 }

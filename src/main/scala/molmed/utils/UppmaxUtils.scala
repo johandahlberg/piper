@@ -3,10 +3,9 @@ package molmed.utils
 import org.broadinstitute.sting.queue.function.CommandLineFunction
 
 class UppmaxUtils(uppmaxConfig: UppmaxConfig) { 
-
-  val clusterString = if(!uppmaxConfig.clusterName.isEmpty) " -M " + uppmaxConfig.clusterName.get else ""  
+  
   val qosFlag = if (!uppmaxConfig.uppmaxQoSFlag.isEmpty) " --qos=" + uppmaxConfig.uppmaxQoSFlag.get else ""
-  val projectBaseString = Seq("-A " + uppmaxConfig.projId, qosFlag, clusterString)
+  val projectBaseString = Seq("-A " + uppmaxConfig.projId, qosFlag)
 
   // General arguments to non-GATK tools
   trait ExternalCommonArgs extends CommandLineFunction {

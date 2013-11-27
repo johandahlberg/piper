@@ -40,6 +40,7 @@ class AlignmentQCSnpSeqPipelineTest {
         spec.args = Array(
             pathToScript,
             " -R " + snpSeqBaseTest.publicTestDir + "exampleFASTA.fasta",
+            " --xml_input " + snpSeqBaseTest.pathSetupFile,
             " -i " + snpSeqBaseTest.publicTestDir + "exampleBAM.bam",
             " -startFromScratch ",
             " --project_id " + projectName).mkString

@@ -8,11 +8,12 @@ import org.broadinstitute.sting.queue.function.ListWriterFunction
 import molmed.utils.Uppmaxable
 import molmed.utils.GeneralUtils
 import molmed.utils.UppmaxConfig
+import molmed.utils.UppmaxXMLConfiguration
 
 /**
  * Merge bams by the library specified in the read group.
  */
-class MergeBamsByLibrary extends QScript with Uppmaxable {
+class MergeBamsByLibrary extends QScript with UppmaxXMLConfiguration {
 
   qscript =>
 
@@ -29,7 +30,7 @@ class MergeBamsByLibrary extends QScript with Uppmaxable {
 
     val bams = QScriptUtils.createSeqFromFile(input)
 
-    val uppmaxConfig = UppmaxConfig(projId, uppmaxQoSFlag, clusterName)
+    val uppmaxConfig = loadUppmaxConfigFromXML()
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
 
     val samples = for (bam <- bams) yield {
