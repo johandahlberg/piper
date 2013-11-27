@@ -159,9 +159,7 @@ module load tophat/2.0.4
 # That means that there might be additional setup required to
 # run this script.
 
-PIPELINE_SETUP_XML="src/test/resources/testdata/exampleForNewSetupXML.xml"
-PROJECT_NAME="TestRNA"
-PROJECT_ID="a2009002"
+PIPELINE_SETUP_XML=$1
 
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
 source globalConfig.sh

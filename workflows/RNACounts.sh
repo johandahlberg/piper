@@ -125,7 +125,11 @@ source globalConfig.sh
 GENOME_REFERENCE=${GATK_BUNDLE_B37}"/human_g1k_v37.fasta"
 ANNOTATIONS="/proj/b2010028/references/piper_references/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf"
 RRNA_TARGETS="/proj/b2010028/references/piper_references/rRNA_targets/rRNA.sorted.1-based.intervals.list"
-LIBRARY_TYPE="" # Depends on the protocol, e.g. fr-secondstrand for ScriptSeq
+LIBRARY_TYPE=$2 # Depends on the protocol, e.g. fr-secondstrand for ScriptSeq
+
+if [ "$3" == "onlyaligment" ]; then
+    ONLY_ALIGNMENTS=true
+fi
 
 #---------------------------------------------
 # Create output directories
@@ -153,9 +157,13 @@ fi
 # in a different way.
 #---------------------------------------------
 
-ALIGN_OUTPUT=$(alignWithTophat ${PIPELINE_SETUP_XML})
-RNA_QC_OUTPUT=$(RNA_QC ${ALIGN_OUTPUT})
-CUFFLINKS_OUT=$(cufflinks ${ALIGN_OUTPUT})
+if $ONLY_ALIGNMENTS; then
+    ALIGN_OUTPUT=$(alignWithTophat ${PIPELINE_SETUP_XML})
+else
+    ALIGN_OUTPUT=$(alignWithTophat ${PIPELINE_SETUP_XML})
+    RNA_QC_OUTPUT=$(RNA_QC ${ALIGN_OUTPUT})
+    CUFFLINKS_OUT=$(cufflinks ${ALIGN_OUTPUT})
+fi
 
 # Perform final clean up
 final_clean_up

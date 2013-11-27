@@ -222,11 +222,15 @@ fi
 # in a different way.
 #---------------------------------------------
 
-ALIGN_OUTPUT=$(alignWithBwa ${PIPELINE_SETUP_XML})
-MERGED_BAMS_OUTPUT=$(mergeBySampleName ${ALIGN_OUTPUT})
-ALIGN_QC_OUTPUT=$(alignmentQC ${MERGED_BAMS_OUTPUT})
-DATAPROCESSING_OUTPUT=$(dataPreprocessing ${MERGED_BAMS_OUTPUT})
-VARIANTCALLING_OUTPUT=$(variantCalling ${DATAPROCESSING_OUTPUT})
+if [ "$3" == "onlyaligment" ]; then
+    ALIGN_OUTPUT=$(alignWithBwa ${PIPELINE_SETUP_XML})
+else
+    ALIGN_OUTPUT=$(alignWithBwa ${PIPELINE_SETUP_XML})
+    MERGED_BAMS_OUTPUT=$(mergeBySampleName ${ALIGN_OUTPUT})
+    ALIGN_QC_OUTPUT=$(alignmentQC ${MERGED_BAMS_OUTPUT})
+    DATAPROCESSING_OUTPUT=$(dataPreprocessing ${MERGED_BAMS_OUTPUT})
+    VARIANTCALLING_OUTPUT=$(variantCalling ${DATAPROCESSING_OUTPUT})
+fi
 
 # Perform final clean up
 final_clean_up

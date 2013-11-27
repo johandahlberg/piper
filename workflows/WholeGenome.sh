@@ -178,10 +178,9 @@ module load R/2.15.0
 # Run template - setup which files to run etc
 #---------------------------------------------
 
-PIPELINE_SETUP_XML="pipelineSetup.xml"
+PIPELINE_SETUP_XML=$1
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
 source globalConfig.sh
-INTERVALS=""
 GENOME_REFERENCE=${GATK_BUNDLE_B37}"/human_g1k_v37.fasta"
 
 #---------------------------------------------
@@ -218,11 +217,16 @@ fi
 # in a different way.
 #---------------------------------------------
 
-ALIGN_OUTPUT=$(alignWithBwa ${PIPELINE_SETUP_XML})
-MERGED_BAMS_OUTPUT=$(mergeBySampleName ${ALIGN_OUTPUT})
-ALIGN_QC_OUTPUT=$(alignmentQC ${MERGED_BAMS_OUTPUT})
-DATAPROCESSING_OUTPUT=$(dataPreprocessing ${MERGED_BAMS_OUTPUT})
-VARIANTCALLING_OUTPUT=$(variantCalling ${DATAPROCESSING_OUTPUT})
+if [ "$3" == "onlyalignment" ]; then
+    ALIGN_OUTPUT=$(alignWithBwa ${PIPELINE_SETUP_XML})
+else
+    ALIGN_OUTPUT=$(alignWithBwa ${PIPELINE_SETUP_XML})
+    MERGED_BAMS_OUTPUT=$(mergeBySampleName ${ALIGN_OUTPUT})
+    ALIGN_QC_OUTPUT=$(alignmentQC ${MERGED_BAMS_OUTPUT})
+    DATAPROCESSING_OUTPUT=$(dataPreprocessing ${MERGED_BAMS_OUTPUT})
+    VARIANTCALLING_OUTPUT=$(variantCalling ${DATAPROCESSING_OUTPUT})
+fi
+
 
 # Perform final clean up
 final_clean_up

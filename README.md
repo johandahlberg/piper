@@ -54,7 +54,7 @@ Running the pipeline
 There are a number of workflows currently supported by Piper (See below). All workflow scripts share a similar structure which looks like this:
 
 * A number of bash functions which wrap QScripts with their parameters, some simple log redirecting etc.
-* A Run template (this is probably where you want to start looking), where parameters such as reference genome, interval file (e.g. for targeted sequencing) are set.
+* A Run template, where parameters such as reference genome, interval file (e.g. for targeted sequencing) are set.
 * A section where the different QScripts are chained together so that for example: variant calling follows data processing, etc. If you want to change the order of the analysis, or skip some part entirely, comment these lines out and change their input/outputs accordingly. (Note that not all workflows are setup this way, and if they are not you will have to change the qscript to solve this)
 
 Setup for run
@@ -91,23 +91,42 @@ The `createSetupXml.sh` script will look for a file in each run folder named `re
 Run
 ---
 
-Pick the workflow that you want to run, e.g. haloplex. Open the corresponding file in the `workflow` directory with your favorite text editor and edit the run template part (it's located towards the end of the file) with the parameters you want to use. Then start the correponding workflow script with for example:
-    ./workflow/haloplex.sh # OR sbatch workflow/haloplex.sh to send it to a node on the cluster
+Pick the workflow that you want to run, e.g. haloplex. Then initiate it (by simply running it, or if you do not have access to node where you can continually run a JVM by using `sbatch` to send it to a node) accoding to the examples below.
 
+Note that all workflows are by default setup to be run with the human_g1k_v37.fasta reference, and associated annotations. This means that if you need some other reference, you will have to set it up manually by configuring the "Run Template" part of the workflow script. It's also worth mentioning that all the scripts have a optional `onlyaligment` flag which can be set if you are only interested in running the aligments. This is useful what you are working on a projec where data is added over time, but you want to create the aligments as data comes in, and then join across the sequencing runs and continue with the downstream analysis.
 
-Special notes on adding data to a project
----------------------------------------
+**Haloplex**
 
-It's quite common for data in a project to be delivered in batches, as the raw data is delivered from the sequencers. If this is the case, and you want to map your data to the reference as data comes in, this is supported by some of the workflows at the moment, namely:
+    ./workflows/Haloplex.sh <pipelinesetup.xml> <the design bed file> <the design amplicon bed file> <optional - onlyalignment>
 
-* DNAGeneralWorkflow
-* WholeGenome
-* TruSeqExome
-* SureSelectExome
+The files associated with the Haloplex design can be downloaded from Agilents homepage.
 
-The other workflows require that all data is in place when the anlysis is started.
+**RNACounts**
 
-To run this type of workflow you need to comment out the steps after alignment until all data has arrived, the data will then be merged by the `mergeBySample` step, and fed on to further processing.
+    ./workflows/RNACounts.sh <pipelinesetup.xml> <library type> <optional - onlyalignment>
+
+Library types depends on the protcol used. For ScriptSeq, it's for example `fr-secondstrand`.
+
+**RNADifferentialExpression**
+
+    ./workflows/RNACounts.sh <pipelinesetup.xml> <library type> <optional - replicates file> <optional - onlyalignment>
+
+You can optionally specify a replicate file (if you have none, just leave it blank). 
+
+If you have replicates in you cohort specify them in a file accoring to the following: On each line should be the label (e.g. the name of the condition) and sample names of the samples included in that condition seperated by tabs. Please note that only samples which have replicates need to be specified. The default is one sample - one replicate
+
+*SureSelectExome*
+    
+    ./workflows/Exome.sh <pipelinesetup.xml> SureSelect <optional - onlyalignment>
+
+*TruSeqExome*
+
+    ./workflows/Exome.sh <pipelinesetup.xml> TruSeq <optional - onlyalignment>
+
+**WholeGenome**
+
+    ./workflows/WholeGenome.sh <pipelinesetup.xml> <optional - onlyalignment>
+
 
 Monitoring progress
 -------------------
