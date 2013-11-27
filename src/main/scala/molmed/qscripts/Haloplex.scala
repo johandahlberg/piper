@@ -86,6 +86,9 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
   @Argument(doc = "Test mode", fullName = "test_mode", shortName = "test", required = false)
   var testMode: Boolean = false
 
+  @Argument(doc = "Only do the aligments - useful when there is more data to be delivered in a project", fullName = "onlyalignment", shortName = "oa", required = false)
+  var onlyAligment: Boolean = false
+
   @Argument(doc = "How many ways to scatter/gather", fullName = "scatter_gather", shortName = "sg", required = false)
   var nContigs: Int = 23
 
@@ -134,12 +137,12 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
             name.replace("fastq", "trimmed.fastq.gz")
         }
 
-        val readpairContainer = sample.getFastqs        
-        
+        val readpairContainer = sample.getFastqs
+
         val platformUnitOutputDir = new File(cutadaptOutputDir + "/" + sample.getReadGroupInformation.platformUnitId)
         platformUnitOutputDir.mkdirs()
-        
-        val mate1SyncedFastq = new File( platformUnitOutputDir + "/" + constructTrimmedName(sample.getFastqs.mate1.getName()))
+
+        val mate1SyncedFastq = new File(platformUnitOutputDir + "/" + constructTrimmedName(sample.getFastqs.mate1.getName()))
         add(new generalUtils.cutadapt(readpairContainer.mate1, mate1SyncedFastq, adaptor1, cutadaptPath, pathToSyncScript))
 
         val mate2SyncedFastq =
@@ -178,7 +181,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
 
   def script() = {
 
-    resources = new Resources(resourcesPath, testMode)    
+    resources = new Resources(resourcesPath, testMode)
 
     // Create output dirs
     val vcfOutputDir = new File(getOutputDir() + "/vcf_files")
@@ -187,75 +190,76 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
     miscOutputDir.mkdirs()
     val bamOutputDir = new File(getOutputDir() + "/bam_files")
     bamOutputDir.mkdirs()
-    
+
     // Get and setup input files
     val uppmaxConfig = loadUppmaxConfigFromXML()
     val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
-    
+
     // Run cutadapt    
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
-    val cutAndSyncedSamples = cutSamples(samples, generalUtils)       
+    val cutAndSyncedSamples = cutSamples(samples, generalUtils)
 
     // Align with bwa
     val alignmentHelper = new BwaAlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, projectName, uppmaxConfig)
     val cohortList =
       cutAndSyncedSamples.values.flatten.map(sample => alignmentHelper.align(sample, bamOutputDir, false)).toSeq
 
-    // Make raw variation calls
-    val preliminaryVariantCalls = new File(vcfOutputDir + "/" + projectName.get + ".pre.vcf")
-    val reference = samples.values.flatten.toList(0).getReference
-    add(genotype(cohortList.toSeq, reference, preliminaryVariantCalls, false))
+    if (!onlyAligment) {
+      // Make raw variation calls
+      val preliminaryVariantCalls = new File(vcfOutputDir + "/" + projectName.get + ".pre.vcf")
+      val reference = samples.values.flatten.toList(0).getReference
+      add(genotype(cohortList.toSeq, reference, preliminaryVariantCalls, false))
 
-    // Create realignment targets
-    val targets = new File(miscOutputDir + "/" + projectName.get + ".targets.intervals")
-    add(target(preliminaryVariantCalls, targets, reference))
+      // Create realignment targets
+      val targets = new File(miscOutputDir + "/" + projectName.get + ".targets.intervals")
+      add(target(preliminaryVariantCalls, targets, reference))
 
-    // Do indel realignment
-    val postCleaningBamList =
-      for (bam <- cohortList) yield {
+      // Do indel realignment
+      val postCleaningBamList =
+        for (bam <- cohortList) yield {
 
-        // Indel realignment
-        val indelRealignedBam = swapExt(bamOutputDir, bam, ".bam", ".clean.bam")
-        add(clean(Seq(bam), targets, indelRealignedBam, reference))
-        indelRealignedBam
+          // Indel realignment
+          val indelRealignedBam = swapExt(bamOutputDir, bam, ".bam", ".clean.bam")
+          add(clean(Seq(bam), targets, indelRealignedBam, reference))
+          indelRealignedBam
+        }
+
+      // BQSR
+      val covariates = new File(miscOutputDir + "/bqsr.grp")
+      add(cov(postCleaningBamList.toSeq, covariates, reference))
+
+      // Clip reads and apply BQSR
+      val clippedAndRecalibratedBams =
+        for (bam <- postCleaningBamList) yield {
+          val clippedBam = swapExt(bamOutputDir, bam, ".bam", ".clipped.recal.bam")
+          add(clip(bam, clippedBam, covariates, reference))
+          clippedBam
+        }
+
+      // Convert intervals and amplicons from bed files to
+      // picard metric files.
+      val intervalsAsPicardIntervalFile = new File(swapExt(miscOutputDir, qscript.intervals, ".bed", ".intervals"))
+      val ampliconsAsPicardIntervalFile = new File(swapExt(miscOutputDir, qscript.amplicons, ".bed", ".intervals"))
+
+      add(convertCoveredToIntervals(qscript.intervals, intervalsAsPicardIntervalFile, clippedAndRecalibratedBams.toList(0)))
+      add(convertAmpliconsToIntervals(qscript.amplicons, ampliconsAsPicardIntervalFile, clippedAndRecalibratedBams.toList(0)))
+
+      // Collect targetedPCRMetrics
+      for (bam <- clippedAndRecalibratedBams) {
+        val generalStatisticsOutputFile = swapExt(bamOutputDir, bam, ".bam", ".statistics")
+        val perAmpliconStatisticsOutputFile = swapExt(bamOutputDir, bam, ".bam", ".amplicon.statistics")
+        add(collectTargetedPCRMetrics(bam, generalStatisticsOutputFile, perAmpliconStatisticsOutputFile,
+          ampliconsAsPicardIntervalFile, intervalsAsPicardIntervalFile, reference))
       }
 
-    // BQSR
-    val covariates = new File(miscOutputDir + "/bqsr.grp")
-    add(cov(postCleaningBamList.toSeq, covariates, reference))
+      // Make variant calls
+      val afterCleanupVariants = swapExt(vcfOutputDir, preliminaryVariantCalls, ".pre.vcf", ".vcf")
+      add(genotype(clippedAndRecalibratedBams.toSeq, reference, afterCleanupVariants, true))
 
-    // Clip reads and apply BQSR
-    val clippedAndRecalibratedBams =
-      for (bam <- postCleaningBamList) yield {
-        val clippedBam = swapExt(bamOutputDir, bam, ".bam", ".clipped.recal.bam")
-        add(clip(bam, clippedBam, covariates, reference))
-        clippedBam
-      }
-
-    // Convert intervals and amplicons from bed files to
-    // picard metric files.
-    val intervalsAsPicardIntervalFile = new File(swapExt(miscOutputDir, qscript.intervals, ".bed", ".intervals"))
-    val ampliconsAsPicardIntervalFile = new File(swapExt(miscOutputDir, qscript.amplicons, ".bed", ".intervals"))
-
-    add(convertCoveredToIntervals(qscript.intervals, intervalsAsPicardIntervalFile, clippedAndRecalibratedBams.toList(0)))
-    add(convertAmpliconsToIntervals(qscript.amplicons, ampliconsAsPicardIntervalFile, clippedAndRecalibratedBams.toList(0)))
-
-    // Collect targetedPCRMetrics
-    for (bam <- clippedAndRecalibratedBams) {
-      val generalStatisticsOutputFile = swapExt(bamOutputDir, bam, ".bam", ".statistics")
-      val perAmpliconStatisticsOutputFile = swapExt(bamOutputDir, bam, ".bam", ".amplicon.statistics")
-      add(collectTargetedPCRMetrics(bam, generalStatisticsOutputFile, perAmpliconStatisticsOutputFile,
-        ampliconsAsPicardIntervalFile, intervalsAsPicardIntervalFile, reference))
+      // Filter variant calls
+      val filteredCallSet = swapExt(vcfOutputDir, afterCleanupVariants, ".vcf", ".filtered.vcf")
+      add(filterVariations(afterCleanupVariants, filteredCallSet, reference))
     }
-
-    // Make variant calls
-    val afterCleanupVariants = swapExt(vcfOutputDir, preliminaryVariantCalls, ".pre.vcf", ".vcf")
-    add(genotype(clippedAndRecalibratedBams.toSeq, reference, afterCleanupVariants, true))
-
-    // Filter variant calls
-    val filteredCallSet = swapExt(vcfOutputDir, afterCleanupVariants, ".vcf", ".filtered.vcf")
-    add(filterVariations(afterCleanupVariants, filteredCallSet, reference))
-
   }
 
   /**
@@ -272,7 +276,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
   }
 
   // General arguments to GATK walkers
-  trait CommandLineGATKArgs extends CommandLineGATK with ExternalCommonArgs {} 
+  trait CommandLineGATKArgs extends CommandLineGATK with ExternalCommonArgs {}
 
   def intervalFormatString(contig: String, start: String, end: String, strand: String, intervalName: String): String =
     "%s\t%s\t%s\t%s\t%s".format(contig, start, end, strand, intervalName)
@@ -353,7 +357,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
     this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.BOTH
 
     override def jobRunnerJobName = projectName.get + "_genotype"
-    
+
   }
 
   case class target(@Input candidateIndels: File, outIntervals: File, reference: File) extends RealignerTargetCreator with CommandLineGATKArgs {
@@ -368,7 +372,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
     this.known :+= candidateIndels
     this.scatterCount = nContigs
     override def jobRunnerJobName = projectName.get + "_target"
-    
+
   }
 
   case class clean(inBams: Seq[File], tIntervals: File, outBam: File, reference: File) extends IndelRealigner with CommandLineGATKArgs {
@@ -385,7 +389,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
     this.compress = 0
     this.scatterCount = nContigs
     override def jobRunnerJobName = projectName.get + "_clean"
-    
+
   }
 
   case class cov(inBam: Seq[File], outRecalFile: File, reference: File) extends BaseRecalibrator with CommandLineGATKArgs {
@@ -409,7 +413,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
 
     this.scatterCount = nContigs
     override def jobRunnerJobName = projectName.get + "_cov"
-    
+
   }
 
   case class clip(@Input inBam: File, @Output @Gather(classOf[BamGatherFunction]) outBam: File, covariates: File, reference: File) extends ClipReads with CommandLineGATKArgs {
@@ -423,7 +427,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
     this.BQSR = covariates
 
     override def jobRunnerJobName = projectName.get + "_clean"
-    
+
   }
 
   case class filterVariations(@Input inVcf: File, @Output outVcf: File, reference: File) extends VariantFiltration with CommandLineGATKArgs {
@@ -446,7 +450,6 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
     this.filterName = Seq("HARD_TO_VALIDATE", "LowCoverage", "VeryLowQual", "LowQual", "LowQD")
 
     override def jobRunnerJobName = projectName.get + "_filterVariants"
-    
 
   }
 
@@ -462,7 +465,6 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
     this.reference = ref
 
     override def jobRunnerJobName = projectName + "_collectPCRMetrics"
-    
 
   }
 

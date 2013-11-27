@@ -36,7 +36,7 @@ function haloplex {
         		-jobNative "${JOB_NATIVE_ARGS}" \
 			    --job_walltime 36000 \
 			    -run \
-			    ${DEBUG} >> ${LOGS}/haloplex.log  2>&1
+			    ${ONLY_ALIGNMENTS} ${DEBUG} >> ${LOGS}/haloplex.log  2>&1
 
 
     # Check the script exit status, and if it did not finish, clean up and exit
@@ -64,6 +64,10 @@ PIPELINE_SETUP_XML=$1
 INTERVALS=$2 # Your design bed-file
 AMPLICONS=$3 # The amplicon design file
 OUTPUT_DIR="pipeline_output/haloplex"
+
+if [ "$4" == "onlyalignment" ]; then
+    ONLY_ALIGNMENTS="--onlyalignment"
+fi
 
 #---------------------------------------------
 # The actual running of the script
