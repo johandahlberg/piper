@@ -1,18 +1,18 @@
 # Start by exporting the shared drmaa libaries to the LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=/bubo/sw/apps/build/slurm-drmaa/1.0.6/lib/:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/sw/apps/build/slurm-drmaa/1.0.6/lib/:$LD_LIBRARY_PATH
 
 #---------------------------------------------
 # Check if we are running on uppmax or locally, and set the jobrunners and path accordingly
 #---------------------------------------------
-if [ -f "/bubo/sw/apps/build/slurm-drmaa/lib/libdrmaa.so" ];
+if [ -f "/sw/apps/build/slurm-drmaa/lib/libdrmaa.so" ];
 then
 	JOB_RUNNER=" Drmaa"
 	JOB_NATIVE_ARGS="-A ${PROJECT_ID} -p node -N 1 ${QOS}"
-	PATH_TO_BWA="/bubo/sw/apps/bioinfo/bwa/0.6.2/kalkyl/bwa"
-	PATH_TO_SAMTOOLS="/bubo/sw/apps/bioinfo/samtools/0.1.12-10/samtools"	
-	PATH_TO_TOPHAT="/bubo/sw/apps/bioinfo/tophat/2.0.4/kalkyl/bin/tophat2"
-	PATH_TO_CUTADAPT="/bubo/sw/apps/bioinfo/cutadapt/1.2.1/kalkyl/bin/cutadapt"
-	PATH_TO_CUFFLINKS="/bubo/sw/apps/bioinfo/cufflinks/2.1.1/kalkyl/"
+	PATH_TO_BWA="/sw/apps/bioinfo/bwa/0.6.2/kalkyl/bwa"
+	PATH_TO_SAMTOOLS="/sw/apps/bioinfo/samtools/0.1.12-10/samtools"	
+	PATH_TO_TOPHAT="/sw/apps/bioinfo/tophat/2.0.4/kalkyl/bin/tophat2"
+	PATH_TO_CUTADAPT="/sw/apps/bioinfo/cutadapt/1.2.1/kalkyl/bin/cutadapt"
+	PATH_TO_CUFFLINKS="/sw/apps/bioinfo/cufflinks/2.1.1/kalkyl/"
 	GATK_BUNDLE_B37="/proj/b2010028/references/piper_references/gatk_bundle/2.2/b37"
 	GATK_BUNDLE_HG19="/proj/b2010028/references/piper_references/gatk_bundle/2.2/hg19"
 else

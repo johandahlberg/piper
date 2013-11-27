@@ -44,7 +44,7 @@ The paths for these programs are setup in the `globalConfig.sh` file. If you are
 Resource files
 ==============
 
-For the standard application of alignment, data processing and variant calling in human relies on data available in the GATK bundle from the Broad Institute. This is available for download at their [website](http://gatkforums.broadinstitute.org/discussion/1213/what-s-in-the-resource-bundle-and-how-can-i-get-it). If you are working on UPPMAX these resources are available at `/bubo/nobackup/uppnex/reference/biodata/GATK/ftp.broadinstitute.org/bundle/2.2/`, however you might want to create your own directory for these in which you soft link the files, as you will be required to create for example bwa indexes.
+For the standard application of alignment, data processing and variant calling in human relies on data available in the GATK bundle from the Broad Institute. This is available for download at their [website](http://gatkforums.broadinstitute.org/discussion/1213/what-s-in-the-resource-bundle-and-how-can-i-get-it). If you are working on UPPMAX these resources are available at `/pica/data/uppnex/reference/biodata/GATK/ftp.broadinstitute.org/bundle/2.2/`, however you might want to create your own directory for these in which you soft link the files, as you will be required to create for example bwa indexes.
 
 The path to the GATK bundle needs to be setup in the `globalConfig.sh` file. For MolMed users this has been setup to reasonable defaults.
 
