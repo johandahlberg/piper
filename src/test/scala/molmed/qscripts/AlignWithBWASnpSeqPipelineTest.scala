@@ -38,7 +38,7 @@ class AlignWithBWASnpSeqPipelineTest {
   def testPairEndAlignmentDataProvider: Array[Array[Object]] = {
     runOnUppmax match {
       case true => {
-        val envSetup = EnvironmentSetup(pathToScript, Seq("Drmaa"), "/bubo/sw/apps/bioinfo/bwa/0.6.2/kalkyl/bwa");
+        val envSetup = EnvironmentSetup(pathToScript, Seq("Drmaa"), "/sw/apps/bioinfo/bwa/0.6.2/kalkyl/bwa");
         //TODO Fix new md5s
         val md5 = "88d073bc43b6c019653787f58628c744"
         Array(Array(envSetup, md5)).asInstanceOf[Array[Array[Object]]]
@@ -79,7 +79,7 @@ class AlignWithBWASnpSeqPipelineTest {
   def testSingleEndAlignmentDataProvider: Array[Array[Object]] = {
     runOnUppmax match {
       case true => {
-        val envSetup = EnvironmentSetup(pathToScript, Seq("Drmaa"), "/bubo/sw/apps/bioinfo/bwa/0.6.2/kalkyl/bwa");
+        val envSetup = EnvironmentSetup(pathToScript, Seq("Drmaa"), "/sw/apps/bioinfo/bwa/0.6.2/kalkyl/bwa");
         //TODO Fix new md5s
         val md5 = "4f5aa4cff97c7940ca17e552cf499817"
         Array(Array(envSetup, md5)).asInstanceOf[Array[Array[Object]]]
@@ -126,7 +126,7 @@ class AlignWithBWASnpSeqPipelineTest {
   //  def SameSampleInMoreThanOneRunFolderDataProvider: Array[Array[Object]] = {        
   //    runOnUppmax match {
   //        case true => {
-  //            val envSetup = EnvironmentSetup(pathToScript, Seq("Drmaa"), "/bubo/sw/apps/bioinfo/bwa/0.6.2/kalkyl/bwa");
+  //            val envSetup = EnvironmentSetup(pathToScript, Seq("Drmaa"), "/sw/apps/bioinfo/bwa/0.6.2/kalkyl/bwa");
   //            //TODO Fix new md5s
   //            val md5 = "8affd69d2b506bd7d35bdd226f27d057"                
   //            Array(Array(envSetup, md5)).asInstanceOf[Array[Array[Object]]]
@@ -168,7 +168,7 @@ class AlignWithBWASnpSeqPipelineTest {
   //  def testSameSampleAcrossSeveralLanesDataProvider: Array[Array[Object]] = {        
   //    runOnUppmax match {
   //        case true => {
-  //            val envSetup = EnvironmentSetup(pathToScript, Seq("Drmaa"), "/bubo/sw/apps/bioinfo/bwa/0.6.2/kalkyl/bwa");
+  //            val envSetup = EnvironmentSetup(pathToScript, Seq("Drmaa"), "/sw/apps/bioinfo/bwa/0.6.2/kalkyl/bwa");
   //            //TODO Fix new md5s
   //            val md5 = Seq("")                
   //            Array(Array(envSetup, md5)).asInstanceOf[Array[Array[Object]]]
