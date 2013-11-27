@@ -24,7 +24,7 @@
 
 function alignWithTophat {
     source piper -S ${SCRIPTS_DIR}/AlignWithTophat.scala \
-	    -i $1 \
+	    --xml_input $1 \
 	    --annotations ${ANNOTATIONS} \
 	    --library_type ${LIBRARY_TYPE} \
 	    -tophat ${PATH_TO_TOPHAT} \
@@ -51,6 +51,7 @@ function alignWithTophat {
 function cuffdiff {
     source piper -S ${SCRIPTS_DIR}/Cuffdiff.scala \
             -i $1 \
+	    --xml_input $PIPELINE_SETUP_XML \
             --reference ${GENOME_REFERENCE} \
             --annotations ${ANNOTATIONS} \
             --replicates ${REPLICATES} \
@@ -58,9 +59,6 @@ function cuffdiff {
             --path_to_cuffdiff ${PATH_TO_CUFFDIFF} \
             -outputDir ${CUFFDIFF_OUTPUT}/ \
             --threads ${NBR_OF_THREADS} \
-         	--project_id ${PROJECT_ID} \
-            --project_name ${PROJECT_NAME} \
-            --quality_of_service ${QOS} \
             -jobRunner ${JOB_RUNNER} \
             -jobNative "${JOB_NATIVE_ARGS}" \
             --job_walltime 259200 \
@@ -86,10 +84,8 @@ function cuffdiff {
 function RNA_QC {
     source piper -S ${SCRIPTS_DIR}/RNAQC.scala \
 	    -i $1 \
+	    --xml_input $PIPELINE_SETUP_XML \
 	    --downsample 1000 \
-	    --project_id ${PROJECT_ID} \
-        --project_name ${PROJECT_NAME} \
-        --quality_of_service ${QOS} \
 		-R ${GENOME_REFERENCE} \
 	    --transcripts ${ANNOTATIONS} \
 	    --rRNA_targets ${RRNA_TARGETS} \
@@ -123,9 +119,8 @@ module load tophat/2.0.4
 # Run template - setup which files to run etc
 #---------------------------------------------
 
-PIPELINE_SETUP_XML="src/test/resources/testdata/exampleForNewSetupXML.xml"
-PROJECT_NAME="TestRNA"
-PROJECT_ID="b2010028"
+PIPELINE_SETUP_XML=$1
+
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
 source globalConfig.sh
 GENOME_REFERENCE=${GATK_BUNDLE_B37}"/human_g1k_v37.fasta"

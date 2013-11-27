@@ -23,7 +23,7 @@
 #------------------------------------------------------------------------------------------
 function haloplex {
     source piper -S ${SCRIPTS_DIR}/Haloplex.scala \
-			    --input $1 \
+			    --xml_input $1 \
 			    --resources ${GATK_BUNDLE_HG19} \
 			    -intervals ${INTERVALS} \
 			    --amplicons ${AMPLICONS} \
@@ -60,10 +60,9 @@ module load R/2.15.0
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
 source globalConfig.sh
 
-PIPELINE_SETUP_XML="pipelineSetup.xml"
-INTERVALS="" # Your design bed-file
-AMPLICONS="" # The amplicon design file
-QOS="" # e.g. --qos=seqver
+PIPELINE_SETUP_XML=$1
+INTERVALS=$2 # Your design bed-file
+AMPLICONS=$3 # The amplicon design file
 OUTPUT_DIR="pipeline_output/haloplex"
 
 #---------------------------------------------

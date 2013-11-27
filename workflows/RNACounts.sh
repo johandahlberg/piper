@@ -24,7 +24,7 @@
 
 function alignWithTophat {
     source piper -S ${SCRIPTS_DIR}/AlignWithTophat.scala \
-	    -i $1 \
+	    --xml_input $1 \
 	    --annotations ${ANNOTATIONS} \
 	    --library_type ${LIBRARY_TYPE} \
 	    -tophat ${PATH_TO_TOPHAT} \
@@ -50,10 +50,8 @@ function alignWithTophat {
 
 function cufflinks {
     source piper -S ${SCRIPTS_DIR}/Cufflinks.scala \
+		 --xml_input $PIPELINE_SETUP_XML \
           	     -i $1 \
-			     --project_id ${PROJECT_ID} \
-                 --project_name ${PROJECT_NAME} \
-                 --quality_of_service ${QOS} \
           	     --annotations ${ANNOTATIONS} \
 	             --library_type ${LIBRARY_TYPE} \
 	             --mask ${RRNA_TARGETS} \
@@ -84,10 +82,8 @@ function cufflinks {
 function RNA_QC {
     source piper -S ${SCRIPTS_DIR}/RNAQC.scala \
 	    -i $1 \
+	    --xml_input $PIPELINE_SETUP_XML \
 	    --downsample 1000 \
-		--project_id ${PROJECT_ID} \
-        --project_name ${PROJECT_NAME} \
-        --quality_of_service ${QOS} \
 		-R ${GENOME_REFERENCE} \
 	    --transcripts ${ANNOTATIONS} \
 	    --rRNA_targets ${RRNA_TARGETS} \
@@ -121,9 +117,7 @@ module load tophat/2.0.4
 # Run template - setup which files to run etc
 #---------------------------------------------
 
-PIPELINE_SETUP_XML="pipelineSetup.xml"
-PROJECT_NAME="TestRNA"
-PROJECT_ID="a2009002"
+PIPELINE_SETUP_XML=$1
 
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
 source globalConfig.sh
@@ -132,7 +126,6 @@ GENOME_REFERENCE=${GATK_BUNDLE_B37}"/human_g1k_v37.fasta"
 ANNOTATIONS="/proj/b2010028/references/piper_references/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf"
 RRNA_TARGETS="/proj/b2010028/references/piper_references/rRNA_targets/rRNA.sorted.1-based.intervals.list"
 LIBRARY_TYPE="" # Depends on the protocol, e.g. fr-secondstrand for ScriptSeq
-QOS="" # e.g. --qos=seqver
 
 #---------------------------------------------
 # Create output directories

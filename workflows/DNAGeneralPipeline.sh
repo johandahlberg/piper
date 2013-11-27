@@ -23,7 +23,7 @@
 #------------------------------------------------------------------------------------------
 function alignWithBwa {
     source piper -S ${SCRIPTS_DIR}/AlignWithBWA.scala \
-			    -i $1 \
+			    --xml_input $1 \
 			    -outputDir ${RAW_BAM_OUTPUT}/ \
 			    -bwa ${PATH_TO_BWA} \
 			    -samtools ${PATH_TO_SAMTOOLS} \
@@ -56,10 +56,8 @@ function alignWithBwa {
 function mergeBySampleName {
     source piper -S ${SCRIPTS_DIR}/MergeBamsBySample.scala \
                  -i $1 \
+		 --xml_input $PIPELINE_SETUP_XML \
                  -outputDir ${RAW_MERGED_BAM_OUTPUT}/ \
-			     --project_id ${PROJECT_ID} \
-                 --project_name ${PROJECT_NAME} \
-                 --quality_of_service ${QOS} \
                  -jobRunner ${JOB_RUNNER} \
                  -jobNative "${JOB_NATIVE_ARGS}" \
                  --job_walltime 86400 \
@@ -85,10 +83,8 @@ function mergeBySampleName {
 function alignmentQC {
     source piper -S ${SCRIPTS_DIR}/AlignmentQC.scala \
 			    -i $1 \
+		  	--xml_input $PIPELINE_SETUP_XML \
     			-R ${GENOME_REFERENCE} \
-			    --project_id ${PROJECT_ID} \
-                --project_name ${PROJECT_NAME} \
-                --quality_of_service ${QOS} \
  			    -intervals ${INTERVALS} \
 			    -outputDir ${ALIGNMENT_QC_OUTPUT}/ \
 	            -jobRunner ${JOB_RUNNER} \
@@ -116,10 +112,8 @@ function dataPreprocessing {
 
     source piper -S ${SCRIPTS_DIR}/DataProcessingPipeline.scala \
 			      -R ${GENOME_REFERENCE} \
-   			     --project_id ${PROJECT_ID} \
-                 --project_name ${PROJECT_NAME} \
-                 --quality_of_service ${QOS} \
 			      -i $1 \
+			--xml_input $PIPELINE_SETUP_XML \
 			      -outputDir ${PROCESSED_BAM_OUTPUT}/ \
         		  --dbsnp ${DB_SNP_B37} \
                   --extra_indels ${MILLS_B37} \
@@ -153,9 +147,7 @@ function variantCalling {
     source piper -S ${SCRIPTS_DIR}/VariantCalling.scala \
 			     -R ${GENOME_REFERENCE} \
 			     -res ${GATK_BUNDLE_B37} \
-   			     --project_id ${PROJECT_ID} \
-                 --project_name ${PROJECT_NAME} \
-                 --quality_of_service ${QOS} \
+			     --xml_input $PIPELINE_SETUP_XML \
 			     -i $1 \
 			     -intervals ${INTERVALS} \
 			     -outputDir ${VCF_OUTPUT}/ \
@@ -191,15 +183,10 @@ module load R/2.15.0
 # That means that there might be additional setup required to
 # run this script.
 
-PIPELINE_SETUP_XML="src/test/resources/testdata/newPipelineSetupSameSampleAcrossMultipleLanes.xml"
-PROJECT_NAME="TestProject"
-PROJECT_ID="a2009002"
+PIPELINE_SETUP_XML=$1
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
 source globalConfig.sh
 INTERVALS=""
-GENOME_REFERENCE=${GATK_BUNDLE_B37}"/human_g1k_v37.fasta"
-QOS="" # e.g. --qos=seqver
-
 
 #---------------------------------------------
 # Create output directories
