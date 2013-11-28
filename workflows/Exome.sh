@@ -178,7 +178,7 @@ module load R/2.15.0
 
 PIPELINE_SETUP_XML=$1
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
-source globalConfig.shi
+source globalConfig.sh
 
 if [ "$2" == "TruSeq" ]; then
     INTERVALS="/proj/b2010028/references/piper_references/Enrichments/Illumina/TruSeq_exome_targeted_regions-gatk.interval_list"
