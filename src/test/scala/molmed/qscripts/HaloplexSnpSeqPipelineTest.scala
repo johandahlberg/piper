@@ -52,8 +52,7 @@ class HaloplexSnpSeqPipelineTest {
 
   @Test
   def testOnlyAligmentHaloplex {
-    val testRawVcf = "vcf_files/TestProject.vcf"
-    val testRawFilteredVcf = "vcf_files/TestProject.filtered.vcf"
+    val testRawBam = "bam_files/1.C0HNDACXX.1.1.bam"
 
     val spec = new PipelineTestSpec
     spec.jobRunners = Seq("Shell")
@@ -72,9 +71,8 @@ class HaloplexSnpSeqPipelineTest {
       " --scatter_gather 1 ",
       " --test_mode ",
       " -startFromScratch ",
-      " --onlyAlignment ").mkString
-    spec.fileMD5s += testRawVcf -> "fae53b7d79f6650091396301d952ffc9"
-    spec.fileMD5s += testRawFilteredVcf -> "71b22850155c7a7047ff4158ffe52b7c"
+      " --onlyalignment ").mkString
+    spec.fileMD5s += testRawBam -> "247cf1164e331b77ef6cdf0355d21443"
 
     spec.run = run
     PipelineTest.executeTest(spec)
