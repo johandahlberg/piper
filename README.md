@@ -115,11 +115,11 @@ You can optionally specify a replicate file (if you have none, just leave it bla
 
 If you have replicates in you cohort specify them in a file accoring to the following: On each line should be the label (e.g. the name of the condition) and sample names of the samples included in that condition seperated by tabs. Please note that only samples which have replicates need to be specified. The default is one sample - one replicate
 
-*SureSelectExome*
+**SureSelectExome**
     
     ./workflows/Exome.sh <pipelinesetup.xml> SureSelect <optional - onlyalignment>
 
-*TruSeqExome*
+**TruSeqExome**
 
     ./workflows/Exome.sh <pipelinesetup.xml> TruSeq <optional - onlyalignment>
 
