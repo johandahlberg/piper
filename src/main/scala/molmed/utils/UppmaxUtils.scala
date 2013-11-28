@@ -8,25 +8,25 @@ class UppmaxUtils(uppmaxConfig: UppmaxConfig) {
   val projectBaseString = Seq("-A " + uppmaxConfig.projId, qosFlag)
 
   // General arguments to non-GATK tools
-  trait ExternalCommonArgs extends CommandLineFunction {
+  trait EightCoreJob extends CommandLineFunction {
     this.jobNativeArgs = Seq("-p core -n 8") ++ projectBaseString
     this.memoryLimit = Some(64)
     this.isIntermediate = false
   }
 
-  trait SixGbRamJobs extends CommandLineFunction {
+  trait OneCoreJob extends CommandLineFunction {
     this.jobNativeArgs = Seq("-p core -n 1") ++ projectBaseString
-    this.memoryLimit = Some(16)
+    this.memoryLimit = Some(8)
     this.isIntermediate = false
   }
 
-  trait NineGbRamJobs extends CommandLineFunction {
+  trait TwoCoreJob extends CommandLineFunction {
     this.jobNativeArgs = Seq("-p core -n 2") ++ projectBaseString
     this.memoryLimit = Some(16)
     this.isIntermediate = false
   }
   
-  trait FatNode extends CommandLineFunction {
+  trait SixCoreJob extends CommandLineFunction {
     this.jobNativeArgs = Seq("-p core -n 6") ++ projectBaseString
     this.memoryLimit = Some(48)
     this.isIntermediate = false

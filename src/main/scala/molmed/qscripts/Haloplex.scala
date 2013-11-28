@@ -38,6 +38,7 @@ import molmed.utils.BwaAlignmentUtils
 import molmed.utils.GeneralUtils
 import molmed.utils.UppmaxConfig
 import molmed.utils.UppmaxXMLConfiguration
+import molmed.utils.UppmaxUtils
 
 /**
  * Haloplex best practice analysis from fastqs to variant calls.
@@ -193,6 +194,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
 
     // Get and setup input files
     val uppmaxConfig = loadUppmaxConfigFromXML()
+    val haloplexUtils = new HaloplexUtils(uppmaxConfig)
     val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
 
     // Run cutadapt    
@@ -208,11 +210,11 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
       // Make raw variation calls
       val preliminaryVariantCalls = new File(vcfOutputDir + "/" + projectName.get + ".pre.vcf")
       val reference = samples.values.flatten.toList(0).getReference
-      add(genotype(cohortList.toSeq, reference, preliminaryVariantCalls, false))
+      add(haloplexUtils.genotype(cohortList.toSeq, reference, preliminaryVariantCalls, false))
 
       // Create realignment targets
       val targets = new File(miscOutputDir + "/" + projectName.get + ".targets.intervals")
-      add(target(preliminaryVariantCalls, targets, reference))
+      add(haloplexUtils.target(preliminaryVariantCalls, targets, reference))
 
       // Do indel realignment
       val postCleaningBamList =
@@ -220,19 +222,19 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
 
           // Indel realignment
           val indelRealignedBam = swapExt(bamOutputDir, bam, ".bam", ".clean.bam")
-          add(clean(Seq(bam), targets, indelRealignedBam, reference))
+          add(haloplexUtils.clean(Seq(bam), targets, indelRealignedBam, reference))
           indelRealignedBam
         }
 
       // BQSR
       val covariates = new File(miscOutputDir + "/bqsr.grp")
-      add(cov(postCleaningBamList.toSeq, covariates, reference))
+      add(haloplexUtils.cov(postCleaningBamList.toSeq, covariates, reference))
 
       // Clip reads and apply BQSR
       val clippedAndRecalibratedBams =
         for (bam <- postCleaningBamList) yield {
           val clippedBam = swapExt(bamOutputDir, bam, ".bam", ".clipped.recal.bam")
-          add(clip(bam, clippedBam, covariates, reference))
+          add(haloplexUtils.clip(bam, clippedBam, covariates, reference))
           clippedBam
         }
 
@@ -241,24 +243,24 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
       val intervalsAsPicardIntervalFile = new File(swapExt(miscOutputDir, qscript.intervals, ".bed", ".intervals"))
       val ampliconsAsPicardIntervalFile = new File(swapExt(miscOutputDir, qscript.amplicons, ".bed", ".intervals"))
 
-      add(convertCoveredToIntervals(qscript.intervals, intervalsAsPicardIntervalFile, clippedAndRecalibratedBams.toList(0)))
-      add(convertAmpliconsToIntervals(qscript.amplicons, ampliconsAsPicardIntervalFile, clippedAndRecalibratedBams.toList(0)))
+      add(haloplexUtils.convertCoveredToIntervals(qscript.intervals, intervalsAsPicardIntervalFile, clippedAndRecalibratedBams.toList(0)))
+      add(haloplexUtils.convertAmpliconsToIntervals(qscript.amplicons, ampliconsAsPicardIntervalFile, clippedAndRecalibratedBams.toList(0)))
 
       // Collect targetedPCRMetrics
       for (bam <- clippedAndRecalibratedBams) {
         val generalStatisticsOutputFile = swapExt(bamOutputDir, bam, ".bam", ".statistics")
         val perAmpliconStatisticsOutputFile = swapExt(bamOutputDir, bam, ".bam", ".amplicon.statistics")
-        add(collectTargetedPCRMetrics(bam, generalStatisticsOutputFile, perAmpliconStatisticsOutputFile,
+        add(haloplexUtils.collectTargetedPCRMetrics(bam, generalStatisticsOutputFile, perAmpliconStatisticsOutputFile,
           ampliconsAsPicardIntervalFile, intervalsAsPicardIntervalFile, reference))
       }
 
       // Make variant calls
       val afterCleanupVariants = swapExt(vcfOutputDir, preliminaryVariantCalls, ".pre.vcf", ".vcf")
-      add(genotype(clippedAndRecalibratedBams.toSeq, reference, afterCleanupVariants, true))
+      add(haloplexUtils.genotype(clippedAndRecalibratedBams.toSeq, reference, afterCleanupVariants, true))
 
       // Filter variant calls
       val filteredCallSet = swapExt(vcfOutputDir, afterCleanupVariants, ".vcf", ".filtered.vcf")
-      add(filterVariations(afterCleanupVariants, filteredCallSet, reference))
+      add(haloplexUtils.filterVariations(afterCleanupVariants, filteredCallSet, reference))
     }
   }
 
@@ -266,205 +268,197 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
    * Case class wappers for external programs
    */
 
-  // General arguments to non-GATK tools
-  trait ExternalCommonArgs extends CommandLineFunction {
+  class HaloplexUtils(uppmaxConfig: UppmaxConfig) extends UppmaxUtils(uppmaxConfig) {
 
-    val qosFlag = if (!uppmaxQoSFlag.isEmpty) " --qos=" + uppmaxQoSFlag.get else ""
-    this.jobNativeArgs +:= "-p node -A " + projId + " " + qosFlag
-    this.memoryLimit = 24
-    this.isIntermediate = false
-  }
+    // General arguments to GATK walkers
+    trait CommandLineGATKArgs extends CommandLineGATK
 
-  // General arguments to GATK walkers
-  trait CommandLineGATKArgs extends CommandLineGATK with ExternalCommonArgs {}
+    def intervalFormatString(contig: String, start: String, end: String, strand: String, intervalName: String): String =
+      "%s\t%s\t%s\t%s\t%s".format(contig, start, end, strand, intervalName)
 
-  def intervalFormatString(contig: String, start: String, end: String, strand: String, intervalName: String): String =
-    "%s\t%s\t%s\t%s\t%s".format(contig, start, end, strand, intervalName)
-
-  def formatFromCovered(split: Array[String]): String = {
-    intervalFormatString(split(0), (split(1).toInt + 1).toString, split(2), "+", split(3))
-  }
-
-  def formatFromAmplicons(split: Array[String]): String = {
-    intervalFormatString(split(0), (split(1).toInt + 1).toString, split(2), split(5), split(3))
-  }
-
-  def writeIntervals(bed: File, intervalFile: File, bam: File, formatFrom: Array[String] => String): Unit = {
-
-    def getSamHeader(bam: File): SAMFileHeader = {
-      val samReader = new SAMFileReader(bam)
-      samReader.getFileHeader
+    def formatFromCovered(split: Array[String]): String = {
+      intervalFormatString(split(0), (split(1).toInt + 1).toString, split(2), "+", split(3))
     }
 
-    val header = getSamHeader(bam)
-    header.setProgramRecords(List())
-    header.setReadGroups(List())
-
-    val writer = new PrintWriter(intervalFile)
-
-    val codec = new SAMTextHeaderCodec();
-    codec.encode(writer, header)
-
-    for (row <- Source.fromFile(bed).getLines.drop(2)) {
-      val split = row.split("\t")
-      val intervalEntry = formatFrom(split)
-      writer.println(intervalEntry)
-    }
-    writer.close()
-  }
-
-  case class convertCoveredToIntervals(@Input bed: File, @Output intervalFile: File, @Input bam: File) extends InProcessFunction {
-    def run(): Unit = {
-      writeIntervals(bed, intervalFile, bam, formatFromCovered)
-    }
-  }
-
-  case class convertAmpliconsToIntervals(@Input bed: File, @Output intervalFile: File, @Input bam: File) extends InProcessFunction {
-    def run(): Unit = {
-      writeIntervals(bed, intervalFile, bam, formatFromAmplicons)
-    }
-  }
-
-  case class genotype(@Input bam: Seq[File], reference: File, @Output @Gather(classOf[VcfGatherFunction]) vcf: File, isSecondPass: Boolean) extends UnifiedGenotyper with CommandLineGATKArgs {
-
-    if (qscript.testMode)
-      this.no_cmdline_in_header = true
-
-    this.isIntermediate = false
-
-    this.input_file = bam
-    this.out = vcf
-
-    this.dbsnp = resources.dbsnp
-    this.reference_sequence = reference
-    this.intervals = Seq(qscript.intervals)
-    this.scatterCount = nContigs
-    this.nt = nbrOfThreads
-    this.stand_call_conf = 30.0
-    this.stand_emit_conf = 10.0
-
-    // Depending on if this is used to call preliminary or final variations different
-    // parameters should be used.
-    if (isSecondPass) {
-      this.dt = DownsampleType.NONE
-      this.annotation = Seq("AlleleBalance")
-      this.filterMBQ = true
-    } else {
-      this.downsample_to_coverage = 200
+    def formatFromAmplicons(split: Array[String]): String = {
+      intervalFormatString(split(0), (split(1).toInt + 1).toString, split(2), split(5), split(3))
     }
 
-    this.output_mode = org.broadinstitute.sting.gatk.walkers.genotyper.UnifiedGenotyperEngine.OUTPUT_MODE.EMIT_VARIANTS_ONLY
-    this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.BOTH
+    def writeIntervals(bed: File, intervalFile: File, bam: File, formatFrom: Array[String] => String): Unit = {
 
-    override def jobRunnerJobName = projectName.get + "_genotype"
+      def getSamHeader(bam: File): SAMFileHeader = {
+        val samReader = new SAMFileReader(bam)
+        samReader.getFileHeader
+      }
 
-  }
+      val header = getSamHeader(bam)
+      header.setProgramRecords(List())
+      header.setReadGroups(List())
 
-  case class target(@Input candidateIndels: File, outIntervals: File, reference: File) extends RealignerTargetCreator with CommandLineGATKArgs {
+      val writer = new PrintWriter(intervalFile)
 
-    this.reference_sequence = reference
-    this.num_threads = nbrOfThreads
-    this.intervals = Seq(qscript.intervals)
-    this.out = outIntervals
-    this.mismatchFraction = 0.0
-    this.known :+= resources.mills
-    this.known :+= resources.phase1
-    this.known :+= candidateIndels
-    this.scatterCount = nContigs
-    override def jobRunnerJobName = projectName.get + "_target"
+      val codec = new SAMTextHeaderCodec();
+      codec.encode(writer, header)
 
-  }
+      for (row <- Source.fromFile(bed).getLines.drop(2)) {
+        val split = row.split("\t")
+        val intervalEntry = formatFrom(split)
+        writer.println(intervalEntry)
+      }
+      writer.close()
+    }
 
-  case class clean(inBams: Seq[File], tIntervals: File, outBam: File, reference: File) extends IndelRealigner with CommandLineGATKArgs {
+    case class convertCoveredToIntervals(@Input bed: File, @Output intervalFile: File, @Input bam: File) extends InProcessFunction {
+      def run(): Unit = {
+        writeIntervals(bed, intervalFile, bam, formatFromCovered)
+      }
+    }
 
-    this.isIntermediate = true
-    this.reference_sequence = reference
-    this.input_file = inBams
-    this.targetIntervals = tIntervals
-    this.out = outBam
-    this.known :+= resources.dbsnp
-    this.known :+= resources.mills
-    this.known :+= resources.phase1
-    this.consensusDeterminationModel = org.broadinstitute.sting.gatk.walkers.indels.IndelRealigner.ConsensusDeterminationModel.KNOWNS_ONLY
-    this.compress = 0
-    this.scatterCount = nContigs
-    override def jobRunnerJobName = projectName.get + "_clean"
+    case class convertAmpliconsToIntervals(@Input bed: File, @Output intervalFile: File, @Input bam: File) extends InProcessFunction {
+      def run(): Unit = {
+        writeIntervals(bed, intervalFile, bam, formatFromAmplicons)
+      }
+    }
 
-  }
+    case class genotype(@Input bam: Seq[File], reference: File, @Output @Gather(classOf[VcfGatherFunction]) vcf: File, isSecondPass: Boolean) extends UnifiedGenotyper with CommandLineGATKArgs with EightCoreJob {
 
-  case class cov(inBam: Seq[File], outRecalFile: File, reference: File) extends BaseRecalibrator with CommandLineGATKArgs {
+      if (qscript.testMode)
+        this.no_cmdline_in_header = true
 
-    // Ask for a fat node
-    this.jobNativeArgs :+= " -C fat "
+      this.isIntermediate = false
 
-    this.reference_sequence = reference
-    this.isIntermediate = false
+      this.input_file = bam
+      this.out = vcf
 
-    this.num_cpu_threads_per_data_thread = nbrOfThreads
+      this.dbsnp = resources.dbsnp
+      this.reference_sequence = reference
+      this.intervals = Seq(qscript.intervals)
+      this.scatterCount = nContigs
+      this.nt = nbrOfThreads
+      this.stand_call_conf = 30.0
+      this.stand_emit_conf = 10.0
 
-    if (qscript.downsampleBQSR != -1)
-      this.downsample_to_coverage = qscript.downsampleBQSR
-    this.knownSites :+= resources.dbsnp
-    this.covariate ++= Seq("ReadGroupCovariate", "QualityScoreCovariate", "CycleCovariate", "ContextCovariate")
-    this.input_file = inBam
-    this.disable_indel_quals = false
-    this.out = outRecalFile
-    this.intervals = Seq(qscript.intervals)
+      // Depending on if this is used to call preliminary or final variations different
+      // parameters should be used.
+      if (isSecondPass) {
+        this.dt = DownsampleType.NONE
+        this.annotation = Seq("AlleleBalance")
+        this.filterMBQ = true
+      } else {
+        this.downsample_to_coverage = 200
+      }
 
-    this.scatterCount = nContigs
-    override def jobRunnerJobName = projectName.get + "_cov"
+      this.output_mode = org.broadinstitute.sting.gatk.walkers.genotyper.UnifiedGenotyperEngine.OUTPUT_MODE.EMIT_VARIANTS_ONLY
+      this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.BOTH
 
-  }
+      override def jobRunnerJobName = projectName.get + "_genotype"
 
-  case class clip(@Input inBam: File, @Output @Gather(classOf[BamGatherFunction]) outBam: File, covariates: File, reference: File) extends ClipReads with CommandLineGATKArgs {
-    this.isIntermediate = false
-    this.reference_sequence = reference
-    this.input_file = Seq(inBam)
-    this.out = outBam
-    this.cyclesToTrim = "1-5"
-    this.scatterCount = nContigs
-    this.clipRepresentation = org.broadinstitute.sting.utils.clipping.ClippingRepresentation.WRITE_NS
-    this.BQSR = covariates
+    }
 
-    override def jobRunnerJobName = projectName.get + "_clean"
+    case class target(@Input candidateIndels: File, outIntervals: File, reference: File) extends RealignerTargetCreator with CommandLineGATKArgs with EightCoreJob {
 
-  }
+      this.reference_sequence = reference
+      this.num_threads = nbrOfThreads
+      this.intervals = Seq(qscript.intervals)
+      this.out = outIntervals
+      this.mismatchFraction = 0.0
+      this.known :+= resources.mills
+      this.known :+= resources.phase1
+      this.known :+= candidateIndels
+      this.scatterCount = nContigs
+      override def jobRunnerJobName = projectName.get + "_target"
 
-  case class filterVariations(@Input inVcf: File, @Output outVcf: File, reference: File) extends VariantFiltration with CommandLineGATKArgs {
+    }
 
-    if (qscript.testMode)
-      this.no_cmdline_in_header = true
+    case class clean(inBams: Seq[File], tIntervals: File, outBam: File, reference: File) extends IndelRealigner with CommandLineGATKArgs {
 
-    this.reference_sequence = reference
-    this.variant = inVcf
-    this.out = outVcf
+      this.isIntermediate = true
+      this.reference_sequence = reference
+      this.input_file = inBams
+      this.targetIntervals = tIntervals
+      this.out = outBam
+      this.known :+= resources.dbsnp
+      this.known :+= resources.mills
+      this.known :+= resources.phase1
+      this.consensusDeterminationModel = org.broadinstitute.sting.gatk.walkers.indels.IndelRealigner.ConsensusDeterminationModel.KNOWNS_ONLY
+      this.compress = 0
+      this.scatterCount = nContigs
+      override def jobRunnerJobName = projectName.get + "_clean"
 
-    this.clusterWindowSize = 10
-    this.clusterSize = 3
-    this.filterExpression = Seq("MQ0 >= 4 && (( MQ0 / (1.0 * DP )) > 0.1)",
-      "DP < 10",
-      "QUAL < 30.0",
-      "QUAL > 30.0 && QUAL < 50.0",
-      "QD < 1.5")
+    }
 
-    this.filterName = Seq("HARD_TO_VALIDATE", "LowCoverage", "VeryLowQual", "LowQual", "LowQD")
+    case class cov(inBam: Seq[File], outRecalFile: File, reference: File) extends BaseRecalibrator with CommandLineGATKArgs with EightCoreJob {
 
-    override def jobRunnerJobName = projectName.get + "_filterVariants"
+      this.reference_sequence = reference
+      this.isIntermediate = false
 
-  }
+      this.num_cpu_threads_per_data_thread = nbrOfThreads
 
-  case class collectTargetedPCRMetrics(bam: File, generalStatisticsOutput: File, perTargetStat: File, ampliconIntervalFile: File, targetIntevalFile: File, ref: File) extends CollectTargetedPcrMetrics with ExternalCommonArgs {
+      if (qscript.downsampleBQSR != -1)
+        this.downsample_to_coverage = qscript.downsampleBQSR
+      this.knownSites :+= resources.dbsnp
+      this.covariate ++= Seq("ReadGroupCovariate", "QualityScoreCovariate", "CycleCovariate", "ContextCovariate")
+      this.input_file = inBam
+      this.disable_indel_quals = false
+      this.out = outRecalFile
+      this.intervals = Seq(qscript.intervals)
 
-    this.isIntermediate = false
+      this.scatterCount = nContigs
+      override def jobRunnerJobName = projectName.get + "_cov"
 
-    this.input = Seq(bam)
-    this.output = generalStatisticsOutput
-    this.perTargetOutputFile = perTargetStat
-    this.amplicons = ampliconIntervalFile
-    this.targets = targetIntevalFile
-    this.reference = ref
+    }
 
-    override def jobRunnerJobName = projectName + "_collectPCRMetrics"
+    case class clip(@Input inBam: File, @Output @Gather(classOf[BamGatherFunction]) outBam: File, covariates: File, reference: File) extends ClipReads with CommandLineGATKArgs {
+      this.isIntermediate = false
+      this.reference_sequence = reference
+      this.input_file = Seq(inBam)
+      this.out = outBam
+      this.cyclesToTrim = "1-5"
+      this.scatterCount = nContigs
+      this.clipRepresentation = org.broadinstitute.sting.utils.clipping.ClippingRepresentation.WRITE_NS
+      this.BQSR = covariates
+
+      override def jobRunnerJobName = projectName.get + "_clean"
+
+    }
+
+    case class filterVariations(@Input inVcf: File, @Output outVcf: File, reference: File) extends VariantFiltration with CommandLineGATKArgs {
+
+      if (qscript.testMode)
+        this.no_cmdline_in_header = true
+
+      this.reference_sequence = reference
+      this.variant = inVcf
+      this.out = outVcf
+
+      this.clusterWindowSize = 10
+      this.clusterSize = 3
+      this.filterExpression = Seq("MQ0 >= 4 && (( MQ0 / (1.0 * DP )) > 0.1)",
+        "DP < 10",
+        "QUAL < 30.0",
+        "QUAL > 30.0 && QUAL < 50.0",
+        "QD < 1.5")
+
+      this.filterName = Seq("HARD_TO_VALIDATE", "LowCoverage", "VeryLowQual", "LowQual", "LowQD")
+
+      override def jobRunnerJobName = projectName.get + "_filterVariants"
+
+    }
+
+    case class collectTargetedPCRMetrics(bam: File, generalStatisticsOutput: File, perTargetStat: File, ampliconIntervalFile: File, targetIntevalFile: File, ref: File) extends CollectTargetedPcrMetrics with OneCoreJob {
+
+      this.isIntermediate = false
+
+      this.input = Seq(bam)
+      this.output = generalStatisticsOutput
+      this.perTargetOutputFile = perTargetStat
+      this.amplicons = ampliconIntervalFile
+      this.targets = targetIntevalFile
+      this.reference = ref
+
+      override def jobRunnerJobName = projectName + "_collectPCRMetrics"
+
+    }
 
   }
 
