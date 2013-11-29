@@ -52,7 +52,7 @@ class Cuffdiff extends QScript with UppmaxXMLConfiguration {
   def getOutputDir: String = if (outputDir.isEmpty()) "" else outputDir + "/"
 
   @Argument(doc = "Number of threads to use", fullName = "threads", shortName = "nt", required = false)
-  var threads: Int = 1
+  var threads: Int = 8
 
   @Argument(doc = "library type. Options: fr-unstranded (default), fr-firststrand, fr-secondstrand", fullName = "library_type", shortName = "lib", required = false)
   var libraryType: String = "fr-unstranded"
@@ -102,7 +102,7 @@ class Cuffdiff extends QScript with UppmaxXMLConfiguration {
    * Cuffdiff commandline case classes.
    */
   class CuffDiffUtils(uppmaxConfig: UppmaxConfig) extends UppmaxUtils(uppmaxConfig) {
-    case class cuffdiff(samplesAndLables: Map[File, String], replicates: Map[String, List[String]], outputFile: File) extends FatNode {
+    case class cuffdiff(samplesAndLables: Map[File, String], replicates: Map[String, List[String]], outputFile: File) extends EightCoreJob {
 
       this.isIntermediate = false
 

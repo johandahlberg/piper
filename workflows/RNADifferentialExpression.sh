@@ -58,7 +58,6 @@ function cuffdiff {
             --library_type ${LIBRARY_TYPE} \
             --path_to_cuffdiff ${PATH_TO_CUFFDIFF} \
             -outputDir ${CUFFDIFF_OUTPUT}/ \
-            --threads ${NBR_OF_THREADS} \
             -jobRunner ${JOB_RUNNER} \
             -jobNative "${JOB_NATIVE_ARGS}" \
             --job_walltime 259200 \

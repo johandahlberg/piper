@@ -57,7 +57,6 @@ function cufflinks {
 	             --mask ${RRNA_TARGETS} \
 	             --path_to_cufflinks ${PATH_TO_CUFFLINKS} \
 	             -outputDir ${CUFFLINKS_OUTPUT}/ \
-	             --threads ${NBR_OF_THREADS} \
          	     -jobRunner ${JOB_RUNNER} \
 	             -jobNative "${JOB_NATIVE_ARGS}" \
 	             --job_walltime 518400 \

@@ -47,7 +47,7 @@ class Cufflinks extends QScript with UppmaxXMLConfiguration {
   def getOutputDir: String = if (outputDir.isEmpty()) "" else outputDir + "/"
 
   @Argument(doc = "Number of threads to use", fullName = "threads", shortName = "nt", required = false)
-  var threads: Int = 1
+  var threads: Int = 2
 
   @Argument(doc = "library type. Options: fr-unstranded (default), fr-firststrand, fr-secondstrand", fullName = "library_type", shortName = "lib", required = false)
   var libraryType: String = "fr-unstranded"
@@ -130,7 +130,7 @@ class Cufflinks extends QScript with UppmaxXMLConfiguration {
   }
 
   class CufflinksUtils(uppmaxConfig: UppmaxConfig) extends UppmaxUtils(uppmaxConfig) {
-    case class cufflinks(inputBamFile: File, sampleOutputDir: File, outputFile: File) extends ExternalCommonArgs {
+    case class cufflinks(inputBamFile: File, sampleOutputDir: File, outputFile: File) extends TwoCoreJob {
 
       // Sometime this should be kept, sometimes it shouldn't
       this.isIntermediate = false
@@ -156,7 +156,7 @@ class Cufflinks extends QScript with UppmaxXMLConfiguration {
       override def jobRunnerJobName = projectName.get + "_cufflinks"
     }
 
-    case class cuffmerge(assemblies: File, outputDir: File, reference: File, outputFile: File) extends ExternalCommonArgs {
+    case class cuffmerge(assemblies: File, outputDir: File, reference: File, outputFile: File) extends EightCoreJob {
 
       // Sometime this should be kept, sometimes it shouldn't
       this.isIntermediate = false
