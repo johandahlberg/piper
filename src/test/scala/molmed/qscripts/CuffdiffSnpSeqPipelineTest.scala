@@ -39,6 +39,7 @@ class CuffdiffSnpSeqPipelineTest {
       " --xml_input " + snpSeqBaseTest.pathSetupFile,
       " --reference " + snpSeqBaseTest.hg19,
       " --annotations " + snpSeqBaseTest.hg19annotations,
+      " --threads 1", 
       " --path_to_cuffdiff " + snpSeqBaseTest.pathToCuffdiff,
       " --library_type " + " fr-secondstrand ",
       " -startFromScratch ").mkString
