@@ -7,6 +7,7 @@ import org.broadinstitute.sting.queue.extensions.gatk._
 import org.broadinstitute.sting.utils.baq.BAQ.CalculationMode
 import org.broadinstitute.sting.gatk.walkers.indels.IndelRealigner.ConsensusDeterminationModel
 import org.broadinstitute.sting.commandline.Argument
+import molmed.utils.EightCoreJob
 
 class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxConfig: UppmaxConfig) extends UppmaxUtils(uppmaxConfig) {
 
@@ -25,7 +26,7 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxCon
     this.omitBaseOutput = true
   }
 
-  case class target(inBams: Seq[File], outIntervals: File, @Argument cleanModelEnum: ConsensusDeterminationModel) extends RealignerTargetCreator with CommandLineGATKArgs with OneCoreJob {
+  case class target(inBams: Seq[File], outIntervals: File, @Argument cleanModelEnum: ConsensusDeterminationModel) extends RealignerTargetCreator with CommandLineGATKArgs with EightCoreJob {
 
     this.num_threads = gatkOptions.nbrOfThreads
 
