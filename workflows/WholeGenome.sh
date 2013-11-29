@@ -42,7 +42,7 @@ function alignWithBwa {
 	    exit 1
     fi
 
-    echo "${RAW_BAM_OUTPUT}/${PROJECT_NAME}.cohort.list"
+    echo "${RAW_BAM_OUTPUT}/cohort.list"
 }
 
 #------------------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ function mergeBySampleName {
             exit 1
     fi
 
-    echo "${RAW_MERGED_BAM_OUTPUT}/${PROJECT_NAME}.cohort.list"
+    echo "${RAW_MERGED_BAM_OUTPUT}/cohort.list"
 }
 
 
@@ -100,7 +100,7 @@ function alignmentQC {
 	    exit 1
     fi
 
-    echo "${RAW_BAM_OUTPUT}/${PROJECT_NAME}.cohort.list"
+    echo "${RAW_BAM_OUTPUT}/cohort.list"
 }
 
 
@@ -134,7 +134,7 @@ function dataPreprocessing {
             exit 1
     fi
     
-    echo "${PROCESSED_BAM_OUTPUT}/${PROJECT_NAME}.cohort.list"
+    echo "${PROCESSED_BAM_OUTPUT}/cohort.list"
 
 }
 
@@ -167,7 +167,7 @@ function variantCalling {
             exit 1
     fi
     
-    echo "${VCF_OUTPUT}/${PROJECT_NAME}.cohort.list"
+    echo "${VCF_OUTPUT}/cohort.list"
 }
 
 # We also need the correct java engine and R version

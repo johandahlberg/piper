@@ -45,7 +45,7 @@ function alignWithTophat {
 	    exit 1
     fi
     
-    echo "${RAW_BAM_OUTPUT}/${PROJECT_NAME}.cohort.list"
+    echo "${RAW_BAM_OUTPUT}/cohort.list"
 }
 
 function cufflinks {
@@ -71,7 +71,7 @@ function cufflinks {
 	    exit 1
     fi
     
-    echo "${RAW_BAM_OUTPUT}/${PROJECT_NAME}.cohort.list"
+    echo "${RAW_BAM_OUTPUT}/cohort.list"
 }
 
 #------------------------------------------------------------------------------------------
