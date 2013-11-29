@@ -92,7 +92,7 @@ function RNA_QC {
         --path_to_samtools ${PATH_TO_SAMTOOLS} \
 	    -jobRunner ${JOB_RUNNER} \
 	    -jobNative "${JOB_NATIVE_ARGS}" \
-	    --job_walltime 259200 \
+	    --job_walltime 172800 \
 	    -run \
 	    ${DEBUG} >> ${LOGS}/rnaQC.log  2>&1
 
