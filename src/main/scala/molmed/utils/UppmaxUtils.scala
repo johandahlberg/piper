@@ -31,4 +31,10 @@ class UppmaxUtils(uppmaxConfig: UppmaxConfig) {
     this.isIntermediate = false
   }
 
+  trait SixteenCoreJob extends CommandLineFunction {
+    this.jobNativeArgs = Seq("-p node") ++ projectBaseString
+    this.memoryLimit = Some(128)
+    this.isIntermediate = false
+  }
+  
 }
