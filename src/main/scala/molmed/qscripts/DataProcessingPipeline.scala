@@ -356,7 +356,7 @@ class DataProcessingPipeline extends QScript with UppmaxXMLConfiguration {
     }
 
     // output a BAM list with all the processed per sample files
-    val cohortFile = new File(qscript.outputDir + projectName.get + ".cohort.list")
+    val cohortFile = new File(qscript.outputDir + "cohort.list")
     add(generalUtils.writeList(cohortList, cohortFile))
   }
 
