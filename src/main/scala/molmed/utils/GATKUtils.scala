@@ -27,7 +27,7 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxCon
 
   case class target(inBams: Seq[File], outIntervals: File, @Argument cleanModelEnum: ConsensusDeterminationModel) extends RealignerTargetCreator with CommandLineGATKArgs with SixteenCoreJob {
 
-    this.num_threads = gatkOptions.nbrOfThreads
+    this.num_threads = 16
 
     if (cleanModelEnum != ConsensusDeterminationModel.KNOWNS_ONLY)
       this.input_file = inBams
@@ -37,7 +37,7 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxCon
       this.known ++= gatkOptions.dbSNP.get
     if (!gatkOptions.indels.isEmpty)
       this.known ++= gatkOptions.indels.get
-    this.scatterCount = 16
+    this.scatterCount = gatkOptions.scatterGatherCount.get
     override def jobRunnerJobName = projectName.get + "_targets"
     
   }
