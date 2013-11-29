@@ -123,7 +123,7 @@ function dataPreprocessing {
 			      -run \
 		          -jobRunner ${JOB_RUNNER} \
          	      -jobNative "${JOB_NATIVE_ARGS}" \
-			      --job_walltime 864000 \
+			      --job_walltime 86400 \
 			      -nt ${NBR_OF_THREADS} \
 			      ${DEBUG} >> ${LOGS}/dataPreprocessing.log  2>&1
 
