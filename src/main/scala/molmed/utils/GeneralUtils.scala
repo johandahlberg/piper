@@ -19,12 +19,12 @@ import molmed.queue.extensions.picard.BuildBamIndex
 
 class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) extends UppmaxUtils(uppmaxConfig) {
 
-  case class createIndex(@Input bam: File, @Output index: File) extends BuildBamIndex with SixGbRamJobs {
+  case class createIndex(@Input bam: File, @Output index: File) extends BuildBamIndex with OneCoreJob {
     this.input = bam
     this.output = index
   }
 
-  case class joinBams(inBams: Seq[File], outBam: File) extends MergeSamFiles with SixGbRamJobs {
+  case class joinBams(inBams: Seq[File], outBam: File) extends MergeSamFiles with OneCoreJob {
     this.input = inBams
     this.output = outBam
 
@@ -39,14 +39,14 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     override def jobRunnerJobName = projectName.get + "_bamList"
   }
 
-  case class sortSam(inSam: File, outBam: File, sortOrderP: SortOrder) extends SortSam with ExternalCommonArgs {
+  case class sortSam(inSam: File, outBam: File, sortOrderP: SortOrder) extends SortSam with OneCoreJob {
     this.input :+= inSam
     this.output = outBam
     this.sortOrder = sortOrderP
     override def jobRunnerJobName = projectName.get + "_sortSam"
   }
 
-  case class cutadapt(@Input fastq: File, cutFastq: File, @Argument adaptor: String, @Argument cutadaptPath: String, @Argument syncPath: String = "resources/FixEmptyReads.pl") extends SixGbRamJobs {
+  case class cutadapt(@Input fastq: File, cutFastq: File, @Argument adaptor: String, @Argument cutadaptPath: String, @Argument syncPath: String = "resources/FixEmptyReads.pl") extends OneCoreJob {
 
     @Output val fastqCut: File = cutFastq
     this.isIntermediate = true
@@ -55,7 +55,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     override def jobRunnerJobName = projectName.get + "_cutadapt"
   }
 
-  case class dedup(inBam: File, outBam: File, metricsFile: File) extends MarkDuplicates with ExternalCommonArgs {
+  case class dedup(inBam: File, outBam: File, metricsFile: File) extends MarkDuplicates with OneCoreJob {
 
     this.input :+= inBam
     this.output = outBam
@@ -64,7 +64,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     override def jobRunnerJobName = projectName.get + "_dedup"
   }
 
-  case class validate(inBam: File, outLog: File, reference: File) extends ValidateSamFile with ExternalCommonArgs {
+  case class validate(inBam: File, outLog: File, reference: File) extends ValidateSamFile with OneCoreJob {
     this.input :+= inBam
     this.output = outLog
     this.REFERENCE_SEQUENCE = reference
@@ -72,13 +72,13 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     override def jobRunnerJobName = projectName.get + "_validate"
   }
 
-  case class fixMatePairs(inBam: Seq[File], outBam: File) extends FixMateInformation with ExternalCommonArgs {
+  case class fixMatePairs(inBam: Seq[File], outBam: File) extends FixMateInformation with OneCoreJob {
     this.input = inBam
     this.output = outBam
     override def jobRunnerJobName = projectName.get + "_fixMates"
   }
 
-  case class revert(inBam: File, outBam: File, removeAlignmentInfo: Boolean) extends RevertSam with ExternalCommonArgs {
+  case class revert(inBam: File, outBam: File, removeAlignmentInfo: Boolean) extends RevertSam with OneCoreJob {
     this.output = outBam
     this.input :+= inBam
     this.removeAlignmentInformation = removeAlignmentInfo;
@@ -87,7 +87,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
 
   }
 
-  case class convertToFastQ(inBam: File, outFQ: File) extends SamToFastq with ExternalCommonArgs {
+  case class convertToFastQ(inBam: File, outFQ: File) extends SamToFastq with OneCoreJob {
     this.input :+= inBam
     this.fastq = outFQ
     override def jobRunnerJobName = projectName.get + "_convert2fastq"

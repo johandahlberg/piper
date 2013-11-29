@@ -24,7 +24,7 @@ abstract class AligmentUtils(projectName: Option[String], uppmaxConfig: UppmaxCo
 
 class TophatAligmentUtils(tophatPath: String, tophatThreads: Int, projectName: Option[String], uppmaxConfig: UppmaxConfig) extends AligmentUtils(projectName, uppmaxConfig) {
 
-  case class tophat(fastqs1: File, fastqs2: File, sampleOutputDir: File, reference: File, annotations: Option[File], libraryType: String, outputFile: File, readGroupInfo: String, fusionSearch: Boolean = false) extends ExternalCommonArgs {
+  case class tophat(fastqs1: File, fastqs2: File, sampleOutputDir: File, reference: File, annotations: Option[File], libraryType: String, outputFile: File, readGroupInfo: String, fusionSearch: Boolean = false) extends EightCoreJob {
 
     // Sometime this should be kept, sometimes it shouldn't
     this.isIntermediate = false
@@ -110,7 +110,7 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
   }
 
   // Find suffix array coordinates of single end reads
-  case class bwa_aln_se(fastq1: File, outSai: File, reference: File) extends SixGbRamJobs {
+  case class bwa_aln_se(fastq1: File, outSai: File, reference: File) extends OneCoreJob {
     @Input(doc = "fastq file to be aligned") var fastq = fastq1
     @Input(doc = "reference") var ref = reference
     @Output(doc = "output sai file") var sai = outSai
@@ -126,7 +126,7 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
     samtoolsPath + " index " + alignedBam.getAbsoluteFile()
 
   // Perform alignment of single end reads
-  case class bwa_sam_se(fastq: File, inSai: File, outBam: File, readGroupInfo: String, reference: File, intermediate: Boolean = false) extends SixGbRamJobs {
+  case class bwa_sam_se(fastq: File, inSai: File, outBam: File, readGroupInfo: String, reference: File, intermediate: Boolean = false) extends OneCoreJob {
     @Input(doc = "fastq file to be aligned") var mate1 = fastq
     @Input(doc = "bwa alignment index file") var sai = inSai
     @Input(doc = "reference") var ref = reference
@@ -141,7 +141,7 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
   }
 
   // Perform alignment of paired end reads
-  case class bwa_sam_pe(fastq1: File, fastq2: File, inSai1: File, inSai2: File, outBam: File, readGroupInfo: String, reference: File, intermediate: Boolean = false) extends SixGbRamJobs {
+  case class bwa_sam_pe(fastq1: File, fastq2: File, inSai1: File, inSai2: File, outBam: File, readGroupInfo: String, reference: File, intermediate: Boolean = false) extends OneCoreJob {
     @Input(doc = "fastq file with mate 1 to be aligned") var mate1 = fastq1
     @Input(doc = "fastq file with mate 2 file to be aligned") var mate2 = fastq2
     @Input(doc = "bwa alignment index file for 1st mating pair") var sai1 = inSai1
@@ -159,7 +159,7 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
   }
 
   // Perform Smith-Watherman aligment of single end reads
-  case class bwa_sw(inFastQ: File, outBam: File, reference: File, intermediate: Boolean = false) extends SixGbRamJobs {
+  case class bwa_sw(inFastQ: File, outBam: File, reference: File, intermediate: Boolean = false) extends EightCoreJob {
     @Input(doc = "fastq file to be aligned") var fq = inFastQ
     @Input(doc = "reference") var ref = reference
     @Output(doc = "output bam file") var bam = outBam

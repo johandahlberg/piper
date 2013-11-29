@@ -11,11 +11,11 @@ import org.broadinstitute.sting.commandline.Argument
 class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxConfig: UppmaxConfig) extends UppmaxUtils(uppmaxConfig) {
 
   // General arguments to GATK walkers
-  trait CommandLineGATKArgs extends CommandLineGATK with ExternalCommonArgs {
+  trait CommandLineGATKArgs extends CommandLineGATK {
     this.reference_sequence = gatkOptions.reference
   }
 
-  case class DepthOfCoverage(inBam: File, outputDir: File) extends org.broadinstitute.sting.queue.extensions.gatk.DepthOfCoverage with CommandLineGATKArgs with NineGbRamJobs {
+  case class DepthOfCoverage(inBam: File, outputDir: File) extends org.broadinstitute.sting.queue.extensions.gatk.DepthOfCoverage with CommandLineGATKArgs with OneCoreJob {
     this.input_file = Seq(inBam)
     this.out = outputDir
     if (!gatkOptions.intervalFile.isEmpty) this.intervals :+= gatkOptions.intervalFile.get
@@ -25,7 +25,7 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxCon
     this.omitBaseOutput = true
   }
 
-  case class target(inBams: Seq[File], outIntervals: File, @Argument cleanModelEnum: ConsensusDeterminationModel) extends RealignerTargetCreator with CommandLineGATKArgs {
+  case class target(inBams: Seq[File], outIntervals: File, @Argument cleanModelEnum: ConsensusDeterminationModel) extends RealignerTargetCreator with CommandLineGATKArgs with OneCoreJob {
 
     this.num_threads = gatkOptions.nbrOfThreads
 
@@ -42,7 +42,7 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxCon
     
   }
 
-  case class clean(inBams: Seq[File], tIntervals: File, outBam: File, @Argument cleanModelEnum: ConsensusDeterminationModel, testMode: Boolean) extends IndelRealigner with CommandLineGATKArgs {
+  case class clean(inBams: Seq[File], tIntervals: File, outBam: File, @Argument cleanModelEnum: ConsensusDeterminationModel, testMode: Boolean) extends IndelRealigner with CommandLineGATKArgs with OneCoreJob {
 
     //TODO This should probably be a core job since it does not support parallel exection.         
 
@@ -60,7 +60,7 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxCon
     
   }
 
-  case class cov(inBam: File, outRecalFile: File, @Argument defaultPlatform: String) extends BaseRecalibrator with CommandLineGATKArgs {
+  case class cov(inBam: File, outRecalFile: File, @Argument defaultPlatform: String) extends BaseRecalibrator with CommandLineGATKArgs with EightCoreJob{
 
     this.num_cpu_threads_per_data_thread = gatkOptions.nbrOfThreads
 
@@ -78,7 +78,7 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxCon
     
   }
 
-  case class recal(inBam: File, inRecalFile: File, outBam: File) extends PrintReads with CommandLineGATKArgs {
+  case class recal(inBam: File, inRecalFile: File, outBam: File) extends PrintReads with CommandLineGATKArgs with EightCoreJob {
 
     //TODO This should probably be a core job since it does not support parallel exection.   
 
