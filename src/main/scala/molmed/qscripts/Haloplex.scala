@@ -370,7 +370,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
 
     }
 
-    case class clean(inBams: Seq[File], tIntervals: File, outBam: File, reference: File) extends IndelRealigner with CommandLineGATKArgs {
+    case class clean(inBams: Seq[File], tIntervals: File, outBam: File, reference: File) extends IndelRealigner with CommandLineGATKArgs with OneCoreJob {
 
       this.isIntermediate = true
       this.reference_sequence = reference
@@ -408,7 +408,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
 
     }
 
-    case class clip(@Input inBam: File, @Output @Gather(classOf[BamGatherFunction]) outBam: File, covariates: File, reference: File) extends ClipReads with CommandLineGATKArgs {
+    case class clip(@Input inBam: File, @Output @Gather(classOf[BamGatherFunction]) outBam: File, covariates: File, reference: File) extends ClipReads with CommandLineGATKArgs with OneCoreJob{
       this.isIntermediate = false
       this.reference_sequence = reference
       this.input_file = Seq(inBam)
@@ -422,7 +422,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
 
     }
 
-    case class filterVariations(@Input inVcf: File, @Output outVcf: File, reference: File) extends VariantFiltration with CommandLineGATKArgs {
+    case class filterVariations(@Input inVcf: File, @Output outVcf: File, reference: File) extends VariantFiltration with CommandLineGATKArgs with OneCoreJob {
 
       if (qscript.testMode)
         this.no_cmdline_in_header = true

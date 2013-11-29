@@ -16,6 +16,10 @@ import molmed.queue.extensions.picard.FixMateInformation
 import org.broadinstitute.sting.queue.extensions.picard.RevertSam
 import org.broadinstitute.sting.queue.extensions.picard.SamToFastq
 import molmed.queue.extensions.picard.BuildBamIndex
+import molmed.queue.extensions.RNAQC.RNASeQC
+import org.broadinstitute.sting.queue.function.InProcessFunction
+import java.io.PrintWriter
+import scala.io.Source
 
 class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) extends UppmaxUtils(uppmaxConfig) {
 
@@ -91,6 +95,52 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     this.input :+= inBam
     this.fastq = outFQ
     override def jobRunnerJobName = projectName.get + "_convert2fastq"
+  }
+
+  case class RNA_QC(@Input bamfile: File, @Input bamIndex: File, rRNATargetsFile: File, downsampling: Int, referenceFile: File, outDir: File, transcriptFile: File, placeHolder: File, pathRNASeQC: File) extends RNASeQC with OneCoreJob {      
+    
+    import molmed.utils.ReadGroupUtils._
+
+    def createRNASeQCInputString(file: File): String = {
+      val sampleName = getSampleNameFromReadGroups(file)
+      "\"" + sampleName + "|" + file.getAbsolutePath() + "|" + sampleName + "\""
+    }
+
+    val inputString = createRNASeQCInputString(bamfile)
+
+    this.input = inputString
+    this.output = outDir
+    this.reference = referenceFile
+    this.transcripts = transcriptFile
+    this.rRNATargetString = if (rRNATargetsFile != null) " -rRNA " + rRNATargetsFile.getAbsolutePath() + " " else ""
+    this.downsampleString = if (downsampling > 0) " -d " + downsampling + " " else ""
+    this.placeHolderFile = placeHolder
+    this.pathToRNASeQC = pathRNASeQC
+
+    this.isIntermediate = false
+    override def jobRunnerJobName = projectName.get + "_RNA_QC"
+  }
+
+  case class createAggregatedMetrics(@Input placeHolderSeq: Seq[File], @Input outputDir: File, @Output aggregatedMetricsFile: File) extends InProcessFunction {
+
+    def run() = {
+
+      def getFileTree(f: File): Stream[File] =
+        f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)
+        else Stream.empty)
+
+      val writer = new PrintWriter(aggregatedMetricsFile)
+      val metricsFiles = getFileTree(outputDir).filter(file => file.getName().matches("metrics.tsv"))
+      val header = Source.fromFile(metricsFiles(0)).getLines.take(1).next.toString()
+
+      writer.println(header)
+      metricsFiles.foreach(file =>
+        for (row <- Source.fromFile(file).getLines.drop(1))
+          writer.println(row))
+
+      writer.close()
+
+    }
   }
 
 }

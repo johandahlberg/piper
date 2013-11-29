@@ -13,7 +13,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
   def bai(bam: File): File = new File(bam + ".bai")
 
   // 1.) Unified Genotyper Base
-  class GenotyperBase(t: VariantCallingTarget, testMode: Boolean, downsampleFraction: Option[Double]) extends UnifiedGenotyper with CommandLineGATKArgs {
+  class GenotyperBase(t: VariantCallingTarget, testMode: Boolean, downsampleFraction: Option[Double]) extends UnifiedGenotyper with CommandLineGATKArgs with EightCoreJob {
 
     if (testMode)
       this.no_cmdline_in_header = true
@@ -57,7 +57,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
   }
 
   // 2.) Hard Filtering for indels
-  class indelFilter(t: VariantCallingTarget) extends VariantFiltration with CommandLineGATKArgs {
+  class indelFilter(t: VariantCallingTarget) extends VariantFiltration with CommandLineGATKArgs with OneCoreJob {
     this.reference_sequence = t.reference
     if (t.intervals != null) this.intervals :+= t.intervals
     this.scatterCount = gatkOptions.scatterGatherCount.get
@@ -74,7 +74,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     override def jobRunnerJobName = projectName.get + "_VF"
   }
 
-  class VQSRBase(t: VariantCallingTarget) extends VariantRecalibrator with CommandLineGATKArgs {
+  class VQSRBase(t: VariantCallingTarget) extends VariantRecalibrator with CommandLineGATKArgs with OneCoreJob {
     this.nt = gatkOptions.nbrOfThreads
     this.reference_sequence = t.reference
     if (t.intervals != null) this.intervals :+= t.intervals
@@ -149,7 +149,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
   }
 
   // 4.) Apply the recalibration table to the appropriate tranches
-  class applyVQSRBase(t: VariantCallingTarget) extends ApplyRecalibration with CommandLineGATKArgs {
+  class applyVQSRBase(t: VariantCallingTarget) extends ApplyRecalibration with CommandLineGATKArgs with OneCoreJob{
     this.reference_sequence = t.reference
     if (t.intervals != null) this.intervals :+= t.intervals
   }
@@ -180,7 +180,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
   }
 
   // 5.) Variant Evaluation Base(OPTIONAL)
-  class EvalBase(t: VariantCallingTarget) extends VariantEval with CommandLineGATKArgs {
+  class EvalBase(t: VariantCallingTarget) extends VariantEval with CommandLineGATKArgs with OneCoreJob{
     if (t.resources.hapmap.exists())
       this.comp :+= new TaggedFile(t.resources.hapmap, "hapmap")
     if (t.resources.dbsnp.exists())
