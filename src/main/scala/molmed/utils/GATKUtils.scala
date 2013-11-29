@@ -25,9 +25,9 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxCon
     this.omitBaseOutput = true
   }
 
-  case class target(inBams: Seq[File], outIntervals: File, @Argument cleanModelEnum: ConsensusDeterminationModel) extends RealignerTargetCreator with CommandLineGATKArgs with SixteenCoreJob {
+  case class target(inBams: Seq[File], outIntervals: File, @Argument cleanModelEnum: ConsensusDeterminationModel) extends RealignerTargetCreator with CommandLineGATKArgs with TwoCoreJob {
 
-    this.num_threads = Option(16)
+    this.num_threads = Option(2)
 
     if (cleanModelEnum != ConsensusDeterminationModel.KNOWNS_ONLY)
       this.input_file = inBams
