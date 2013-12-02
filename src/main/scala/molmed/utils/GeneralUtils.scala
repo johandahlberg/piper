@@ -59,7 +59,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     override def jobRunnerJobName = projectName.get + "_cutadapt"
   }
 
-  case class dedup(inBam: File, outBam: File, metricsFile: File) extends MarkDuplicates with OneCoreJob {
+  case class dedup(inBam: File, outBam: File, metricsFile: File) extends MarkDuplicates with TwoCoreJob {
 
     this.input :+= inBam
     this.output = outBam
