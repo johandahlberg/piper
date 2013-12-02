@@ -4,5 +4,7 @@ scala:
 jdk:
    - oraclejdk7
    - openjdk7
+env: 
+   - SBT_OPTS="-Xms1536m -Xmx1536m -XX:MaxPermSize=384m -XX:ReservedCodeCacheSize=192m"
 install: ./setup.sh
 script: sbt/bin/sbt test 
