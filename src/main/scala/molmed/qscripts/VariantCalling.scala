@@ -45,6 +45,21 @@ class VariantCalling extends QScript with UppmaxXMLConfiguration {
    * **************************************************************************
    */
 
+  @Input(doc = "dbsnp ROD to use (must be in VCF format)", fullName = "dbsnp", shortName = "D", required = false)
+  var dbSNP: Option[File] = None
+
+  @Input(doc = "extra VCF files to use as reference indels for Indel Realignment", fullName = "extra_indels", shortName = "indels", required = false)
+  var indels: Option[Seq[File]] = None
+
+  @Input(doc = "HapMap file to use with variant recalibration.", fullName = "hammap", shortName = "hm", required = false)
+  var hapmap: Option[File] = None
+
+  @Input(doc = "Omni file fo use with variant recalibration ", fullName = "omni", shortName = "om", required = false)
+  var omni: Option[File] = None
+
+  @Input(doc = "Mills indel file to use with variant recalibration", fullName = "mills", shortName = "mi", required = false)
+  var mills: Option[File] = None
+
   @Argument(doc = "Location of resource files such as dbSnp, hapmap, etc.", fullName = "resources", shortName = "res", required = false)
   var resourcesPath: File = _
 
@@ -110,16 +125,16 @@ class VariantCalling extends QScript with UppmaxXMLConfiguration {
     if (nContigs < 0)
       nContigs = scala.math.min(QScriptUtils.getNumberOfContigs(bams(0)), 23)
 
-    resources = new Resources(resourcesPath, testMode)   
+    resources = new Resources(resourcesPath, testMode)
     val uppmaxConfig = loadUppmaxConfigFromXML()
-    val gatkOptions = new GATKOptions(reference, nbrOfThreads, nContigs, Some(intervals), None, None)
+    val gatkOptions = new GATKOptions(reference, nbrOfThreads, nContigs, Some(intervals), dbSNP, indels, hapmap, omni, mills)
     val variantCallingUtils = new VariantCallingUtils(gatkOptions, projectName, uppmaxConfig)
 
     val targets = (runSeparatly, notHuman) match {
-      case (true, false) => bams.map(bam => new VariantCallingTarget(outputDir, bam.getName(), reference, bam, intervals, isLowpass, isExome, 1, resources))
-      case (true, true) => bams.map(bam => new VariantCallingTarget(outputDir, bam.getName(), reference, bam, intervals, isLowpass, false, 1, resources))
-      case (false, true) => Seq(new VariantCallingTarget(outputDir, projectName.get, reference, input, intervals, isLowpass, false, bams.size, resources))
-      case (false, false) => Seq(new VariantCallingTarget(outputDir, projectName.get, reference, input, intervals, isLowpass, isExome, bams.size, resources))
+      case (true, false) => bams.map(bam => new VariantCallingTarget(outputDir, bam.getName(), reference, Seq(bam), intervals, isLowpass, isExome, 1))
+      case (true, true) => bams.map(bam => new VariantCallingTarget(outputDir, bam.getName(), reference, Seq(bam), intervals, isLowpass, false, 1))
+      case (false, true) => Seq(new VariantCallingTarget(outputDir, projectName.get, reference, bams, intervals, isLowpass, false, bams.size))
+      case (false, false) => Seq(new VariantCallingTarget(outputDir, projectName.get, reference, bams, intervals, isLowpass, isExome, bams.size))
     }
 
     for (target <- targets) {

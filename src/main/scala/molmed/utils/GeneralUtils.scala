@@ -28,7 +28,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     this.output = index
   }
 
-  case class joinBams(inBams: Seq[File], outBam: File) extends MergeSamFiles with OneCoreJob {
+  case class joinBams(@Input inBams: Seq[File], @Output outBam: File) extends MergeSamFiles with OneCoreJob {
     this.input = inBams
     this.output = outBam
 
@@ -97,8 +97,8 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     override def jobRunnerJobName = projectName.get + "_convert2fastq"
   }
 
-  case class RNA_QC(@Input bamfile: File, @Input bamIndex: File, rRNATargetsFile: File, downsampling: Int, referenceFile: File, outDir: File, transcriptFile: File, placeHolder: File, pathRNASeQC: File) extends RNASeQC with OneCoreJob {      
-    
+  case class RNA_QC(@Input bamfile: File, @Input bamIndex: File, rRNATargetsFile: File, downsampling: Int, referenceFile: File, outDir: File, transcriptFile: File, placeHolder: File, pathRNASeQC: File) extends RNASeQC with OneCoreJob {
+
     import molmed.utils.ReadGroupUtils._
 
     def createRNASeQCInputString(file: File): String = {
@@ -146,6 +146,27 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
 }
 
 object GeneralUtils {
+
+  /**
+   * Exchanges the extension on a file.
+   * @param file File to look for the extension.
+   * @param oldExtension Old extension to strip off, if present.
+   * @param newExtension New extension to append.
+   * @return new File with the new extension in the current directory.
+   */
+  def swapExt(file: File, oldExtension: String, newExtension: String) =
+    new File(file.getName.stripSuffix(oldExtension) + newExtension)
+
+  /**
+   * Exchanges the extension on a file.
+   * @param dir New directory for the file.
+   * @param file File to look for the extension.
+   * @param oldExtension Old extension to strip off, if present.
+   * @param newExtension New extension to append.
+   * @return new File with the new extension in dir.
+   */
+  def swapExt(dir: File, file: File, oldExtension: String, newExtension: String) =
+    new File(dir, file.getName.stripSuffix(oldExtension) + newExtension)
 
   /**
    * Check that all the files that make up bwa index exist for the reference.

@@ -8,12 +8,11 @@ import java.io.File
   class VariantCallingTarget(outputDir: String,
     val baseName: String,
     val reference: File,
-    val bamList: File,
+    val bamList: Seq[File],
     val intervals: File,
     val isLowpass: Boolean,
     val isExome: Boolean,
-    val nSamples: Int,
-    val resources: Resources) {
+    val nSamples: Int) {
 
     val name = if (outputDir.isEmpty()) baseName else outputDir + "/" + baseName
     val clusterFile = new File(name + ".clusters")

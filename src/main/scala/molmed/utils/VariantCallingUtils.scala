@@ -7,8 +7,48 @@ import org.broadinstitute.sting.queue.extensions.gatk.VariantRecalibrator
 import org.broadinstitute.sting.queue.extensions.gatk.TaggedFile
 import org.broadinstitute.sting.queue.extensions.gatk.ApplyRecalibration
 import org.broadinstitute.sting.queue.extensions.gatk.VariantEval
+import org.broadinstitute.sting.queue.QScript
 
 class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxConfig: UppmaxConfig) extends GATKUtils(gatkOptions, projectName, uppmaxConfig) {
+
+  def performVariantCalling(qscript: QScript, bams: Seq[File], outputDir: File, runSeparatly: Boolean, notHuman: Boolean, isLowPass: Boolean, isExome: Boolean, noRecal: Boolean, noIndels: Boolean, testMode: Boolean, downsampleFraction: Option[Double], minimumBaseQuality: Option[Int], deletions: Option[Double], noBAQ: Boolean): Seq[File] = {
+
+    val targets: Seq[VariantCallingTarget] = (runSeparatly, notHuman) match {
+      case (true, false) =>
+        bams.map(bam => new VariantCallingTarget(outputDir.getAbsolutePath(), bam.getName(), gatkOptions.reference, Seq(bam), gatkOptions.intervalFile.get, isLowPass, isExome, 1))
+
+      case (true, true) =>
+        bams.map(bam => new VariantCallingTarget(outputDir.getAbsolutePath(), bam.getName(), gatkOptions.reference, Seq(bam), gatkOptions.intervalFile.get, isLowPass, false, 1))
+
+      case (false, true) =>
+        Seq(new VariantCallingTarget(outputDir.getAbsolutePath(), projectName.get, gatkOptions.reference, bams, gatkOptions.intervalFile.get, isLowPass, false, bams.size))
+
+      case (false, false) =>
+        Seq(new VariantCallingTarget(outputDir.getAbsolutePath(), projectName.get, gatkOptions.reference, bams, gatkOptions.intervalFile.get, isLowPass, isExome, bams.size))
+    }
+
+    for (target <- targets) {
+      if (!noIndels) {
+        // Indel calling, recalibration and evaulation
+        qscript.add(new indelCall(target, testMode, downsampleFraction))
+        if (!noRecal) {
+          qscript.add(new indelRecal(target))
+          qscript.add(new indelCut(target))
+          qscript.add(new indelEvaluation(target))
+        }
+      }
+      // SNP calling, recalibration and evaluation
+      qscript.add(new snpCall(target, testMode, downsampleFraction, minimumBaseQuality, deletions, noBAQ))
+      if (!noRecal) {
+        qscript.add(new snpRecal(target))
+        qscript.add(new snpCut(target))
+        qscript.add(new snpEvaluation(target))
+      }
+    }
+
+    //@TODO 
+    Seq.empty
+  }
 
   def bai(bam: File): File = new File(bam + ".bai")
 
@@ -29,18 +69,18 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     this.nt = gatkOptions.nbrOfThreads
     this.stand_call_conf = if (t.isLowpass) { Some(4.0) } else { Some(30.0) }
     this.stand_emit_conf = if (t.isLowpass) { Some(4.0) } else { Some(30.0) }
-    this.input_file :+= t.bamList
-    if (t.resources.dbsnp.exists())
-      this.D = t.resources.dbsnp
+    this.input_file = t.bamList
+    if (gatkOptions.dbSNP.isDefined)
+      this.D = gatkOptions.dbSNP.get
   }
 
   // 1a.) Call SNPs with UG
-  class snpCall(t: VariantCallingTarget, testMode: Boolean, downsampleFraction: Option[Double], minimumBaseQuality: Int, deletions: Double, noBAQ: Boolean) extends GenotyperBase(t, testMode, downsampleFraction) {
-
-    if (minimumBaseQuality >= 0)
-      this.min_base_quality_score = Some(minimumBaseQuality)
-    if (deletions >= 0)
-      this.max_deletion_fraction = Some(deletions)
+  class snpCall(t: VariantCallingTarget, testMode: Boolean, downsampleFraction: Option[Double], minimumBaseQuality: Option[Int], deletions: Option[Double], noBAQ: Boolean) extends GenotyperBase(t, testMode, downsampleFraction) {
+    
+    if (minimumBaseQuality.isDefined)
+      this.min_base_quality_score = minimumBaseQuality
+    if (deletions.isDefined)
+      this.max_deletion_fraction = deletions
 
     this.out = t.rawSnpVCF
     this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.SNP
@@ -86,11 +126,6 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
 
     this.input :+= t.rawSnpVCF
 
-    // Check resource files are present
-    assert(t.resources.hapmap.exists(), "Couln't locate hapmap file: " + t.resources.hapmap)
-    assert(t.resources.omni.exists(), "Couln't locate omni file: " + t.resources.omni)
-    assert(t.resources.dbsnp.exists(), "Couln't locate dbSNP file: " + t.resources.dbsnp)
-
     //  From best practice: -an QD -an MQRankSum -an ReadPosRankSum -an FS -an DP
     this.use_annotation ++= List("QD", "HaplotypeScore", "MQRankSum", "ReadPosRankSum", "MQ", "FS", "DP")
     if (t.nSamples >= 10)
@@ -98,18 +133,18 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
 
     // Whole genome case
     if (!t.isExome) {
-      this.resource :+= new TaggedFile(t.resources.hapmap, "known=false,training=true,truth=true,prior=15.0")
-      this.resource :+= new TaggedFile(t.resources.omni, "known=false,training=true,truth=true,prior=12.0")
-      this.resource :+= new TaggedFile(t.resources.dbsnp, "known=true,training=false,truth=false,prior=6.0")
+      this.resource :+= new TaggedFile(gatkOptions.hapmap.get, "known=false,training=true,truth=true,prior=15.0")
+      this.resource :+= new TaggedFile(gatkOptions.omni.get, "known=false,training=true,truth=true,prior=12.0")
+      this.resource :+= new TaggedFile(gatkOptions.dbSNP.get, "known=true,training=false,truth=false,prior=6.0")
 
       this.use_annotation ++= List("DP")
     } else // exome specific parameters
     {
       this.mG = Some(6)
 
-      this.resource :+= new TaggedFile(t.resources.hapmap, "known=false,training=true,truth=true,prior=15.0")
-      this.resource :+= new TaggedFile(t.resources.omni, "known=false,training=true,truth=false,prior=12.0")
-      this.resource :+= new TaggedFile(t.resources.dbsnp, "known=true,training=false,truth=false,prior=6.0")
+      this.resource :+= new TaggedFile(gatkOptions.hapmap.get, "known=false,training=true,truth=true,prior=15.0")
+      this.resource :+= new TaggedFile(gatkOptions.omni.get, "known=false,training=true,truth=false,prior=12.0")
+      this.resource :+= new TaggedFile(gatkOptions.dbSNP.get, "known=true,training=false,truth=false,prior=6.0")
 
       if (t.nSamples <= 30) { // very few exome samples means very few variants
         this.mG = Some(4)
@@ -129,8 +164,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     // Note that for indel recalication the same settings are used both for WGS and Exome Seq.
 
     this.input :+= t.rawIndelVCF
-    assert(t.resources.mills.exists(), "Couln't locate mills file: " + t.resources.mills)
-    this.resource :+= new TaggedFile(t.resources.mills, "known=true,training=true,truth=true,prior=12.0")
+    this.resource :+= new TaggedFile(gatkOptions.mills.get, "known=true,training=true,truth=true,prior=12.0")
 
     // From best practice: -an DP -an FS -an ReadPosRankSum -an MQRankSum
     this.use_annotation ++= List("QD", "ReadPosRankSum", "FS", "DP", "MQRankSum")
@@ -149,7 +183,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
   }
 
   // 4.) Apply the recalibration table to the appropriate tranches
-  class applyVQSRBase(t: VariantCallingTarget) extends ApplyRecalibration with CommandLineGATKArgs with OneCoreJob{
+  class applyVQSRBase(t: VariantCallingTarget) extends ApplyRecalibration with CommandLineGATKArgs with OneCoreJob {
     this.reference_sequence = t.reference
     if (t.intervals != null) this.intervals :+= t.intervals
   }
@@ -180,11 +214,11 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
   }
 
   // 5.) Variant Evaluation Base(OPTIONAL)
-  class EvalBase(t: VariantCallingTarget) extends VariantEval with CommandLineGATKArgs with OneCoreJob{
-    if (t.resources.hapmap.exists())
-      this.comp :+= new TaggedFile(t.resources.hapmap, "hapmap")
-    if (t.resources.dbsnp.exists())
-      this.D = t.resources.dbsnp
+  class EvalBase(t: VariantCallingTarget) extends VariantEval with CommandLineGATKArgs with OneCoreJob {
+    if (gatkOptions.hapmap.isDefined)
+      this.comp :+= new TaggedFile(gatkOptions.hapmap.get, "hapmap")
+    if (gatkOptions.dbSNP.isDefined)
+      this.D = gatkOptions.dbSNP.get
     this.reference_sequence = t.reference
     if (t.intervals != null) this.intervals :+= t.intervals
   }

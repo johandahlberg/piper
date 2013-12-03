@@ -7,5 +7,8 @@ case class GATKOptions(
   nbrOfThreads: Option[Int] = Some(8),
   scatterGatherCount: Option[Int] = Some(1),
   intervalFile: Option[File],
-  dbSNP: Option[Seq[File]],
-  indels: Option[Seq[File]])
+  dbSNP: Option[File],
+  indels: Option[Seq[File]],
+  hapmap: Option[File] = None,
+  omni: Option[File] = None,
+  mills: Option[File] = None)

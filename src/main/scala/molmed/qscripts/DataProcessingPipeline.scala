@@ -53,7 +53,7 @@ class DataProcessingPipeline extends QScript with UppmaxXMLConfiguration {
    */
 
   @Input(doc = "dbsnp ROD to use (must be in VCF format)", fullName = "dbsnp", shortName = "D", required = false)
-  var dbSNP: Seq[File] = Seq()
+  var dbSNP: File = _
 
   @Input(doc = "extra VCF files to use as reference indels for Indel Realignment", fullName = "extra_indels", shortName = "indels", required = false)
   var indels: Seq[File] = Seq()

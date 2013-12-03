@@ -21,7 +21,7 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxCon
     if (!gatkOptions.intervalFile.isEmpty) this.intervals :+= gatkOptions.intervalFile.get
     this.isIntermediate = false
     override def jobRunnerJobName = projectName.get + "_depth_of_coverage"
-    
+
     this.omitBaseOutput = true
   }
 
@@ -34,12 +34,13 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxCon
     this.out = outIntervals
     this.mismatchFraction = Some(0.0)
     if (!gatkOptions.dbSNP.isEmpty)
-      this.known ++= gatkOptions.dbSNP.get
+      this.known ++= Seq(gatkOptions.dbSNP.get)
     if (!gatkOptions.indels.isEmpty)
       this.known ++= gatkOptions.indels.get
+
     this.scatterCount = gatkOptions.scatterGatherCount.get
     override def jobRunnerJobName = projectName.get + "_targets"
-    
+
   }
 
   case class clean(inBams: Seq[File], tIntervals: File, outBam: File, @Argument cleanModelEnum: ConsensusDeterminationModel, testMode: Boolean) extends IndelRealigner with CommandLineGATKArgs with OneCoreJob {
@@ -50,22 +51,22 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxCon
     this.targetIntervals = tIntervals
     this.out = outBam
     if (!gatkOptions.dbSNP.isEmpty)
-      this.known ++= gatkOptions.dbSNP.get
+      this.known ++= Seq(gatkOptions.dbSNP.get)
     if (!gatkOptions.indels.isEmpty)
       this.known ++= gatkOptions.indels.get
     this.consensusDeterminationModel = cleanModelEnum
     this.noPGTag = testMode;
     this.scatterCount = gatkOptions.scatterGatherCount.get
     override def jobRunnerJobName = projectName.get + "_clean"
-    
+
   }
 
-  case class cov(inBam: File, outRecalFile: File, @Argument defaultPlatform: String) extends BaseRecalibrator with CommandLineGATKArgs with EightCoreJob{
+  case class cov(inBam: File, outRecalFile: File, @Argument defaultPlatform: String) extends BaseRecalibrator with CommandLineGATKArgs with EightCoreJob {
 
     this.num_cpu_threads_per_data_thread = gatkOptions.nbrOfThreads
 
     if (!gatkOptions.dbSNP.isEmpty)
-      this.knownSites ++= gatkOptions.dbSNP.get
+      this.knownSites ++= Seq(gatkOptions.dbSNP.get)
     this.covariate ++= Seq("ReadGroupCovariate", "QualityScoreCovariate", "CycleCovariate", "ContextCovariate")
     this.input_file :+= inBam
     this.disable_indel_quals = false
@@ -75,7 +76,7 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxCon
 
     this.scatterCount = gatkOptions.scatterGatherCount.get
     override def jobRunnerJobName = projectName.get + "_cov"
-    
+
   }
 
   case class recal(inBam: File, inRecalFile: File, outBam: File) extends PrintReads with CommandLineGATKArgs with EightCoreJob {
@@ -91,7 +92,7 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxCon
     this.num_cpu_threads_per_data_thread = gatkOptions.nbrOfThreads
     this.isIntermediate = false
     override def jobRunnerJobName = projectName.get + "_recal"
-    
+
   }
 
 }
