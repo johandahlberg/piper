@@ -9,18 +9,10 @@ import org.broadinstitute.sting.queue.function.InProcessFunction
 
 class MergeFilesUtils(qscript: QScript, projectName: Option[String], uppmaxConfig: UppmaxConfig) extends GeneralUtils(projectName, uppmaxConfig) {
 
-  def mergeFilesBySampleName(bams: Seq[File], outputDir: File): Seq[File] = {
-    val sampleNamesAndFiles = for (bam <- bams) yield {
-      (getSampleNameFromReadGroups(bam), bam)
-    }
-
-    val filesGroupedBySampleName =
-      sampleNamesAndFiles.
-        groupBy(f => f._1).
-        mapValues(f => f.map(g => g._2))
-
+  def mergeFilesBySampleName(sampleNameAndFiles: Map[String, Seq[File]], outputDir: File): Seq[File] = {
+    
     val cohortList =
-      for (sampleNamesAndFiles <- filesGroupedBySampleName) yield {
+      for (sampleNamesAndFiles <- sampleNameAndFiles) yield {
 
         val sampleName = sampleNamesAndFiles._1
         val mergedFile: File = new File(outputDir + "/" + sampleName + ".bam")

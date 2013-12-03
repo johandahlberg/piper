@@ -128,7 +128,7 @@ class WholeGenome extends QScript with UppmaxXMLConfiguration {
    */
 
   def script() {
-
+    
     /**
      * Defining output dirs for the different parts of the run
      */
@@ -156,20 +156,21 @@ class WholeGenome extends QScript with UppmaxXMLConfiguration {
      */
     // @TODO Add run "alignmentsonly" only flag!
     val alignmentUtils = new BwaAlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, projectName, uppmaxConfig)
-    var alignedBamFiles: Seq[File] = samples.values.flatten.map(sample => alignmentUtils.align(sample, aligmentOutputDir, false)).toSeq
+    val sampleNamesAndalignedBamFiles = samples.values.flatten.map(sample => (sample.getSampleName, alignmentUtils.align(sample, aligmentOutputDir, false)))
+    val sampleNamesToBamMap = sampleNamesAndalignedBamFiles.groupBy(f => f._1).mapValues(f => f.map(x => x._2).toSeq)
 
     /**
      * Merge by sample
      */
     val mergeFilesUtils = new MergeFilesUtils(this, projectName, uppmaxConfig)
-    val mergedBamFiles = mergeFilesUtils.mergeFilesBySampleName(alignedBamFiles, mergedAligmentOutputDir)
+    val mergedBamFiles = mergeFilesUtils.mergeFilesBySampleName(sampleNamesToBamMap, mergedAligmentOutputDir)
 
-//    /**
-//     * Get QC statistics
-//     */
-//    val qualityControlUtils = new AlignmentQCUtils(qscript, gatkOptions, projectName, uppmaxConfig)
-//    val qualityControlPassed = qualityControlUtils.aligmentQC(mergedBamFiles, mergedAligmentOutputDir)
-//
+    /**
+     * Get QC statistics
+     */
+    val qualityControlUtils = new AlignmentQCUtils(qscript, gatkOptions, projectName, uppmaxConfig)
+    val qualityControlPassed = qualityControlUtils.aligmentQC(mergedBamFiles, mergedAligmentOutputDir)
+
 //    /**
 //     * Data processing
 //     */
