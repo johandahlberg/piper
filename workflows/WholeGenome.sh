@@ -50,6 +50,10 @@ while :
        esac
    done
 
+if [ ! "$PIPELINE_SETUP" ]; then
+   usage
+   exit 1
+fi
 
 # We also need the correct java engine and R version
 module load java/sun_jdk1.7.0_25

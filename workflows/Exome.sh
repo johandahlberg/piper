@@ -3,194 +3,74 @@
 #SBATCH -p core
 #SBATCH -n 1
 #SBATCH -t 120:00:00
-#SBATCH -J snp_seq_pipeline_controller
+#SBATCH -J piper
 #SBATCH -o pipeline-%j.out
 #SBATCH -e pipeline-%j.error
-#SBATCH --qos=seqver
 
-# NOTE
-# LOOK AT THE BOTTOM OF THE SCRIPT TO SEE SETUP ETC.
-
-#------------------------------------------------------------------------------------------
-# Functions below run the different qscripts and return end by echoing a path to the
-# output cohort file (or something similar). This can then be feed to the next part of
-# the pipeline  to chain the scripts together, provided that they have compatiable
-# output types.
-#------------------------------------------------------------------------------------------
-
-#------------------------------------------------------------------------------------------
-# Align fastq files using bwa - outputs bam files.
-#------------------------------------------------------------------------------------------
-function alignWithBwa {
-    source piper -S ${SCRIPTS_DIR}/AlignWithBWA.scala \
-			    --xml_input $1 \
-			    -outputDir ${RAW_BAM_OUTPUT}/ \
-			    -bwa ${PATH_TO_BWA} \
-			    -samtools ${PATH_TO_SAMTOOLS} \
-			    --bwa_threads ${NBR_OF_THREADS} \
-	            -jobRunner ${JOB_RUNNER} \
-        		-jobNative "${JOB_NATIVE_ARGS}" \
-			    --job_walltime 345600 \
-			    -run \
-			    ${DEBUG} >> ${LOGS}/alignWithBwa.log  2>&1
-
-
-    # Check the script exit status, and if it did not finish, clean up and exit
-    if [ $? -ne 0 ]; then 
-	    echo "Caught non-zero exit status from AlignWithBwa. Cleaning up and exiting..."
-	    clean_up
-	    exit 1
-    fi
-
-    echo "${RAW_BAM_OUTPUT}/cohort.list"
+function usage {
+   echo "Usage: ./workflows/Exome.sh --xml_input <setup.xml> <--sureselect> || <--truseq> [--alignments_only] [--run]"
 }
 
-#------------------------------------------------------------------------------------------
-# NOTE: These parts of the analysis does not yet suport the xml based setup.
-#       Running them will require manually setting up path etc.
-#------------------------------------------------------------------------------------------
-
-#------------------------------------------------------------------------------------------
-# Merge bam files by sample name in read group
-#------------------------------------------------------------------------------------------
-function mergeBySampleName {
-    source piper -S ${SCRIPTS_DIR}/MergeBamsBySample.scala \
-                            -i $1 \
-			    --xml_input $PIPELINE_SETUP_XML \
-                            -outputDir ${RAW_MERGED_BAM_OUTPUT}/ \
-                            -jobRunner ${JOB_RUNNER} \
-                            -jobNative "${JOB_NATIVE_ARGS}" \
-                            --job_walltime 86400 \
-                            -run \
-                            ${DEBUG} >> ${LOGS}/mergeBySampleName.log  2>&1
-
-
-    # Check the script exit status, and if it did not finish, clean up and exit
-    if [ $? -ne 0 ]; then
-            echo "Caught non-zero exit status from merge by sample. Cleaning up and exiting..."
-            clean_up
-            exit 1
-    fi
-
-    echo "${RAW_MERGED_BAM_OUTPUT}/cohort.list"
-}
-
-#------------------------------------------------------------------------------------------
-# CalculateCoverage of bam-files
-#------------------------------------------------------------------------------------------
-function alignmentQC {
-    source piper -S ${SCRIPTS_DIR}/AlignmentQC.scala \
-			    -i $1 \
-			    --xml_input $PIPELINE_SETUP_XML \
-    			-R ${GENOME_REFERENCE} \
- 			    -intervals ${INTERVALS} \
-			    -outputDir ${ALIGNMENT_QC_OUTPUT}/ \
-	            -jobRunner ${JOB_RUNNER} \
-        		-jobNative "${JOB_NATIVE_ARGS}" \
-			    --job_walltime 345600 \
-			    -run \
-			    ${DEBUG} >> ${LOGS}/alignmentQC.log  2>&1
-
-
-    # Check the script exit status, and if it did not finish, clean up and exit
-    if [ $? -ne 0 ]; then 
-	    echo "Caught non-zero exit status from alignmentQC. Cleaning up and exiting..."
-	    clean_up
-	    exit 1
-    fi
-
-    echo "${RAW_BAM_OUTPUT}/cohort.list"
-}
-
-
-#------------------------------------------------------------------------------------------
-# Data preprocessing
-#------------------------------------------------------------------------------------------
-function dataPreprocessing {
-
-    source piper -S ${SCRIPTS_DIR}/DataProcessingPipeline.scala \
-			     -R ${GENOME_REFERENCE} \
-			      -i $1 \
-			      --xml_input $PIPELINE_SETUP_XML \
-			      -outputDir ${PROCESSED_BAM_OUTPUT}/ \
-        		  --dbsnp ${DB_SNP_B37} \
-                  --extra_indels ${MILLS_B37} \
-          		  --extra_indels ${ONE_K_G_B37} \
-			      -intervals ${INTERVALS} \
-			      -cm USE_SW \
-			      -run \
-		          -jobRunner ${JOB_RUNNER} \
-         	      -jobNative "${JOB_NATIVE_ARGS}" \
-			      --job_walltime 86400 \
-			      -nt ${NBR_OF_THREADS} \
-			      ${DEBUG} >> ${LOGS}/dataPreprocessing.log  2>&1
-
-    # Check the script exit status, and if it did not finish, clean up and exit
-    if [ $? -ne 0 ]; then 
-            echo "Caught non-zero exit status from DataProcessingPipeline. Cleaning up and exiting..."
-            clean_up
-            exit 1
-    fi
-    
-    echo "${PROCESSED_BAM_OUTPUT}/cohort.list"
-
-}
-
-#------------------------------------------------------------------------------------------
-# Variant calling
-#------------------------------------------------------------------------------------------
-
-function variantCalling {
-
-    source piper -S ${SCRIPTS_DIR}/VariantCalling.scala \
-			      -R ${GENOME_REFERENCE} \
-			      -res ${GATK_BUNDLE_B37} \
-			      -i $1 \
-			      --xml_input $PIPELINE_SETUP_XML \
-			      -intervals ${INTERVALS} \
-			      -outputDir ${VCF_OUTPUT}/ \
-			      --isExome \
-			      -run \
-		          -jobRunner ${JOB_RUNNER} \
-                  -jobNative "${JOB_NATIVE_ARGS}" \
-			      --job_walltime 3600 \
-			      -nt  ${NBR_OF_THREADS} \
-			      -retry 2 \
-			      ${DEBUG} >> ${LOGS}/variantCalling.log  2>&1
-
-    # Check the script exit status, and if it did not finish, clean up and exit
-    if [ $? -ne 0 ]; then 
-            echo "Caught non-zero exit status from VariantCalling. Cleaning up and exiting..."
-            clean_up
-            exit 1
-    fi
-    
-    echo "${VCF_OUTPUT}/cohort.list"
-}
-
-# We also need the correct java engine and R version
-module load java/sun_jdk1.7.0_25
-module load R/2.15.0
-
-#---------------------------------------------
-# Run template - setup which files to run etc
-#---------------------------------------------
-
-PIPELINE_SETUP_XML=$1
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
 source globalConfig.sh
 
-if [ "$2" == "TruSeq" ]; then
-    INTERVALS="/proj/b2010028/references/piper_references/Enrichments/Illumina/TruSeq_exome_targeted_regions-gatk.interval_list"
-elif [ "$2" == "SureSelect" ]; then
-    INTERVALS="/proj/b2010028/references/piper_references/Enrichments/Agilent/SureSelect_All_Exon_50mb_with_annotation_hg19-gatk.interval_list"
-else
-    echo "Didn't recognize exome capture type: $2. Please use: TruSeq or SureSelect."
-    exit 1
+#---------------------------------------------
+# Parse the arguments
+#---------------------------------------------
+PIPELINE_SETUP=""
+RUN=""
+ONLY_ALIGMENTS=""
+INTERVALS=""
+
+while :
+    do
+       case $1 in
+           -h | --help | -\?)
+               usage
+               exit 0
+               ;;
+           -s | --xml_input)
+               PIPELINE_SETUP=$2
+               shift 2
+               ;;
+           -r | --run)
+               RUN="-run"
+               shift
+               ;;
+           -a | --alignments_only)
+               ONLY_ALIGMENTS="--onlyAlignments"
+               shift
+               ;; 
+           -e | --sureselect)
+               INTERVALS="/proj/b2010028/references/piper_references/Enrichments/Agilent/SureSelect_All_Exon_50mb_with_annotation_hg19-gatk.interval_list"
+               shift
+               ;;
+           -t | --truseq)
+               INTERVALS="/proj/b2010028/references/piper_references/Enrichments/Illumina/TruSeq_exome_targeted_regions-gatk.interval_list"
+               shift
+               ;;          
+           -*)
+               echo "WARN: Unknown option (ignored): $1" >&2
+               shift
+               ;;
+           *)  # no more options. Stop while loop
+               break
+               ;;
+       esac
+   done
+
+if [ ! "$PIPELINE_SETUP" ]; then
+   usage
+   exit 1
 fi
 
-GENOME_REFERENCE=${GATK_BUNDLE_B37}"/human_g1k_v37.fasta"
-
+if [ ! "$INTERVALS" ]; then
+   usage
+   exit 1
+fi
+# We also need the correct java engine and R version
+module load java/sun_jdk1.7.0_25
+module load R/2.15.0
 
 #---------------------------------------------
 # Create output directories
@@ -199,42 +79,27 @@ if [ ! -d "${LOGS}" ]; then
    mkdir -p ${LOGS}
 fi
 
-if [ ! -d "${RAW_BAM_OUTPUT}" ]; then
-   mkdir -p ${RAW_BAM_OUTPUT}
-fi
-
-if [ ! -d "${RAW_MERGED_BAM_OUTPUT}" ]; then
-   mkdir -p ${RAW_MERGED_BAM_OUTPUT}
-fi
-
-if [ ! -d "${ALIGNMENT_QC_OUTPUT}" ]; then
-   mkdir -p ${ALIGNMENT_QC_OUTPUT}
-fi
-
-if [ ! -d "${PROCESSED_BAM_OUTPUT}" ]; then
-   mkdir -p ${PROCESSED_BAM_OUTPUT}
-fi
-
-if [ ! -d "${VCF_OUTPUT}" ]; then
-   mkdir -p ${VCF_OUTPUT}
-fi
-
-
 #---------------------------------------------
-# The actual running of the script
-# Modify this if you want to chain the parts
-# in a different way.
+# Run the qscript
 #---------------------------------------------
-
-if [ "$3" == "onlyalignment" ]; then
-    ALIGN_OUTPUT=$(alignWithBwa ${PIPELINE_SETUP_XML})
-else
-    ALIGN_OUTPUT=$(alignWithBwa ${PIPELINE_SETUP_XML})
-    MERGED_BAMS_OUTPUT=$(mergeBySampleName ${ALIGN_OUTPUT})
-    ALIGN_QC_OUTPUT=$(alignmentQC ${MERGED_BAMS_OUTPUT})
-    DATAPROCESSING_OUTPUT=$(dataPreprocessing ${MERGED_BAMS_OUTPUT})
-    VARIANTCALLING_OUTPUT=$(variantCalling ${DATAPROCESSING_OUTPUT})
-fi
+source piper -S ${SCRIPTS_DIR}/DNABestPracticeVariantCalling.scala \
+	     --xml_input ${PIPELINE_SETUP} \
+             --isExome \
+             --gatk_interval_file ${INTERVALS} \
+	     --dbsnp ${DB_SNP_B37} \
+             --extra_indels ${MILLS_B37} \
+             --extra_indels ${ONE_K_G_B37} \
+	     --hapmap ${HAPMAP_B37} \
+	     --omni ${OMNI_B37} \
+	     --mills ${MILLS_B37} \
+	     -bwa ${PATH_TO_BWA} \
+	     -samtools ${PATH_TO_SAMTOOLS} \
+	     --number_of_threads 8 \
+             --scatter_gather 10 \
+	     -jobRunner ${JOB_RUNNER} \
+             -jobNative "${JOB_NATIVE_ARGS}" \
+	     --job_walltime 345600 \
+	     ${RUN} ${ONLY_ALIGMENTS} ${DEBUG} 2>&1 | tee -a ${LOGS}/exome.log
 
 # Perform final clean up
 final_clean_up
