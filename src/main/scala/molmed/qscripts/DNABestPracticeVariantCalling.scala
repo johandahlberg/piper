@@ -50,21 +50,20 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
   @Input(doc = "an intervals file to be used by GATK - output bams at intervals only", fullName = "gatk_interval_file", shortName = "intervals", required = false)
   var intervals: File = _
 
-  @Input(doc = "dbsnp ROD to use (must be in VCF format)", fullName = "dbsnp", shortName = "D", required = false)
-  var dbSNP: Option[File] = None
+  @Input(doc = "dbsnp ROD to use (must be in VCF format)", fullName = "dbsnp", shortName = "D", required = false) 
+  var dbSNP: File = _
 
   @Input(doc = "extra VCF files to use as reference indels for Indel Realignment", fullName = "extra_indels", shortName = "indels", required = false)
-  var indelsPlaceHolder: Seq[File] = Seq()
-  val indels: Option[Seq[File]] = if(indelsPlaceHolder.isEmpty) None else Some(indelsPlaceHolder) 
+  var indels: Seq[File] = Seq()
 
   @Input(doc = "HapMap file to use with variant recalibration.", fullName = "hapmap", shortName = "hm", required = false)
-  var hapmap: Option[File] = None
+  var hapmap: File = _  
 
   @Input(doc = "Omni file fo use with variant recalibration ", fullName = "omni", shortName = "om", required = false)
-  var omni: Option[File] = None
+  var omni: File = _   
 
   @Input(doc = "Mills indel file to use with variant recalibration", fullName = "mills", shortName = "mi", required = false)
-  var mills: Option[File] = None
+  var mills: File = _
 
   @Argument(doc = "Cleaning model: KNOWNS_ONLY, USE_READS or USE_SW. (Default: USE_READS)", fullName = "clean_model", shortName = "cm", required = false)
   var cleaningModel: String = "USE_READS"
@@ -152,7 +151,11 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
     val reference = samples.head._2(0).getReference()
 
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
-    val gatkOptions = new GATKOptions(reference, nbrOfThreads, scatterGatherCount, Some(intervals), dbSNP, indels, hapmap, omni, mills)
+    
+    val gatkOptions = {
+      implicit def file2Option(file: File) = if(file == null) None else Some(file)
+      new GATKOptions(reference, nbrOfThreads, scatterGatherCount, intervals, dbSNP, Some(indels), hapmap, omni, mills)
+    }
 
     /**
      * Run alignments

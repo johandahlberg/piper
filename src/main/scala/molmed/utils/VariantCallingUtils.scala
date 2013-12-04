@@ -11,20 +11,48 @@ import org.broadinstitute.sting.queue.QScript
 
 class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxConfig: UppmaxConfig) extends GATKUtils(gatkOptions, projectName, uppmaxConfig) {
 
-  def performVariantCalling(qscript: QScript, bams: Seq[File], outputDir: File, runSeparatly: Boolean, notHuman: Boolean, isLowPass: Boolean, isExome: Boolean, noRecal: Boolean, noIndels: Boolean, testMode: Boolean, downsampleFraction: Option[Double], minimumBaseQuality: Option[Int], deletions: Option[Double], noBAQ: Boolean): Seq[File] = {
+  def performVariantCalling(qscript: QScript,
+    bams: Seq[File],
+    outputDir: File,
+    runSeparatly: Boolean,
+    notHuman: Boolean,
+    isLowPass: Boolean,
+    isExome: Boolean,
+    noRecal: Boolean,
+    noIndels: Boolean,
+    testMode: Boolean,
+    downsampleFraction: Option[Double],
+    minimumBaseQuality: Option[Int],
+    deletions: Option[Double],
+    noBAQ: Boolean): Seq[File] = {
 
     val targets: Seq[VariantCallingTarget] = (runSeparatly, notHuman) match {
       case (true, false) =>
-        bams.map(bam => new VariantCallingTarget(outputDir.getAbsolutePath(), bam.getName(), gatkOptions.reference, Seq(bam), gatkOptions.intervalFile.get, isLowPass, isExome, 1))
+        bams.map(bam => new VariantCallingTarget(outputDir.getAbsolutePath(), bam.getName(), gatkOptions.reference, Seq(bam), gatkOptions.intervalFile, isLowPass, isExome, 1))
 
       case (true, true) =>
-        bams.map(bam => new VariantCallingTarget(outputDir.getAbsolutePath(), bam.getName(), gatkOptions.reference, Seq(bam), gatkOptions.intervalFile.get, isLowPass, false, 1))
+        bams.map(bam => new VariantCallingTarget(outputDir.getAbsolutePath(), bam.getName(), gatkOptions.reference, Seq(bam), gatkOptions.intervalFile, isLowPass, false, 1))
 
       case (false, true) =>
-        Seq(new VariantCallingTarget(outputDir.getAbsolutePath(), projectName.get, gatkOptions.reference, bams, gatkOptions.intervalFile.get, isLowPass, false, bams.size))
+        Seq(new VariantCallingTarget(outputDir.getAbsolutePath(), projectName.get, gatkOptions.reference, bams, gatkOptions.intervalFile, isLowPass, false, bams.size))
 
       case (false, false) =>
-        Seq(new VariantCallingTarget(outputDir.getAbsolutePath(), projectName.get, gatkOptions.reference, bams, gatkOptions.intervalFile.get, isLowPass, isExome, bams.size))
+        Seq(new VariantCallingTarget(outputDir.getAbsolutePath(), projectName.get, gatkOptions.reference, bams, gatkOptions.intervalFile, isLowPass, isExome, bams.size))
+    }
+
+    // Make sure resource files are available if recal is to be performed
+    if (!noRecal) {
+
+      def assertResourceExists(resourceName: String, resource: Option[File]) = {
+        assert(resource.isDefined, resourceName + " is not defined. This is needed for variant recalibrations.")
+        if (!resource.forall(p => p.exists())) throw new AssertionError("Couldn't find resource: " + resource.get + " This is needed for variant recalibrations.")
+      }
+
+      assertResourceExists("hapmap", gatkOptions.hapmap)
+      assertResourceExists("omni", gatkOptions.omni)
+      assertResourceExists("dbSNP", gatkOptions.dbSNP)
+      assertResourceExists("mills", gatkOptions.mills)
+
     }
 
     for (target <- targets) {
@@ -64,19 +92,19 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
       this.dcov = if (t.isLowpass) { Some(50) } else { Some(250) }
 
     this.reference_sequence = t.reference
-    if (t.intervals != null) this.intervals :+= t.intervals
+    if (!t.intervals.isEmpty) this.intervals :+= t.intervals.get
     this.scatterCount = gatkOptions.scatterGatherCount.get
     this.nt = gatkOptions.nbrOfThreads
     this.stand_call_conf = if (t.isLowpass) { Some(4.0) } else { Some(30.0) }
     this.stand_emit_conf = if (t.isLowpass) { Some(4.0) } else { Some(30.0) }
     this.input_file = t.bamList
-    if (gatkOptions.dbSNP.isDefined)
+    if (!gatkOptions.dbSNP.isEmpty)
       this.D = gatkOptions.dbSNP.get
   }
 
   // 1a.) Call SNPs with UG
   class snpCall(t: VariantCallingTarget, testMode: Boolean, downsampleFraction: Option[Double], minimumBaseQuality: Option[Int], deletions: Option[Double], noBAQ: Boolean) extends GenotyperBase(t, testMode, downsampleFraction) {
-    
+
     if (minimumBaseQuality.isDefined)
       this.min_base_quality_score = minimumBaseQuality
     if (deletions.isDefined)
@@ -91,7 +119,6 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
   // 1b.) Call Indels with UG
   class indelCall(t: VariantCallingTarget, testMode: Boolean, downsampleFraction: Option[Double]) extends GenotyperBase(t, testMode, downsampleFraction) {
     this.out = t.rawIndelVCF
-    this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.INDEL
     this.baq = org.broadinstitute.sting.utils.baq.BAQ.CalculationMode.OFF
     override def jobRunnerJobName = projectName.get + "_UGi"
   }
@@ -99,7 +126,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
   // 2.) Hard Filtering for indels
   class indelFilter(t: VariantCallingTarget) extends VariantFiltration with CommandLineGATKArgs with OneCoreJob {
     this.reference_sequence = t.reference
-    if (t.intervals != null) this.intervals :+= t.intervals
+    if (!t.intervals.isEmpty) this.intervals :+= t.intervals.get
     this.scatterCount = gatkOptions.scatterGatherCount.get
     this.V = t.rawIndelVCF
     this.out = t.filteredIndelVCF
@@ -117,7 +144,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
   class VQSRBase(t: VariantCallingTarget) extends VariantRecalibrator with CommandLineGATKArgs with OneCoreJob {
     this.nt = gatkOptions.nbrOfThreads
     this.reference_sequence = t.reference
-    if (t.intervals != null) this.intervals :+= t.intervals
+    if (!t.intervals.isEmpty) this.intervals :+= t.intervals.get
     this.allPoly = true
     this.tranche ++= List("100.0", "99.9", "99.5", "99.3", "99.0", "98.9", "98.8", "98.5", "98.4", "98.3", "98.2", "98.1", "98.0", "97.9", "97.8", "97.5", "97.0", "95.0", "90.0")
   }
@@ -185,7 +212,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
   // 4.) Apply the recalibration table to the appropriate tranches
   class applyVQSRBase(t: VariantCallingTarget) extends ApplyRecalibration with CommandLineGATKArgs with OneCoreJob {
     this.reference_sequence = t.reference
-    if (t.intervals != null) this.intervals :+= t.intervals
+    if (!t.intervals.isEmpty) this.intervals :+= t.intervals.get
   }
 
   class snpCut(t: VariantCallingTarget) extends applyVQSRBase(t) {
@@ -215,12 +242,12 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
 
   // 5.) Variant Evaluation Base(OPTIONAL)
   class EvalBase(t: VariantCallingTarget) extends VariantEval with CommandLineGATKArgs with OneCoreJob {
-    if (gatkOptions.hapmap.isDefined)
+    if (!gatkOptions.hapmap.isEmpty)
       this.comp :+= new TaggedFile(gatkOptions.hapmap.get, "hapmap")
-    if (gatkOptions.dbSNP.isDefined)
+    if (!gatkOptions.dbSNP.isEmpty)
       this.D = gatkOptions.dbSNP.get
     this.reference_sequence = t.reference
-    if (t.intervals != null) this.intervals :+= t.intervals
+    if (!t.intervals.isEmpty) this.intervals :+= t.intervals.get
   }
 
   // 5a.) SNP Evaluation (OPTIONAL) based on the cut vcf

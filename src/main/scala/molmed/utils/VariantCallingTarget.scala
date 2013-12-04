@@ -9,7 +9,7 @@ import java.io.File
     val baseName: String,
     val reference: File,
     val bamList: Seq[File],
-    val intervals: File,
+    val intervals: Option[File],
     val isLowpass: Boolean,
     val isExome: Boolean,
     val nSamples: Int) {
