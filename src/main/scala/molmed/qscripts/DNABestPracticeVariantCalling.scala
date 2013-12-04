@@ -32,11 +32,13 @@ import molmed.utils.VariantCallingUtils
 
 /**
  *
- * Run broads recommended pipeline for Whole Genome analysis
+ * Run broads recommended pipeline for DNA variant calling:
+ * 
+ *  Should work for both exomes and whole genomes. 
  *
  */
 
-class WholeGenome extends QScript with UppmaxXMLConfiguration {
+class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration {
   qscript =>
 
   /**
@@ -52,9 +54,10 @@ class WholeGenome extends QScript with UppmaxXMLConfiguration {
   var dbSNP: Option[File] = None
 
   @Input(doc = "extra VCF files to use as reference indels for Indel Realignment", fullName = "extra_indels", shortName = "indels", required = false)
-  var indels: Option[Seq[File]] = None
+  var indelsPlaceHolder: Seq[File] = Seq()
+  val indels: Option[Seq[File]] = if(indelsPlaceHolder.isEmpty) None else Some(indelsPlaceHolder) 
 
-  @Input(doc = "HapMap file to use with variant recalibration.", fullName = "hammap", shortName = "hm", required = false)
+  @Input(doc = "HapMap file to use with variant recalibration.", fullName = "hapmap", shortName = "hm", required = false)
   var hapmap: Option[File] = None
 
   @Input(doc = "Omni file fo use with variant recalibration ", fullName = "omni", shortName = "om", required = false)
@@ -63,7 +66,7 @@ class WholeGenome extends QScript with UppmaxXMLConfiguration {
   @Input(doc = "Mills indel file to use with variant recalibration", fullName = "mills", shortName = "mi", required = false)
   var mills: Option[File] = None
 
-  @Argument(doc = "Cleaning model: KNOWNS_ONLY, USE_READS or USE_SW", fullName = "clean_model", shortName = "cm", required = false)
+  @Argument(doc = "Cleaning model: KNOWNS_ONLY, USE_READS or USE_SW. (Default: USE_READS)", fullName = "clean_model", shortName = "cm", required = false)
   var cleaningModel: String = "USE_READS"
 
   @Input(doc = "The path to the binary of bwa (usually BAM files have already been mapped - but if you want to remap this is the option)", fullName = "path_to_bwa", shortName = "bwa", required = false)
@@ -78,8 +81,8 @@ class WholeGenome extends QScript with UppmaxXMLConfiguration {
   @Argument(doc = "Number of threads to use by default", fullName = "number_of_threads", shortName = "nt", required = false)
   var nbrOfThreads: Int = 1
 
-  @Argument(doc = "How many ways to scatter/gather", fullName = "scatter_gather", shortName = "sg", required = false)
-  var scatterGatherCount: Int = -1
+  @Argument(doc = "How many ways to scatter/gather. (Default: 1)", fullName = "scatter_gather", shortName = "sg", required = false)
+  var scatterGatherCount: Int = 1
 
   @Argument(doc = "If the project is a non-human project - which means that there are normally no resources available.", fullName = "not_human", shortName = "nh", required = false)
   var notHuman: Boolean = false
@@ -157,8 +160,8 @@ class WholeGenome extends QScript with UppmaxXMLConfiguration {
     // @TODO Add run "alignmentsonly" only flag!
     val alignmentUtils = new BwaAlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, projectName, uppmaxConfig)
     val sampleNamesAndalignedBamFiles = samples.values.flatten.map(sample => (sample.getSampleName, alignmentUtils.align(sample, aligmentOutputDir, false)))
-    val sampleNamesToBamMap = sampleNamesAndalignedBamFiles.groupBy(f => f._1).mapValues(f => f.map(x => x._2).toSeq)
-
+    val sampleNamesToBamMap = sampleNamesAndalignedBamFiles.groupBy(f => f._1).mapValues(f => f.map(x => x._2).toSeq)       
+    
     /**
      * Merge by sample
      */
@@ -171,20 +174,20 @@ class WholeGenome extends QScript with UppmaxXMLConfiguration {
     val qualityControlUtils = new AlignmentQCUtils(qscript, gatkOptions, projectName, uppmaxConfig)
     val qualityControlPassed = qualityControlUtils.aligmentQC(mergedBamFiles, mergedAligmentOutputDir)
 
-//    /**
-//     * Data processing
-//     */
-//
-//    //Only processed with samples where quality control has passed
-//    val samplesWhichHavePassedQC = qualityControlPassed.filter(p => p._2).map(_._1)
-//    val gatkDataProcessingUtils = new GATKDataProcessingUtils(this, gatkOptions, generalUtils, projectName, uppmaxConfig)
-//    val processedBamFiles = gatkDataProcessingUtils.dataProcessing(bams = samplesWhichHavePassedQC, outputDir, cleaningModel, skipDeduplication = false, testMode)
-//
-//    /**
-//     * Variant calling
-//     */
-//    val variantCallingUtils = new VariantCallingUtils(gatkOptions, projectName, uppmaxConfig)
-//    variantCallingUtils.performVariantCalling(this, processedBamFiles, outputDir, runSeparatly, notHuman, isLowPass, isExome, noRecal, noIndels, testMode, downsampleFraction, minimumBaseQuality, deletions, noBAQ)
+    /**
+     * Data processing
+     */
+
+    //Only processed with samples where quality control has passed
+    val samplesWhichHavePassedQC = qualityControlPassed.filter(p => p._2).map(_._1)
+    val gatkDataProcessingUtils = new GATKDataProcessingUtils(this, gatkOptions, generalUtils, projectName, uppmaxConfig)
+    val processedBamFiles = gatkDataProcessingUtils.dataProcessing(bams = samplesWhichHavePassedQC, outputDir, cleaningModel, skipDeduplication = false, testMode)
+
+    /**
+     * Variant calling
+     */
+    val variantCallingUtils = new VariantCallingUtils(gatkOptions, projectName, uppmaxConfig)
+    variantCallingUtils.performVariantCalling(this, processedBamFiles, outputDir, runSeparatly, notHuman, isLowPass, isExome, noRecal, noIndels, testMode, downsampleFraction, minimumBaseQuality, deletions, noBAQ)
 
   }
 }
