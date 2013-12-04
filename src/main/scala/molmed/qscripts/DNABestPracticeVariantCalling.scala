@@ -33,8 +33,8 @@ import molmed.utils.VariantCallingUtils
 /**
  *
  * Run broads recommended pipeline for DNA variant calling:
- * 
- *  Should work for both exomes and whole genomes. 
+ *
+ *  Should work for both exomes and whole genomes.
  *
  */
 
@@ -50,17 +50,17 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
   @Input(doc = "an intervals file to be used by GATK - output bams at intervals only", fullName = "gatk_interval_file", shortName = "intervals", required = false)
   var intervals: File = _
 
-  @Input(doc = "dbsnp ROD to use (must be in VCF format)", fullName = "dbsnp", shortName = "D", required = false) 
+  @Input(doc = "dbsnp ROD to use (must be in VCF format)", fullName = "dbsnp", shortName = "D", required = false)
   var dbSNP: File = _
 
   @Input(doc = "extra VCF files to use as reference indels for Indel Realignment", fullName = "extra_indels", shortName = "indels", required = false)
   var indels: Seq[File] = Seq()
 
   @Input(doc = "HapMap file to use with variant recalibration.", fullName = "hapmap", shortName = "hm", required = false)
-  var hapmap: File = _  
+  var hapmap: File = _
 
   @Input(doc = "Omni file fo use with variant recalibration ", fullName = "omni", shortName = "om", required = false)
-  var omni: File = _   
+  var omni: File = _
 
   @Input(doc = "Mills indel file to use with variant recalibration", fullName = "mills", shortName = "mi", required = false)
   var mills: File = _
@@ -113,6 +113,9 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
   @Argument(doc = "Downsample fraction of coverage in variant calling. [0.0 - 1.0]", fullName = "downsample_to_fraction", shortName = "dtf", required = false)
   var downsampleFraction: Double = -1
 
+  @Argument(doc = "Only do the aligments - useful when there is more data to be delivered in a project", fullName = "onlyAlignments", shortName = "oa", required = false)
+  var onlyAlignment: Boolean = false
+
   /**
    * **************************************************************************
    * Hidden Parameters - for dev.
@@ -130,15 +133,15 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
    */
 
   def script() {
-    
+
     /**
      * Defining output dirs for the different parts of the run
      */
 
-    val aligmentOutputDir: File = new File(outputDir + "/raw_aligments")
+    val aligmentOutputDir: File = new File(outputDir + "/raw_alignments")
     val mergedAligmentOutputDir: File = new File(outputDir + "/merged_aligments")
-    val aligmentQCOutputDir: File = new File(outputDir + "/aligment_qc")
-    val processedAligmentsOutputDir: File = new File(outputDir + "/processed_aligments")
+    val aligmentQCOutputDir: File = new File(outputDir + "/alignment_qc")
+    val processedAligmentsOutputDir: File = new File(outputDir + "/processed_alignments")
     val variantCallsOutputDir: File = new File(outputDir + "/variant_calls")
 
     /**
@@ -151,46 +154,50 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
     val reference = samples.head._2(0).getReference()
 
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
-    
+
     val gatkOptions = {
-      implicit def file2Option(file: File) = if(file == null) None else Some(file)
+      implicit def file2Option(file: File) = if (file == null) None else Some(file)
       new GATKOptions(reference, nbrOfThreads, scatterGatherCount, intervals, dbSNP, Some(indels), hapmap, omni, mills)
     }
 
     /**
      * Run alignments
      */
-    // @TODO Add run "alignmentsonly" only flag!
     val alignmentUtils = new BwaAlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, projectName, uppmaxConfig)
     val sampleNamesAndalignedBamFiles = samples.values.flatten.map(sample => (sample.getSampleName, alignmentUtils.align(sample, aligmentOutputDir, false)))
-    val sampleNamesToBamMap = sampleNamesAndalignedBamFiles.groupBy(f => f._1).mapValues(f => f.map(x => x._2).toSeq)       
-    
-    /**
-     * Merge by sample
-     */
-    val mergeFilesUtils = new MergeFilesUtils(this, projectName, uppmaxConfig)
-    val mergedBamFiles = mergeFilesUtils.mergeFilesBySampleName(sampleNamesToBamMap, mergedAligmentOutputDir)
+    val sampleNamesToBamMap = sampleNamesAndalignedBamFiles.groupBy(f => f._1).mapValues(f => f.map(x => x._2).toSeq)
 
-    /**
-     * Get QC statistics
-     */
-    val qualityControlUtils = new AlignmentQCUtils(qscript, gatkOptions, projectName, uppmaxConfig)
-    val qualityControlPassed = qualityControlUtils.aligmentQC(mergedBamFiles, mergedAligmentOutputDir)
+    // Stop here is only aligments option is enabled.
+    if (!onlyAlignment) {
 
-    /**
-     * Data processing
-     */
+      /**
+       * Merge by sample
+       */
+      val mergeFilesUtils = new MergeFilesUtils(this, projectName, uppmaxConfig)
+      val mergedBamFiles = mergeFilesUtils.mergeFilesBySampleName(sampleNamesToBamMap, mergedAligmentOutputDir)
 
-    //Only processed with samples where quality control has passed
-    val samplesWhichHavePassedQC = qualityControlPassed.filter(p => p._2).map(_._1)
-    val gatkDataProcessingUtils = new GATKDataProcessingUtils(this, gatkOptions, generalUtils, projectName, uppmaxConfig)
-    val processedBamFiles = gatkDataProcessingUtils.dataProcessing(bams = samplesWhichHavePassedQC, outputDir, cleaningModel, skipDeduplication = false, testMode)
+      /**
+       * Get QC statistics
+       */
+      val qualityControlUtils = new AlignmentQCUtils(qscript, gatkOptions, projectName, uppmaxConfig)
+      val qualityControlPassed = qualityControlUtils.aligmentQC(mergedBamFiles, mergedAligmentOutputDir)
 
-    /**
-     * Variant calling
-     */
-    val variantCallingUtils = new VariantCallingUtils(gatkOptions, projectName, uppmaxConfig)
-    variantCallingUtils.performVariantCalling(this, processedBamFiles, outputDir, runSeparatly, notHuman, isLowPass, isExome, noRecal, noIndels, testMode, downsampleFraction, minimumBaseQuality, deletions, noBAQ)
+      /**
+       * Data processing
+       */
+
+      //Only processed with samples where quality control has passed
+      val samplesWhichHavePassedQC = qualityControlPassed.filter(p => p._2).map(_._1)
+      val gatkDataProcessingUtils = new GATKDataProcessingUtils(this, gatkOptions, generalUtils, projectName, uppmaxConfig)
+      val processedBamFiles = gatkDataProcessingUtils.dataProcessing(bams = samplesWhichHavePassedQC, processedAligmentsOutputDir, cleaningModel, skipDeduplication = false, testMode)
+
+      /**
+       * Variant calling
+       */
+      val variantCallingUtils = new VariantCallingUtils(gatkOptions, projectName, uppmaxConfig)
+      variantCallingUtils.performVariantCalling(this, processedBamFiles, variantCallsOutputDir, runSeparatly, notHuman, isLowPass, isExome, noRecal, noIndels, testMode, downsampleFraction, minimumBaseQuality, deletions, noBAQ)
+
+    }
 
   }
 }

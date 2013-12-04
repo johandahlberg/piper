@@ -7,14 +7,49 @@
 #SBATCH -o pipeline-%j.out
 #SBATCH -e pipeline-%j.error
 
+function usage {
+   echo "Usage: ./workflows/WholeGenome.sh --xml_input <setup.xml> [--alignments_only] [--run]"
+}
+
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
 source globalConfig.sh
 
-PIPELINE_SETUP=$1
+#---------------------------------------------
+# Parse the arguments
+#---------------------------------------------
+PIPELINE_SETUP=""
+RUN=""
+ONLY_ALIGMENTS=""
 
-if [ "$2" == "run" ]; then
-    RUN="-run"
-fi
+while :
+    do
+       case $1 in
+           -h | --help | -\?)
+               usage
+               exit 0
+               ;;
+           -s | --xml_input)
+               PIPELINE_SETUP=$2
+               shift 2
+               ;;
+           -r | --run)
+               RUN="-run"
+               shift
+               ;;
+           -a | --alignments_only)
+               ONLY_ALIGMENTS="--onlyAlignments"
+               shift
+               ;;           
+           -*)
+               echo "WARN: Unknown option (ignored): $1" >&2
+               shift
+               ;;
+           *)  # no more options. Stop while loop
+               break
+               ;;
+       esac
+   done
+
 
 # We also need the correct java engine and R version
 module load java/sun_jdk1.7.0_25
@@ -28,7 +63,7 @@ if [ ! -d "${LOGS}" ]; then
 fi
 
 #---------------------------------------------
-# Run qscript
+# Run the qscript
 #---------------------------------------------
 source piper -S ${SCRIPTS_DIR}/DNABestPracticeVariantCalling.scala \
 	     --xml_input ${PIPELINE_SETUP} \
@@ -45,7 +80,7 @@ source piper -S ${SCRIPTS_DIR}/DNABestPracticeVariantCalling.scala \
 	     -jobRunner ${JOB_RUNNER} \
              -jobNative "${JOB_NATIVE_ARGS}" \
 	     --job_walltime 345600 \
-	     ${RUN} ${DEBUG} 2>&1 | tee -a ${LOGS}/wholeGenome.log
+	     ${RUN} ${ONLY_ALIGMENTS} ${DEBUG} 2>&1 | tee -a ${LOGS}/wholeGenome.log
 
 # Perform final clean up
 final_clean_up
