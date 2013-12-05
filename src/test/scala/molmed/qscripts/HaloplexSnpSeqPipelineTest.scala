@@ -71,7 +71,7 @@ class HaloplexSnpSeqPipelineTest {
       " --scatter_gather 1 ",
       " --test_mode ",
       " -startFromScratch ",
-      " --onlyalignment ").mkString
+      " --onlyAlignments ").mkString
     spec.fileMD5s += testRawBam -> "247cf1164e331b77ef6cdf0355d21443"
 
     spec.run = run

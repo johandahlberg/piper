@@ -87,7 +87,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
   @Argument(doc = "Test mode", fullName = "test_mode", shortName = "test", required = false)
   var testMode: Boolean = false
 
-  @Argument(doc = "Only do the aligments - useful when there is more data to be delivered in a project", fullName = "onlyalignment", shortName = "oa", required = false)
+  @Argument(doc = "Only do the aligments - useful when there is more data to be delivered in a project", fullName = "onlyAlignments", shortName = "oa", required = false)
   var onlyAligment: Boolean = false
 
   @Argument(doc = "How many ways to scatter/gather", fullName = "scatter_gather", shortName = "sg", required = false)
