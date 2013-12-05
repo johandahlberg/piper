@@ -32,8 +32,17 @@ class MergeFilesUtils(qscript: QScript, projectName: Option[String], uppmaxConfi
     cohortList.toSeq
   }
   
-  case class createLink(@Input inBam: File, @Output outBam: File, @Input index: File, @Output outIndex: File) extends InProcessFunction {
-
+  case class createLink(in: File, out: File, ii: File, oi: File) extends InProcessFunction {    
+    
+    @Input
+    var inBam: File = in
+    @Output 
+    var outBam: File = out
+    @Input
+    var index: File = ii
+    @Output
+    var outIndex: File = oi
+    
     def run() {
 
       import scala.sys.process.Process
