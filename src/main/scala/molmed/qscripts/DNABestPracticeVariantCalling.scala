@@ -180,7 +180,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
        * Get QC statistics
        */
       val qualityControlUtils = new AlignmentQCUtils(qscript, gatkOptions, projectName, uppmaxConfig)
-      val qualityControlPassed = qualityControlUtils.aligmentQC(mergedBamFiles, mergedAligmentOutputDir)
+      val qualityControlPassed = qualityControlUtils.aligmentQC(mergedBamFiles, aligmentQCOutputDir)
 
       /**
        * Data processing
