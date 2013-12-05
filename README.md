@@ -51,11 +51,13 @@ The path to the GATK bundle needs to be setup in the `globalConfig.sh` file. For
 Running the pipeline
 ====================
 
-There are a number of workflows currently supported by Piper (See below). All workflow scripts share a similar structure which looks like this:
+There are a number of workflows currently supported by Piper (See below). For most users these should just be called accoring to the run examples below. Currently there are two ways which the workflows are setup. The RNA-related scripts are setup in the following way:
 
 * A number of bash functions which wrap QScripts with their parameters, some simple log redirecting etc.
 * A Run template, where parameters such as reference genome, interval file (e.g. for targeted sequencing) are set.
 * A section where the different QScripts are chained together so that for example: variant calling follows data processing, etc. If you want to change the order of the analysis, or skip some part entirely, comment these lines out and change their input/outputs accordingly. (Note that not all workflows are setup this way, and if they are not you will have to change the qscript to solve this)
+
+This has however been significantly simplified for the DNA workflows, which are now just wrappers around a single QScript to spare the end user the need to specify all of Pipers (many) parameters.
 
 Setup for run
 -------------
@@ -88,44 +90,40 @@ The `createSetupXml.sh` script will look for a file in each run folder named `re
 	MyFirstSample   2	SecondLib	9767892AVF
 	MySecondSample	1	SomeOtherLib	9767892AVF
 
-Run
----
+Running
+-------
 
 Pick the workflow that you want to run, e.g. haloplex. Then initiate it (by simply running it, or if you do not have access to node where you can continually run a JVM by using `sbatch` to send it to a node) accoding to the examples below.
 
-Note that all workflows are by default setup to be run with the human_g1k_v37.fasta reference, and associated annotations. This means that if you need some other reference, you will have to set it up manually by configuring the "Run Template" part of the workflow script. It's also worth mentioning that all the scripts have a optional `onlyaligment` flag which can be set if you are only interested in running the aligments. This is useful what you are working on a projec where data is added over time, but you want to create the aligments as data comes in, and then join across the sequencing runs and continue with the downstream analysis.
+Note that all workflows are by default setup to be run with the human_g1k_v37.fasta reference, and associated annotations. This means that if you need some other reference, you will have to set it up manually by configuring the "Run Template" part of the workflow script (and depending somewhat on the use case, make changes to the qscripts themself). It's also worth mentioning that all the scripts have a optional `onlyaligment` flag which can be set if you are only interested in running the aligments. This is useful what you are working on a projec where data is added over time, but you want to create the aligments as data comes in, and then join across the sequencing runs and continue with the downstream analysis.
 
 **Haloplex**
 
-    ./workflows/Haloplex.sh <pipelinesetup.xml> <the design bed file> <the design amplicon bed file> <optional - onlyalignment>
+    ./workflows/Haloplex.sh --xml_input <setup.xml> --intervals <regions file> --amplicons <amplicon file> [--alignments_only] [--run]
 
 The files associated with the Haloplex design can be downloaded from Agilents homepage.
 
 **RNACounts**
 
-    ./workflows/RNACounts.sh <pipelinesetup.xml> <library type> <optional - onlyalignment>
+    ./workflows/RNACounts.sh --xml_input <setup.xml> --library_type <fr-secondstrand/fr-firststrand/unstranded> [--alignments_only] [--run]
 
 Library types depends on the protcol used. For ScriptSeq, it's for example `fr-secondstrand`.
 
 **RNADifferentialExpression**
 
-    ./workflows/RNACounts.sh <pipelinesetup.xml> <library type> <optional - replicates file> <optional - onlyalignment>
+    ./workflows/RNADifferentialExpression.sh --xml_input <setup.xml> --library_type <fr-secondstrand/fr-firststrand/unstranded> [--replicates <replicate_file>] [--alignments_only] [--run]
 
-You can optionally specify a replicate file (if you have none, just leave it blank). 
+If you have replicates in you cohort specify them in a file (under `--replicates`) accoring to the following: On each line should be the label (e.g. the name of the condition) and sample names of the samples included in that condition seperated by tabs. Please note that only samples which have replicates need to be specified. The default is one sample - one replicate.
 
-If you have replicates in you cohort specify them in a file accoring to the following: On each line should be the label (e.g. the name of the condition) and sample names of the samples included in that condition seperated by tabs. Please note that only samples which have replicates need to be specified. The default is one sample - one replicate
-
-**SureSelectExome**
+**Exome**
     
-    ./workflows/Exome.sh <pipelinesetup.xml> SureSelect <optional - onlyalignment>
+    ./workflows/Exome.sh --xml_input <setup.xml> <--sureselect> || <--truseq> [--alignments_only] [--run]
 
-**TruSeqExome**
-
-    ./workflows/Exome.sh <pipelinesetup.xml> TruSeq <optional - onlyalignment>
+Pick one if either `--sureselect` or `--truseq` to set which exome intervals should be used.
 
 **WholeGenome**
 
-    ./workflows/WholeGenome.sh <pipelinesetup.xml> <optional - onlyalignment>
+    ./workflows/WholeGenome.sh --xml_input <setup.xml> [--alignments_only] [--run]
 
 
 Monitoring progress
