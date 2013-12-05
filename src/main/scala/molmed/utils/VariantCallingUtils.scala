@@ -141,7 +141,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
     override def jobRunnerJobName = projectName.get + "_VF"
   }
 
-  class VQSRBase(t: VariantCallingTarget) extends VariantRecalibrator with CommandLineGATKArgs with OneCoreJob {
+  class VQSRBase(t: VariantCallingTarget) extends VariantRecalibrator with CommandLineGATKArgs with EightCoreJob {
     this.nt = gatkOptions.nbrOfThreads
     this.reference_sequence = t.reference
     if (!t.intervals.isEmpty) this.intervals :+= t.intervals.get
