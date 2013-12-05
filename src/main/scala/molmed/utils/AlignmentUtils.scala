@@ -110,7 +110,7 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
   }
 
   // Find suffix array coordinates of single end reads
-  case class bwa_aln_se(fastq1: File, outSai: File, reference: File) extends OneCoreJob {
+  case class bwa_aln_se(fastq1: File, outSai: File, reference: File) extends EightCoreJob {
     @Input(doc = "fastq file to be aligned") var fastq = fastq1
     @Input(doc = "reference") var ref = reference
     @Output(doc = "output sai file") var sai = outSai
