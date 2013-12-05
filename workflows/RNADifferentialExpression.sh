@@ -3,10 +3,9 @@
 #SBATCH -p core
 #SBATCH -n 1
 #SBATCH -t 120:00:00
-#SBATCH -J snp_seq_pipeline_controller
+#SBATCH -J piper
 #SBATCH -o pipeline-%j.out
 #SBATCH -e pipeline-%j.error
-#SBATCH --qos=seqver
 
 # NOTE
 # LOOK AT THE BOTTOM OF THE SCRIPT TO SEE SETUP ETC.
@@ -24,7 +23,7 @@
 
 function alignWithTophat {
     source piper -S ${SCRIPTS_DIR}/AlignWithTophat.scala \
-	    --xml_input $1 \
+	    --xml_input $PIPELINE_SETUP \
 	    --annotations ${ANNOTATIONS} \
 	    --library_type ${LIBRARY_TYPE} \
 	    -tophat ${PATH_TO_TOPHAT} \
@@ -34,9 +33,7 @@ function alignWithTophat {
 	    -jobRunner ${JOB_RUNNER} \
 	    -jobNative "${JOB_NATIVE_ARGS}" \
 	    --job_walltime 518400 \
-	    -run \
-	    ${DEBUG} >> ${LOGS}/alignWithTophat.log  2>&1
-
+	    ${RUN} ${DEBUG} 2>&1 | tee -a ${LOGS}/alignWithTophat.log
 
     # Check the script exit status, and if it did not finish, clean up and exit
     if [ $? -ne 0 ]; then 
@@ -61,8 +58,7 @@ function cuffdiff {
             -jobRunner ${JOB_RUNNER} \
             -jobNative "${JOB_NATIVE_ARGS}" \
             --job_walltime 259200 \
-            -run \
-            ${DEBUG} >> ${LOGS}/cuffdiff.log  2>&1
+            ${RUN} ${DEBUG} 2>&1 | tee -a ${LOGS}/cuffdiff.log
 
 
     # Check the script exit status, and if it did not finish, clean up and exit
@@ -74,7 +70,6 @@ function cuffdiff {
 
     echo "1"
 }
-
 
 #------------------------------------------------------------------------------------------
 # Run QC with RNA_QC
@@ -93,8 +88,7 @@ function RNA_QC {
 	    -jobRunner ${JOB_RUNNER} \
 	    -jobNative "${JOB_NATIVE_ARGS}" \
 	    --job_walltime 172800 \
-	    -run \
-	    ${DEBUG} >> ${LOGS}/rnaQC.log  2>&1
+	    ${RUN} ${DEBUG} 2>&1 | tee -a ${LOGS}/rnaQC.log
 
 
     # Check the script exit status, and if it did not finish, clean up and exit
@@ -107,35 +101,83 @@ function RNA_QC {
     echo "RNA_QC does not have a output!"
 }
 
+function usage {
+   echo "Usage: ./workflows/RNADifferentialExpression.sh --xml_input <setup.xml> --library_type <fr-secondstrand/fr-firststrand/unstranded> [--replicates <replicate_file>] [--alignments_only] [--run]"
+}
+
+#---------------------------------------------
+# Parse the arguments
+#---------------------------------------------
+PIPELINE_SETUP=""
+RUN=""
+ONLY_ALIGNMENTS=""
+LIBRARY_TYPE=""
+REPLICATES=""
+
+
+while :
+    do
+       case $1 in
+           -h | --help | -\?)
+               usage
+               exit 0
+               ;;
+           -s | --xml_input)
+               PIPELINE_SETUP=$2
+               shift 2
+               ;;
+           -l | --library_type)
+               LIBRARY_TYPE=$2
+               shift 2
+               ;;
+           -c | --replicates)
+               REPLICATES=$2
+               shift 2
+               ;;
+           -r | --run)
+               RUN="-run"
+               shift
+               ;;
+           -a | --alignments_only)
+               ONLY_ALIGNMENTS="--onlyAlignments"
+               shift
+               ;;
+           -*)
+               echo "WARN: Unknown option (ignored): $1" >&2
+               shift
+               ;;
+           *)  # no more options. Stop while loop
+               break
+               ;;
+       esac
+   done
+
+if [ ! "$PIPELINE_SETUP" ]; then
+   usage
+   exit 1
+fi
+
+if [ ! "$LIBRARY_TYPE" ]; then
+   usage
+   exit 1
+fi
+
+#---------------------------------------------
+# Run template - setup which files to run etc
+#---------------------------------------------
+
+# Loads the global settings. To change them open globalConfig.sh and rewrite them.
+source globalConfig.sh
+
+GENOME_REFERENCE=${GATK_BUNDLE_B37}"/human_g1k_v37.fasta"
+ANNOTATIONS="/proj/b2010028/references/piper_references/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf"
+RRNA_TARGETS="/proj/b2010028/references/piper_references/rRNA_targets/rRNA.sorted.1-based.intervals.list"
 
 # We also need the correct java engine and R version
 module load java/sun_jdk1.7.0_25
 module load R/2.15.0
 module load bioinfo-tools
 module load tophat/2.0.4
-
-#---------------------------------------------
-# Run template - setup which files to run etc
-#---------------------------------------------
-
-PIPELINE_SETUP_XML=$1
-
-# Loads the global settings. To change them open globalConfig.sh and rewrite them.
-source globalConfig.sh
-GENOME_REFERENCE=${GATK_BUNDLE_B37}"/human_g1k_v37.fasta"
-ANNOTATIONS="/proj/b2010028/references/piper_references/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf"
-RRNA_TARGETS="/proj/b2010028/references/piper_references/rRNA_targets/rRNA.sorted.1-based.intervals.list"
-LIBRARY_TYPE=$2 # Depends on the protocol, e.g. fr-secondstrand for ScriptSeq
-# If you have replicates in you cohort specify them in a file accoring to the following
-# On each line should be the label (e.g. the name of the condition)
-# and sample names of the samples included in that condition seperated by
-# tabs. Please note that only samples which have replicates need to be specified.
-# The default is one sample - one replicate
-REPLICATES=$3
-
-if [ "$4" == "onlyaligment" ] || [ "$5" == "onlyaligment" ]; then
-    ONLY_ALIGNMENTS=true
-fi
 
 #---------------------------------------------
 # Create output directories
