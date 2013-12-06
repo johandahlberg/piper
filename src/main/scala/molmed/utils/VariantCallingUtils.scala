@@ -120,6 +120,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
   class indelCall(t: VariantCallingTarget, testMode: Boolean, downsampleFraction: Option[Double]) extends GenotyperBase(t, testMode, downsampleFraction) {
     this.out = t.rawIndelVCF
     this.baq = org.broadinstitute.sting.utils.baq.BAQ.CalculationMode.OFF
+    this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.INDEL
     override def jobRunnerJobName = projectName.get + "_UGi"
   }
 
