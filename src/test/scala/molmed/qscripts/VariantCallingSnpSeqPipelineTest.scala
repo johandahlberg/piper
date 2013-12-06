@@ -26,7 +26,7 @@ class VariantCallingSnpSeqPipelineTest {
   @Test
   def testBasicVariantCalling {
     val projectName = "test1"
-    val testRawSNV = projectName + ".raw.snv.vcf"
+    val testRawSNV = projectName + ".raw.snp.vcf"
     val testRawINDEL = projectName + ".raw.indel.vcf"
     val spec = new PipelineTestSpec
     spec.jobRunners = Seq("Shell")
@@ -59,7 +59,7 @@ class VariantCallingSnpSeqPipelineTest {
   @Test
   def testNoIntervalsVariantCalling {
     val projectName = "test1"
-    val testRawSNV = projectName + ".raw.snv.vcf"
+    val testRawSNV = projectName + ".raw.snp.vcf"
     val testRawINDEL = projectName + ".raw.indel.vcf"
     val spec = new PipelineTestSpec
     spec.jobRunners = Seq("Shell")

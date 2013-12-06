@@ -16,10 +16,10 @@ import java.io.File
 
     val name = if (outputDir.isEmpty()) baseName else outputDir + "/" + baseName
     val clusterFile = new File(name + ".clusters")
-    val rawSnpVCF = new File(name + ".raw.snv.vcf")
+    val rawSnpVCF = new File(name + ".raw.snp.vcf")
     val rawIndelVCF = new File(name + ".raw.indel.vcf")
     val filteredIndelVCF = new File(name + ".filtered.indel.vcf")
-    val recalibratedSnpVCF = new File(name + ".snp.recalibrated.snv.vcf")
+    val recalibratedSnpVCF = new File(name + ".snp.recalibrated.snp.vcf")
     val recalibratedIndelVCF = new File(name + ".indel.recalibrated.vcf")
     val tranchesSnpFile = new File(name + ".snp.tranches")
     val tranchesIndelFile = new File(name + ".indel.tranches")
@@ -27,11 +27,6 @@ import java.io.File
     val vqsrIndelRscript: File = new File(name + ".indel.vqsr.r")
     val recalSnpFile = new File(name + ".snp.tranches.recal")
     val recalIndelFile = new File(name + ".indel.tranches.recal")
-    val goldStandardRecalibratedVCF = new File(name + "goldStandard.recalibrated.vcf")
-    val goldStandardTranchesFile = new File(name + "goldStandard.tranches")
-    val goldStandardRecalFile = new File(name + "goldStandard.tranches.recal")
     val evalFile = new File(name + ".snp.eval")
     val evalIndelFile = new File(name + ".indel.eval")
-    val goldStandardName = outputDir + "goldStandard/" + baseName
-    val goldStandardClusterFile = new File(goldStandardName + ".clusters")
   }
