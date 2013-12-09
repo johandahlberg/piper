@@ -28,16 +28,36 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
 
     val targets: Seq[VariantCallingTarget] = (runSeparatly, notHuman) match {
       case (true, false) =>
-        bams.map(bam => new VariantCallingTarget(outputDir.getAbsolutePath(), bam.getName(), gatkOptions.reference, Seq(bam), gatkOptions.intervalFile, isLowPass, isExome, 1))
+        bams.map(bam => new VariantCallingTarget(outputDir.getAbsolutePath(),
+          bam.getName(),
+          gatkOptions.reference,
+          Seq(bam),
+          gatkOptions.intervalFile,
+          isLowPass, isExome, 1))
 
       case (true, true) =>
-        bams.map(bam => new VariantCallingTarget(outputDir.getAbsolutePath(), bam.getName(), gatkOptions.reference, Seq(bam), gatkOptions.intervalFile, isLowPass, false, 1))
+        bams.map(bam => new VariantCallingTarget(outputDir.getAbsolutePath(),
+          bam.getName(),
+          gatkOptions.reference,
+          Seq(bam),
+          gatkOptions.intervalFile,
+          isLowPass, false, 1))
 
       case (false, true) =>
-        Seq(new VariantCallingTarget(outputDir.getAbsolutePath(), projectName.get, gatkOptions.reference, bams, gatkOptions.intervalFile, isLowPass, false, bams.size))
+        Seq(new VariantCallingTarget(outputDir.getAbsolutePath(),
+            projectName.get,
+            gatkOptions.reference,
+            bams,
+            gatkOptions.intervalFile,
+            isLowPass, false, bams.size))
 
       case (false, false) =>
-        Seq(new VariantCallingTarget(outputDir.getAbsolutePath(), projectName.get, gatkOptions.reference, bams, gatkOptions.intervalFile, isLowPass, isExome, bams.size))
+        Seq(new VariantCallingTarget(outputDir.getAbsolutePath(),
+            projectName.get,
+            gatkOptions.reference,
+            bams,
+            gatkOptions.intervalFile,
+            isLowPass, isExome, bams.size))
     }
 
     // Make sure resource files are available if recal is to be performed
@@ -105,9 +125,9 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
   // 1a.) Call SNPs with UG
   class snpCall(t: VariantCallingTarget, testMode: Boolean, downsampleFraction: Option[Double], minimumBaseQuality: Option[Int], deletions: Option[Double], noBAQ: Boolean) extends GenotyperBase(t, testMode, downsampleFraction) {
 
-    if (minimumBaseQuality.isDefined)
+    if (minimumBaseQuality.isDefined && minimumBaseQuality.get >= 0 )
       this.min_base_quality_score = minimumBaseQuality
-    if (deletions.isDefined)
+    if (deletions.isDefined && deletions.get >= 0)
       this.max_deletion_fraction = deletions
 
     this.out = t.rawSnpVCF
