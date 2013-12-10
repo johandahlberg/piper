@@ -84,6 +84,9 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
   @Argument(doc = "Output path for the processed BAM files.", fullName = "output_directory", shortName = "outputDir", required = false)
   var outputDir: String = ""
 
+  @Argument(doc = "Do not convert from hg19 amplicons/convered etc.", fullName = "do_not_convert", shortName = "dnc", required = false)
+  var doNotConvert: Boolean = false
+
   @Argument(doc = "Test mode", fullName = "test_mode", shortName = "test", required = false)
   var testMode: Boolean = false
 
@@ -276,12 +279,14 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
     def intervalFormatString(contig: String, start: String, end: String, strand: String, intervalName: String): String =
       "%s\t%s\t%s\t%s\t%s".format(contig, start, end, strand, intervalName)
 
+   def conversions(s: String) = if(doNotConvert) s else s.replace("chrM", "MT").replace("chr", "")    
+      
     def formatFromCovered(split: Array[String]): String = {
-      intervalFormatString(split(0).replace("chrM","MT").replace("chr", ""), (split(1).toInt + 1).toString, split(2), "+", split(3))
+      intervalFormatString(conversions(split(0)), (split(1).toInt + 1).toString, split(2), "+", split(3))
     }
 
     def formatFromAmplicons(split: Array[String]): String = {
-      intervalFormatString(split(0).replace("chrM","MT").replace("chr", ""), (split(1).toInt + 1).toString, split(2), split(5), split(3))
+      intervalFormatString(conversions(split(0)), (split(1).toInt + 1).toString, split(2), split(5), split(3))
     }
 
     def writeIntervals(bed: File, intervalFile: File, bam: File, formatFrom: Array[String] => String): Unit = {
@@ -408,7 +413,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
 
     }
 
-    case class clip(@Input inBam: File, @Output @Gather(classOf[BamGatherFunction]) outBam: File, covariates: File, reference: File) extends ClipReads with CommandLineGATKArgs with OneCoreJob{
+    case class clip(@Input inBam: File, @Output @Gather(classOf[BamGatherFunction]) outBam: File, covariates: File, reference: File) extends ClipReads with CommandLineGATKArgs with OneCoreJob {
       this.isIntermediate = false
       this.reference_sequence = reference
       this.input_file = Seq(inBam)

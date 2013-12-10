@@ -101,7 +101,7 @@ Note that all workflows are by default setup to be run with the human_g1k_v37.fa
 
     ./workflows/Haloplex.sh --xml_input <setup.xml> --intervals <regions file> --amplicons <amplicon file> [--alignments_only] [--run]
 
-The files associated with the Haloplex design can be downloaded from Agilents homepage.
+The files associated with the Haloplex design can be downloaded from Agilents homepage. Please note that the design files will be converted to interval files to work with Picard. In this process the names in the files are converted to work with the "b37" genome reference, rather than "hg19" which is the reference used by agilent. This means that if you want to use "hg19" you have to specify the `--do_not_convert` flag in the qscript.
 
 **RNACounts**
 
