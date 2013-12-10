@@ -101,7 +101,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
   @Argument(shortName = "noIndels", doc = "do not call indels with the Unified Genotyper", required = false)
   var noIndels: Boolean = false
 
-  @Argument(shortName = "noRecal", doc = "Skip recalibration of variants", required = false)
+  @Argument(fullName = "skip_recalibration", shortName = "noRecal", doc = "Skip recalibration of variants", required = false)
   var noRecal: Boolean = false
 
   @Argument(shortName = "mbq", doc = "The minimum Phred-Scaled quality score threshold to be considered a good base in variant calling", required = false)
@@ -164,7 +164,9 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
      * Run alignments
      */
     val alignmentUtils = new BwaAlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, projectName, uppmaxConfig)
-    val sampleNamesAndalignedBamFiles = samples.values.flatten.map(sample => (sample.getSampleName, alignmentUtils.align(sample, aligmentOutputDir, false)))
+    val sampleNamesAndalignedBamFiles = samples.values.flatten.map(sample =>
+      (sample.getSampleName,
+        alignmentUtils.align(sample, aligmentOutputDir, asIntermidate = false)))
     val sampleNamesToBamMap = sampleNamesAndalignedBamFiles.groupBy(f => f._1).mapValues(f => f.map(x => x._2).toSeq)
 
     // Stop here is only aligments option is enabled.

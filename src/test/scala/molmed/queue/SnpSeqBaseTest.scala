@@ -28,12 +28,12 @@ object SnpSeqBaseTest {
   val pathLegacySetupFile: String = pathToBaseDir + "pipelineSetup.xml"
   val pathToSetupFileForSameSampleAcrossMultipleRunFolders = pathToBaseDir + "pipelineSetupSameSampleAcrossMultipleRunFolders.xml"
   val pathToSetupFileForSameSampleAcrossMultipleLanes = pathToBaseDir + "pipelineSetupSameSampleAcrossMultipleLanes.xml"
-  
+
   val differentRgsCohortList = pathToBaseDir + "bam.cohort.list"
   val singleFileCohortList = pathToBaseDir + "bam.single.file.cohort.list"
 
   val pathToFlatFileReport: String = pathToBaseDir + "report.tsv"
-  
+
   val pathToReportXML: String = pathToBaseDir + "smallTestFastqDataFolder/report.xml"
   val pathToReportXMLForSameSampleAcrossMultipleLanes = pathToBaseDir + "runFolderWithSameSampleInMultipleLanes/report.xml"
   val pathToReportWithMultipleLibraries = pathToBaseDir + "reportWithMultipleLibraryNames.xml"
@@ -48,7 +48,7 @@ object SnpSeqBaseTest {
 
   val pathToCuffdiff = "/home/MOLMED/dahljo/Bin/cufflinks"
   val pathToCufflinks = "/home/MOLMED/dahljo/Bin/cufflinks"
-    
-    val pathToRNASeQC = "/home/MOLMED/dahljo/workspace/piper/resources/RNA-SeQC_v1.1.7.jar"
+
+  val pathToRNASeQC = "/home/MOLMED/dahljo/workspace/piper/resources/RNA-SeQC_v1.1.7.jar"
 
 }
