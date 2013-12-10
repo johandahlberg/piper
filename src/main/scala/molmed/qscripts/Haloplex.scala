@@ -277,11 +277,11 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
       "%s\t%s\t%s\t%s\t%s".format(contig, start, end, strand, intervalName)
 
     def formatFromCovered(split: Array[String]): String = {
-      intervalFormatString(split(0), (split(1).toInt + 1).toString, split(2), "+", split(3))
+      intervalFormatString(split(0).replace("chr", ""), (split(1).toInt + 1).toString, split(2), "+", split(3))
     }
 
     def formatFromAmplicons(split: Array[String]): String = {
-      intervalFormatString(split(0), (split(1).toInt + 1).toString, split(2), split(5), split(3))
+      intervalFormatString(split(0).replace("chr", ""), (split(1).toInt + 1).toString, split(2), split(5), split(3))
     }
 
     def writeIntervals(bed: File, intervalFile: File, bam: File, formatFrom: Array[String] => String): Unit = {
