@@ -89,7 +89,7 @@ class Cuffdiff extends QScript with UppmaxXMLConfiguration {
     var outputDirList: Seq[File] = Seq()
 
     val bams = QScriptUtils.createSeqFromFile(input)
-    val replicates: Map[String, List[String]] = if (replicatesFile.isDefined) getReplicatesFromFile(replicatesFile.get) else Map.empty
+    val replicates: Map[String, List[String]] = if (replicatesFile.isDefined && replicatesFile.get != null) getReplicatesFromFile(replicatesFile.get) else Map.empty
 
     val samplesAndLables = bams.map(file => (file, ReadGroupUtils.getSampleNameFromReadGroups(file))).toMap
     val cuffDiffUtils = new CuffDiffUtils(uppmaxConfig)

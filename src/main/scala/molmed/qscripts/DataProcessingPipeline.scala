@@ -272,7 +272,12 @@ class DataProcessingPipeline extends QScript with UppmaxXMLConfiguration {
     }
 
     // Setup of options utility classes.
-    val gatkOptions = new GATKOptions(reference, nbrOfThreads, nContigs, Some(intervals), Some(dbSNP), Some(indels))
+
+    val gatkOptions = {
+      implicit def file2Option(file: File) = if (file == null) None else Some(file)
+      implicit def seqfile2Option(seq: Seq[File]) = if (seq == null) None else Some(seq)
+      new GATKOptions(reference, nbrOfThreads, nContigs, intervals, dbSNP, indels)
+    }
     val gatkUtils = new GATKUtils(gatkOptions, projectName, uppmaxConfig)    
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
 
