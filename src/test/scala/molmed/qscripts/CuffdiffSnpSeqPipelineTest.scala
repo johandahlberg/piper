@@ -23,7 +23,8 @@ class CuffdiffSnpSeqPipelineTest {
     this.run = runpipeline
   }
 
-  @Test
+  
+    @Test
   def testBasicCuffdiff {
     val projectName = "test1"
 
@@ -46,6 +47,29 @@ class CuffdiffSnpSeqPipelineTest {
     spec.fileMD5s += isoforms -> "a954b8ab4293a587a66351071a9f72a7"
 
     spec.run = run
+    PipelineTest.executeTest(spec)
+  }
+  
+  @Test
+  def testCuffdiffWithNoReplicatesFile {
+    // Don't run it, just make sure it compiles, to
+    // see that the --replicates null issue is solved.
+    
+    val projectName = "test1"
+
+    val spec = new PipelineTestSpec
+    spec.jobRunners = Seq("Shell")
+    spec.name = "BasicCuffdiff"
+    spec.args = Array(
+      pathToScript,
+      " -i " + snpSeqBaseTest.pathToCuffdiffCohortFile,
+      " --reference " + snpSeqBaseTest.hg19,
+      " --annotations " + snpSeqBaseTest.hg19annotations,
+      " --path_to_cuffdiff " + snpSeqBaseTest.pathToCuffdiff,
+      " --library_type " + " fr-secondstrand ",
+      " --replicates ",
+      " -startFromScratch ").mkString
+    spec.run = false
     PipelineTest.executeTest(spec)
   }
 
