@@ -13,7 +13,7 @@
             <samplefolder>
                 <name>1</name>
                 <path>/local/data/haloplex_test_data/fake_runfolder/Sample_1</path>
-                <reference>/local/data/gatk_bundle/hg19/ucsc.hg19.fasta</reference>
+                <reference>/local/data/gatk_bundle/b37/human_g1k_v37.fasta</reference>
             </samplefolder>
         </runfolder>
     </inputs>

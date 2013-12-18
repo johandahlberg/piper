@@ -11,16 +11,16 @@ trait UppmaxXMLConfiguration extends Uppmaxable {
   var setupXML: File = _
 
   var setupReader: SetupXMLReaderAPI = _
-  
+
   // Load the setup
-  def loadUppmaxConfigFromXML(setupXML: File = this.setupXML): UppmaxConfig = {
-    
+  def loadUppmaxConfigFromXML(setupXML: File = this.setupXML, testMode: Boolean = false): UppmaxConfig = {
+
     setupReader = new SetupXMLReader(setupXML)
     projId = setupReader.getUppmaxProjectId()
     uppmaxQoSFlag = setupReader.getUppmaxQoSFlag()
     projectName = setupReader.getProjectName()
 
-    UppmaxConfig(projId, uppmaxQoSFlag)
+    UppmaxConfig(projId, uppmaxQoSFlag, testMode = testMode)
   }
 
 }

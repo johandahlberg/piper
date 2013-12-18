@@ -65,12 +65,15 @@ class CuffdiffSnpSeqPipelineTest {
     spec.args = Array(
       pathToScript,
       " -i " + snpSeqBaseTest.pathToCuffdiffCohortFile,
+      " --xml_input " + snpSeqBaseTest.pathSetupFile,
       " --reference " + snpSeqBaseTest.hg19,
       " --annotations " + snpSeqBaseTest.hg19annotations,
+      " --threads 1", 
       " --path_to_cuffdiff " + snpSeqBaseTest.pathToCuffdiff,
       " --library_type " + " fr-secondstrand ",
       " --replicates ",
       " -startFromScratch ").mkString
+
     spec.run = false
     PipelineTest.executeTest(spec)
   }

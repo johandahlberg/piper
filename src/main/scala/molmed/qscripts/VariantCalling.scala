@@ -45,23 +45,20 @@ class VariantCalling extends QScript with UppmaxXMLConfiguration {
    * **************************************************************************
    */
 
-  @Input(doc = "dbsnp ROD to use (must be in VCF format)", fullName = "dbsnp", shortName = "D", required = false)
-  var dbSNP: Option[File] = None
-
-  @Input(doc = "extra VCF files to use as reference indels for Indel Realignment", fullName = "extra_indels", shortName = "indels", required = false)
-  var indels: Option[Seq[File]] = None
-
-  @Input(doc = "HapMap file to use with variant recalibration.", fullName = "hammap", shortName = "hm", required = false)
-  var hapmap: Option[File] = None
-
-  @Input(doc = "Omni file fo use with variant recalibration ", fullName = "omni", shortName = "om", required = false)
-  var omni: Option[File] = None
-
-  @Input(doc = "Mills indel file to use with variant recalibration", fullName = "mills", shortName = "mi", required = false)
-  var mills: Option[File] = None
-
-  @Argument(doc = "Location of resource files such as dbSnp, hapmap, etc.", fullName = "resources", shortName = "res", required = false)
-  var resourcesPath: File = _
+  @Input(doc = "dbsnp ROD to use (must be in VCF format)", fullName = "dbsnp", shortName = "D", required = false) 
+  var dbSNP: File = _ 
+ 
+  @Input(doc = "extra VCF files to use as reference indels for Indel Realignment", fullName = "extra_indels", shortName = "indels", required = false) 
+  var indels: Seq[File] = Seq() 
+ 
+  @Input(doc = "HapMap file to use with variant recalibration.", fullName = "hapmap", shortName = "hm", required = false) 
+  var hapmap: File = _ 
+ 
+  @Input(doc = "Omni file fo use with variant recalibration ", fullName = "omni", shortName = "om", required = false) 
+  var omni: File = _ 
+ 
+  @Input(doc = "Mills indel file to use with variant recalibration", fullName = "mills", shortName = "mi", required = false) 
+  var mills: File = _ 
 
   @Argument(doc = "If the project is a non-human project - which means that there are normally no resources available.", fullName = "not_human", shortName = "nh", required = false)
   var notHuman: Boolean = false
@@ -115,8 +112,6 @@ class VariantCalling extends QScript with UppmaxXMLConfiguration {
   @Argument(doc = "Test mode", fullName = "test_mode", shortName = "test", required = false)
   var testMode: Boolean = false
 
-  private var resources: Resources = null
-
   def script = {
 
     val bams = QScriptUtils.createSeqFromFile(input)
@@ -125,9 +120,11 @@ class VariantCalling extends QScript with UppmaxXMLConfiguration {
     if (nContigs < 0)
       nContigs = scala.math.min(QScriptUtils.getNumberOfContigs(bams(0)), 23)
 
-    resources = new Resources(resourcesPath, testMode)
     val uppmaxConfig = loadUppmaxConfigFromXML()
-    val gatkOptions = new GATKOptions(reference, nbrOfThreads, nContigs, Some(intervals), dbSNP, indels, hapmap, omni, mills)
+    val gatkOptions = {
+      implicit def file2Option(file: File) = if (file == null) None else Some(file)
+      new GATKOptions(reference, nbrOfThreads, nContigs, intervals, dbSNP, Some(indels), hapmap, omni, mills)
+    }    
     val variantCallingUtils = new VariantCallingUtils(gatkOptions, projectName, uppmaxConfig)
 
     val intervalOption = if(intervals == null) None else Some(intervals) 

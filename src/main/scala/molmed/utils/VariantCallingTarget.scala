@@ -5,7 +5,7 @@ import java.io.File
   /**
    * Help class handling each variant calling target. Storing input files, creating output filenames etc.
    */
-  class VariantCallingTarget(outputDir: String,
+  class VariantCallingTarget(outputDir: File,
     val baseName: String,
     val reference: File,
     val bamList: Seq[File],
@@ -14,7 +14,7 @@ import java.io.File
     val isExome: Boolean,
     val nSamples: Int) {
 
-    val name = if (outputDir.isEmpty()) baseName else outputDir + "/" + baseName
+    val name = outputDir + "/" + baseName
     val clusterFile = new File(name + ".clusters")
     val rawSnpVCF = new File(name + ".raw.snp.vcf")
     val rawIndelVCF = new File(name + ".raw.indel.vcf")

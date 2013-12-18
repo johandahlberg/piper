@@ -31,7 +31,7 @@ class HaloplexSnpSeqPipelineTest {
     spec.name = "HaloplexPipeline"
     spec.args = Array(
       pathToScript,
-      " -res " + "/local/data/gatk_bundle/hg19/",
+      " -res " + "/local/data/gatk_bundle/b37/",
       " --xml_input " + snpSeqBaseTest.pathHaloplexSetupFile,
       " -intervals " + "/local/data/haloplex_test_data/design_files/test.roi.bed",
       " --amplicons " + "/local/data/haloplex_test_data/design_files/test.selection.bed",
@@ -43,8 +43,8 @@ class HaloplexSnpSeqPipelineTest {
       " --scatter_gather 1 ",
       " --test_mode ",
       " -startFromScratch ").mkString
-    spec.fileMD5s += testRawVcf -> "fae53b7d79f6650091396301d952ffc9"
-    spec.fileMD5s += testRawFilteredVcf -> "71b22850155c7a7047ff4158ffe52b7c"
+    spec.fileMD5s += testRawVcf -> "ceb0c297f085b964cdb5058a8d2d11d4"
+    spec.fileMD5s += testRawFilteredVcf -> "03a2cd239159fa57211b33426e3b35d2"
 
     spec.run = run
     PipelineTest.executeTest(spec)
@@ -59,7 +59,7 @@ class HaloplexSnpSeqPipelineTest {
     spec.name = "HaloplexPipeline"
     spec.args = Array(
       pathToScript,
-      " -res " + "/local/data/gatk_bundle/hg19/",
+      " -res " + "/local/data/gatk_bundle/b37/",
       " --xml_input " + snpSeqBaseTest.pathHaloplexSetupFile,
       " -intervals " + "/local/data/haloplex_test_data/design_files/test.roi.bed",
       " --amplicons " + "/local/data/haloplex_test_data/design_files/test.selection.bed",
@@ -72,7 +72,7 @@ class HaloplexSnpSeqPipelineTest {
       " --test_mode ",
       " -startFromScratch ",
       " --onlyAlignments ").mkString
-    spec.fileMD5s += testRawBam -> "247cf1164e331b77ef6cdf0355d21443"
+    spec.fileMD5s += testRawBam -> "e40c06979df19f5934fc3c2335923f67"
 
     spec.run = run
     PipelineTest.executeTest(spec)

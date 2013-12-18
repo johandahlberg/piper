@@ -14,9 +14,7 @@
 
 		<classes>
 											
-			<class name="molmed.qscripts.AlignWithBWASnpSeqPipelineTest" />
-			<class name="molmed.qscripts.DataProcessingSnpSeqPipelineTest" />
-			<class name="molmed.qscripts.VariantCallingSnpSeqPipelineTest" />
+
 			<class name="molmed.qscripts.AlignWithTophatSnpSeqPipelineTest" />
 			<class name="molmed.qscripts.AlignmentQCSnpSeqPipelineTest" />
 			
@@ -29,6 +27,13 @@
 			<class name="molmed.qscripts.CuffdiffSnpSeqPipelineTest" />
 			<class name="molmed.qscripts.MergeBamsBySampleSnpSeqPipelineTest" />
 			<class name="molmed.qscripts.RNAQCSnpSeqPipelineTest" />
+			-->
+			
+			<!-- Legacy tests -->
+			<!--
+				<class name="molmed.qscripts.AlignWithBWASnpSeqPipelineTest" />
+				<class name="molmed.qscripts.DataProcessingSnpSeqPipelineTest" />
+				<class name="molmed.qscripts.VariantCallingSnpSeqPipelineTest" />
 			-->			
 		</classes>
 	</test>

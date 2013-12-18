@@ -28,7 +28,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
 
     val targets: Seq[VariantCallingTarget] = (runSeparatly, notHuman) match {
       case (true, false) =>
-        bams.map(bam => new VariantCallingTarget(outputDir.getAbsolutePath(),
+        bams.map(bam => new VariantCallingTarget(outputDir,
           bam.getName(),
           gatkOptions.reference,
           Seq(bam),
@@ -36,7 +36,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
           isLowPass, isExome, 1))
 
       case (true, true) =>
-        bams.map(bam => new VariantCallingTarget(outputDir.getAbsolutePath(),
+        bams.map(bam => new VariantCallingTarget(outputDir,
           bam.getName(),
           gatkOptions.reference,
           Seq(bam),
@@ -44,7 +44,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
           isLowPass, false, 1))
 
       case (false, true) =>
-        Seq(new VariantCallingTarget(outputDir.getAbsolutePath(),
+        Seq(new VariantCallingTarget(outputDir,
             projectName.get,
             gatkOptions.reference,
             bams,
@@ -52,7 +52,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
             isLowPass, false, bams.size))
 
       case (false, false) =>
-        Seq(new VariantCallingTarget(outputDir.getAbsolutePath(),
+        Seq(new VariantCallingTarget(outputDir,
             projectName.get,
             gatkOptions.reference,
             bams,

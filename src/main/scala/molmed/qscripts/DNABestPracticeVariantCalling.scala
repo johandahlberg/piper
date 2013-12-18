@@ -148,7 +148,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
      * Setup of resources to use
      */
 
-    val uppmaxConfig = loadUppmaxConfigFromXML()
+    val uppmaxConfig = loadUppmaxConfigFromXML(testMode = qscript.testMode)
     val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
     // NOTE: assumes all samples are to be aligned to the same reference.
     val reference = samples.head._2(0).getReference()
@@ -166,7 +166,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
     val alignmentUtils = new BwaAlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, projectName, uppmaxConfig)
     val sampleNamesAndalignedBamFiles = samples.values.flatten.map(sample =>
       (sample.getSampleName,
-        alignmentUtils.align(sample, aligmentOutputDir, asIntermidate = false)))
+        alignmentUtils.align(sample, aligmentOutputDir, asIntermidate = true)))
     val sampleNamesToBamMap = sampleNamesAndalignedBamFiles.groupBy(f => f._1).mapValues(f => f.map(x => x._2).toSeq)
 
     // Stop here is only aligments option is enabled.
@@ -188,7 +188,8 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
        * Data processing
        */
 
-      //Only processed with samples where quality control has passed
+      // Only processed with samples where quality control has passed
+      // @TODO Note that this has not been implemented yet.
       val samplesWhichHavePassedQC = qualityControlPassed.filter(p => p._2).map(_._1)
       val gatkDataProcessingUtils = new GATKDataProcessingUtils(this, gatkOptions, generalUtils, projectName, uppmaxConfig)
       val processedBamFiles = gatkDataProcessingUtils.dataProcessing(bams = samplesWhichHavePassedQC, processedAligmentsOutputDir, cleaningModel, skipDeduplication = false, testMode)

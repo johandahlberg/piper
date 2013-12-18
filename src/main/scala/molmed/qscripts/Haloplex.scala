@@ -209,15 +209,23 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
     val cohortList =
       cutAndSyncedSamples.values.flatten.map(sample => alignmentHelper.align(sample, bamOutputDir, false)).toSeq
 
+    // Convert intervals and amplicons from bed files to
+    // picard metric files.
+    val intervalsAsPicardIntervalFile = new File(swapExt(miscOutputDir, qscript.intervals, ".bed", ".intervals"))
+    val ampliconsAsPicardIntervalFile = new File(swapExt(miscOutputDir, qscript.amplicons, ".bed", ".intervals"))
+
+    add(haloplexUtils.convertCoveredToIntervals(qscript.intervals, intervalsAsPicardIntervalFile, cohortList.toList(0)))
+    add(haloplexUtils.convertAmpliconsToIntervals(qscript.amplicons, ampliconsAsPicardIntervalFile, cohortList.toList(0)))
+
     if (!onlyAligment) {
       // Make raw variation calls
       val preliminaryVariantCalls = new File(vcfOutputDir + "/" + projectName.get + ".pre.vcf")
       val reference = samples.values.flatten.toList(0).getReference
-      add(haloplexUtils.genotype(cohortList.toSeq, reference, preliminaryVariantCalls, false))
+      add(haloplexUtils.genotype(cohortList.toSeq, reference, preliminaryVariantCalls, false, intervalsAsPicardIntervalFile))
 
       // Create realignment targets
       val targets = new File(miscOutputDir + "/" + projectName.get + ".targets.intervals")
-      add(haloplexUtils.target(preliminaryVariantCalls, targets, reference))
+      add(haloplexUtils.target(preliminaryVariantCalls, targets, reference, intervalsAsPicardIntervalFile))
 
       // Do indel realignment
       val postCleaningBamList =
@@ -231,7 +239,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
 
       // BQSR
       val covariates = new File(miscOutputDir + "/bqsr.grp")
-      add(haloplexUtils.cov(postCleaningBamList.toSeq, covariates, reference))
+      add(haloplexUtils.cov(postCleaningBamList.toSeq, covariates, reference, intervalsAsPicardIntervalFile))
 
       // Clip reads and apply BQSR
       val clippedAndRecalibratedBams =
@@ -240,14 +248,6 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
           add(haloplexUtils.clip(bam, clippedBam, covariates, reference))
           clippedBam
         }
-
-      // Convert intervals and amplicons from bed files to
-      // picard metric files.
-      val intervalsAsPicardIntervalFile = new File(swapExt(miscOutputDir, qscript.intervals, ".bed", ".intervals"))
-      val ampliconsAsPicardIntervalFile = new File(swapExt(miscOutputDir, qscript.amplicons, ".bed", ".intervals"))
-
-      add(haloplexUtils.convertCoveredToIntervals(qscript.intervals, intervalsAsPicardIntervalFile, clippedAndRecalibratedBams.toList(0)))
-      add(haloplexUtils.convertAmpliconsToIntervals(qscript.amplicons, ampliconsAsPicardIntervalFile, clippedAndRecalibratedBams.toList(0)))
 
       // Collect targetedPCRMetrics
       for (bam <- clippedAndRecalibratedBams) {
@@ -259,7 +259,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
 
       // Make variant calls
       val afterCleanupVariants = swapExt(vcfOutputDir, preliminaryVariantCalls, ".pre.vcf", ".vcf")
-      add(haloplexUtils.genotype(clippedAndRecalibratedBams.toSeq, reference, afterCleanupVariants, true))
+      add(haloplexUtils.genotype(clippedAndRecalibratedBams.toSeq, reference, afterCleanupVariants, true, intervalsAsPicardIntervalFile))
 
       // Filter variant calls
       val filteredCallSet = swapExt(vcfOutputDir, afterCleanupVariants, ".vcf", ".filtered.vcf")
@@ -325,7 +325,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
       }
     }
 
-    case class genotype(@Input bam: Seq[File], reference: File, @Output @Gather(classOf[VcfGatherFunction]) vcf: File, isSecondPass: Boolean) extends UnifiedGenotyper with CommandLineGATKArgs with EightCoreJob {
+    case class genotype(@Input bam: Seq[File], reference: File, @Output @Gather(classOf[VcfGatherFunction]) vcf: File, isSecondPass: Boolean, @Input intervalFile: File) extends UnifiedGenotyper with CommandLineGATKArgs with EightCoreJob {
 
       if (qscript.testMode)
         this.no_cmdline_in_header = true
@@ -337,7 +337,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
 
       this.dbsnp = resources.dbsnp
       this.reference_sequence = reference
-      this.intervals = Seq(qscript.intervals)
+      this.intervals = Seq(intervalFile)
       this.scatterCount = nContigs
       this.nt = nbrOfThreads
       this.stand_call_conf = 30.0
@@ -360,11 +360,11 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
 
     }
 
-    case class target(@Input candidateIndels: File, outIntervals: File, reference: File) extends RealignerTargetCreator with CommandLineGATKArgs with EightCoreJob {
+    case class target(@Input candidateIndels: File, outIntervals: File, reference: File, @Input intervalFile: File) extends RealignerTargetCreator with CommandLineGATKArgs with EightCoreJob {
 
       this.reference_sequence = reference
       this.num_threads = nbrOfThreads
-      this.intervals = Seq(qscript.intervals)
+      this.intervals = Seq(intervalFile)
       this.out = outIntervals
       this.mismatchFraction = 0.0
       this.known :+= resources.mills
@@ -392,7 +392,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
 
     }
 
-    case class cov(inBam: Seq[File], outRecalFile: File, reference: File) extends BaseRecalibrator with CommandLineGATKArgs with EightCoreJob {
+    case class cov(inBam: Seq[File], outRecalFile: File, reference: File, @Input intervalFile: File) extends BaseRecalibrator with CommandLineGATKArgs with EightCoreJob {
 
       this.reference_sequence = reference
       this.isIntermediate = false
@@ -406,7 +406,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
       this.input_file = inBam
       this.disable_indel_quals = false
       this.out = outRecalFile
-      this.intervals = Seq(qscript.intervals)
+      this.intervals = Seq(intervalFile)
 
       this.scatterCount = nContigs
       override def jobRunnerJobName = projectName.get + "_cov"
