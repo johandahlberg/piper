@@ -97,8 +97,11 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     override def jobRunnerJobName = projectName.get + "_convert2fastq"
   }
 
-  case class RNA_QC(@Input bamfile: File, @Input bamIndex: File, rRNATargetsFile: File, downsampling: Int, referenceFile: File, outDir: File, transcriptFile: File, @Output placeHolder: File, pathRNASeQC: File) extends RNASeQC with OneCoreJob {
+  case class RNA_QC(@Input bamfile: File, @Input bamIndex: File, rRNATargetsFile: File, downsampling: Int, referenceFile: File, outDir: File, transcriptFile: File, ph: File, pathRNASeQC: File) extends RNASeQC with OneCoreJob {
 
+    @Output
+    val placeHolder: File = ph
+    
     import molmed.utils.ReadGroupUtils._
 
     def createRNASeQCInputString(file: File): String = {
