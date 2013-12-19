@@ -124,8 +124,11 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     override def jobRunnerJobName = projectName.get + "_RNA_QC"
   }
 
-  case class createAggregatedMetrics(@Input placeHolderSeq: Seq[File], @Input outputDir: File, @Output aggregatedMetricsFile: File) extends InProcessFunction {
+  case class createAggregatedMetrics(phs: Seq[File], @Input outputDir: File, @Output aggregatedMetricsFile: File) extends InProcessFunction {
 
+    @Input
+    val placeHolderSeq: Seq[File] = phs
+    
     def run() = {
 
       def getFileTree(f: File): Stream[File] =
