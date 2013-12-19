@@ -105,13 +105,13 @@ The files associated with the Haloplex design can be downloaded from Agilents ho
 
 **RNACounts**
 
-    ./workflows/RNACounts.sh --xml_input <setup.xml> --library_type <fr-secondstrand/fr-firststrand/unstranded> [--alignments_only] [--run]
+    ./workflows/RNACounts.sh --xml_input <setup.xml> --library_type <fr-secondstrand/fr-firststrand/fr-unstranded> [--alignments_only] [--run]
 
 Library types depends on the protcol used. For ScriptSeq, it's for example `fr-secondstrand`.
 
 **RNADifferentialExpression**
 
-    ./workflows/RNADifferentialExpression.sh --xml_input <setup.xml> --library_type <fr-secondstrand/fr-firststrand/unstranded> [--replicates <replicate_file>] [--alignments_only] [--run]
+    ./workflows/RNADifferentialExpression.sh --xml_input <setup.xml> --library_type <fr-secondstrand/fr-firststrand/fr-unstranded> [--replicates <replicate_file>] [--alignments_only] [--run]
 
 If you have replicates in you cohort specify them in a file (under `--replicates`) accoring to the following: On each line should be the label (e.g. the name of the condition) and sample names of the samples included in that condition seperated by tabs. Please note that only samples which have replicates need to be specified. The default is one sample - one replicate.
 
