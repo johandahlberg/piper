@@ -47,7 +47,7 @@ function alignWithTophat {
 
 function cufflinks {
     source piper -S ${SCRIPTS_DIR}/Cufflinks.scala \
-		 --xml_input $PIPELINE_SETUP_XML \
+		 --xml_input $PIPELINE_SETUP \
           	     -i $1 \
           	     --annotations ${ANNOTATIONS} \
 	             --library_type ${LIBRARY_TYPE} \
@@ -77,7 +77,7 @@ function cufflinks {
 function RNA_QC {
     source piper -S ${SCRIPTS_DIR}/RNAQC.scala \
 	    -i $1 \
-	    --xml_input $PIPELINE_SETUP_XML \
+	    --xml_input $PIPELINE_SETUP \
 	    --downsample 1000 \
 		-R ${GENOME_REFERENCE} \
 	    --transcripts ${ANNOTATIONS} \
@@ -199,12 +199,12 @@ fi
 # in a different way.
 #---------------------------------------------
 
-if $ONLY_ALIGNMENTS; then
+if [ -n "$ONLY_ALIGNMENTS" ]; then
     ALIGN_OUTPUT=$(alignWithTophat ${PIPELINE_SETUP_XML})
 else
     ALIGN_OUTPUT=$(alignWithTophat ${PIPELINE_SETUP_XML})
-    RNA_QC_OUTPUT=$(RNA_QC ${ALIGN_OUTPUT})
-    CUFFLINKS_OUT=$(cufflinks ${ALIGN_OUTPUT})
+    RNA_QC_OUTPUT=$(RNA_QC ${RAW_BAM_OUTPUT}/cohort.list)
+    CUFFLINKS_OUT=$(cufflinks ${RAW_BAM_OUTPUT}/cohort.list)
 fi
 
 # Perform final clean up
