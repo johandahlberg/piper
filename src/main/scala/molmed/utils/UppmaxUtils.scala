@@ -11,8 +11,8 @@ class UppmaxUtils(uppmaxConfig: UppmaxConfig) {
    * Make sure that the memory limit does not get set higher than 10 if testmode is activated,
    * otherwise some jobs will go bananas on the local test machine, causing it to swap.
    */
-  def memLimit(memLimit: Option[Double]): Option[Double] = if(uppmaxConfig.testMode) Some(10) else memLimit
-  
+  def memLimit(memLimit: Option[Double]): Option[Double] = if (uppmaxConfig.testMode) Some(10) else memLimit
+
   trait OneCoreJob extends CommandLineFunction {
     this.jobNativeArgs = Seq("-p core -n 1") ++ projectBaseString
     this.memoryLimit = memLimit(Some(8))
@@ -22,6 +22,12 @@ class UppmaxUtils(uppmaxConfig: UppmaxConfig) {
   trait TwoCoreJob extends CommandLineFunction {
     this.jobNativeArgs = Seq("-p core -n 2") ++ projectBaseString
     this.memoryLimit = memLimit(Some(16))
+    this.isIntermediate = false
+  }
+
+  trait ThreeCoreJob extends CommandLineFunction {
+    this.jobNativeArgs = Seq("-p core -n 3") ++ projectBaseString
+    this.memoryLimit = memLimit(Some(24))
     this.isIntermediate = false
   }
 
@@ -42,5 +48,5 @@ class UppmaxUtils(uppmaxConfig: UppmaxConfig) {
     this.memoryLimit = memLimit(Some(128))
     this.isIntermediate = false
   }
-  
+
 }
