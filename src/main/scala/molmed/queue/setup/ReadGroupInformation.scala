@@ -4,7 +4,9 @@ package molmed.queue.setup
  * Auxilary case class for storing read group information
  */
 
-case class ReadGroupInformation(sampleName: String, readGroupId: String, sequencingCenter: String, readLibrary: String, platform: String, platformUnitId: String) {
+case class ReadGroupInformation(sampleName: String, readGroupId: String, sequencingCenter: String,
+    readLibrary: String, platform: String, platformUnitId: String,
+    readsPassFilter: Option[Int] = None) {
 
     def parseToTophatApprovedString(): String = {
 

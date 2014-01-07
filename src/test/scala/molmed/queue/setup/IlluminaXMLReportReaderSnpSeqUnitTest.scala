@@ -82,4 +82,11 @@ class IlluminaXMLReportReaderSnpSeqUnitTest {
     val actual: String = illuminaXMLReportReader.getReadGroupID(sampleName, lane)
     assert(actual.equals(expected))
   }
+  
+  @Test
+  def getNumberOfReadsPassedFilter() {
+    val expected = 122865715 + 122865715
+    val actual: Int = illuminaXMLReportReader.getNumberOfReadsPassedFilter(sampleName, lane).get
+    assert(actual.equals(expected))
+  }
 }

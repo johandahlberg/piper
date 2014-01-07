@@ -27,6 +27,17 @@ class IlluminaXMLReportReader(file: File) extends ReportReaderAPI {
   private def getMatchingSamples(sampleName: String): Buffer[molmed.xml.illuminareport.Sample] =
     sampleList.filter(p => p.getId().equalsIgnoreCase(sampleName))
 
+  private def getSampleAndTagMatchingLane(samples: Buffer[molmed.xml.illuminareport.Sample], lane: Int): Buffer[(molmed.xml.illuminareport.Sample, molmed.xml.illuminareport.Tag)] = {
+    for (
+      sample <- samples;
+      tag <- sample.getTag();
+      lanes <- tag.getLane();
+      if lanes.getId() == lane
+    ) yield {
+      (sample, tag)
+    }
+  }
+
   private def getReadForSamples(samples: Buffer[molmed.xml.illuminareport.Sample]): Buffer[Read] = {
     samples.flatMap(f =>
       f.getTag().flatMap(p =>
@@ -40,14 +51,7 @@ class IlluminaXMLReportReader(file: File) extends ReportReaderAPI {
     val matchingSamples = getMatchingSamples(sampleName)
 
     // Get the one with the correct lane
-    val sampleAndTagForLane = for (
-      sample <- matchingSamples;
-      tag <- sample.getTag();
-      lanes <- tag.getLane();
-      if lanes.getId() == lane
-    ) yield {
-      (sample, tag)
-    }
+    val sampleAndTagForLane = getSampleAndTagMatchingLane(matchingSamples, lane)
 
     require(sampleAndTagForLane.size == 1, "sample: " + sampleName + " sequenced more than once in the same lane. Right now this is not supported." +
       "Sample was: " + sampleAndTagForLane.map(f => println(f)) + "Size was: " + sampleAndTagForLane.size)
@@ -74,5 +78,20 @@ class IlluminaXMLReportReader(file: File) extends ReportReaderAPI {
       f.getTag().flatMap(p =>
         p.getLane().map(x =>
           x.getId().toInt))).toList
+  }
+
+  /**
+   * Returns the number of reads which passed for a sample and a lane.
+   * To get the number of read pairs divide by 2.
+   */
+  def getNumberOfReadsPassedFilter(sampleName: String, lane: Int): Option[Int] = {
+    val sampleAndTag = getSampleAndTagMatchingLane(getMatchingSamples(sampleName), lane)
+
+    val passFilter = sampleAndTag.flatMap(x =>
+      x._2.getLane().flatMap(y =>
+        y.getRead().map(z =>
+          z.getPF()))).reduce(_ + _).toInt
+
+    Some(passFilter)
   }
 }

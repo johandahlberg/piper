@@ -154,10 +154,11 @@ class SetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
         val sequencingCenter = this.getSequencingCenter()
         val readLibrary = illuminaXMLReportReader.getReadLibrary(sampleName, lane)
         val platform = this.getPlatform()
+        val numerOfReadsPassedFilter = illuminaXMLReportReader.getNumberOfReadsPassedFilter(sampleName, lane)
         val platformUnitId = illuminaXMLReportReader.getPlatformUnitID(sampleName, lane)
 
-        new ReadGroupInformation(sampleName, readGroupId, sequencingCenter, readLibrary, platform, platformUnitId)
-
+        new ReadGroupInformation(sampleName, readGroupId, sequencingCenter, readLibrary, platform, platformUnitId, numerOfReadsPassedFilter)        
+        
     }
 
     private def buildReadPairContainer(sampleFolder: Samplefolder, lane: Int): ReadPairContainer = {

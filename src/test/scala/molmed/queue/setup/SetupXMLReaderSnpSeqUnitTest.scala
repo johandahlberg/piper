@@ -84,19 +84,19 @@ class SetupXMLReaderSnpSeqUnitTest {
         val expected: Map[String, Seq[molmed.queue.setup.SampleAPI]] = Map(
             "1" -> List(
                 Sample("1", new File("src/test/resources/testdata/exampleFASTA.fasta").getAbsoluteFile(),
-                    ReadGroupInformation("1", "C0HNDACXX.1.1", "SNP_SEQ_PLATFORM", "CEP_C13-NA11992", "Illumina", "C0HNDACXX.1.1"),
+                    ReadGroupInformation("1", "C0HNDACXX.1.1", "SNP_SEQ_PLATFORM", "CEP_C13-NA11992", "Illumina", "C0HNDACXX.1.1", Some(491462860)),
                     ReadPairContainer(new File("src/test/resources/testdata/runFolderWithSameSampleInMultipleLanes/Sample_1/exampleFASTQ_L001_R1_file.fastq").getAbsoluteFile(),
                         new File("src/test/resources/testdata/runFolderWithSameSampleInMultipleLanes/Sample_1/exampleFASTQ_L001_R2_file.fastq").getAbsoluteFile(),
                         "1")),
                 Sample("1", new File("src/test/resources/testdata/exampleFASTA.fasta").getAbsoluteFile(),
-                    ReadGroupInformation("1", "C0HNDACXX.1.2", "SNP_SEQ_PLATFORM", "CEP_C13-NA11992", "Illumina", "C0HNDACXX.1.2"),
+                    ReadGroupInformation("1", "C0HNDACXX.1.2", "SNP_SEQ_PLATFORM", "CEP_C13-NA11992", "Illumina", "C0HNDACXX.1.2", Some(491462860)),
                     ReadPairContainer(new File("src/test/resources/testdata/runFolderWithSameSampleInMultipleLanes/Sample_1/exampleFASTQ_L002_R1_file.fastq").getAbsoluteFile(),
                         new File("src/test/resources/testdata/runFolderWithSameSampleInMultipleLanes/Sample_1/exampleFASTQ_L002_R2_file.fastq").getAbsoluteFile(),
                         "1"))))
 
         // Run the test and evaluate the result
         val actual: Map[String, Seq[SampleAPI]] = setupXMLReader.getSamples()
-        assert(expected.sameElements(actual))
+        assert(expected.sameElements(actual), "actual=" + actual + " expected=" + expected)
         assert(expected.keys.equals(actual.keys))
     }
 
@@ -110,12 +110,12 @@ class SetupXMLReaderSnpSeqUnitTest {
         val expected: Map[String, Seq[molmed.queue.setup.SampleAPI]] = Map(
             "1" -> List(
                 Sample("1", new File("src/test/resources/testdata/exampleFASTA.fasta").getAbsoluteFile(),
-                    ReadGroupInformation("1", "C0HNDACXX.1.1", "SNP_SEQ_PLATFORM", "CEP_C13-NA11992", "Illumina", "C0HNDACXX.1.1"),
+                    ReadGroupInformation("1", "C0HNDACXX.1.1", "SNP_SEQ_PLATFORM", "CEP_C13-NA11992", "Illumina", "C0HNDACXX.1.1", Some(245731430)),
                     ReadPairContainer(new File("src/test/resources/testdata/runFoldersForMultipleSample/runfolder1/Sample_1/exampleFASTQ_L001_R1_file.fastq").getAbsoluteFile(),
                         new File("src/test/resources/testdata/runFoldersForMultipleSample/runfolder1/Sample_1/exampleFASTQ_L001_R2_file.fastq").getAbsoluteFile(),
                         "1")),
                 Sample("1", new File("src/test/resources/testdata/exampleFASTA.fasta").getAbsoluteFile(),
-                    ReadGroupInformation("1", "AAAAAAAAA.1.1", "SNP_SEQ_PLATFORM", "SomeOtherLibraryName", "Illumina", "AAAAAAAAA.1.1"),
+                    ReadGroupInformation("1", "AAAAAAAAA.1.1", "SNP_SEQ_PLATFORM", "SomeOtherLibraryName", "Illumina", "AAAAAAAAA.1.1", Some(245731430)),
                     ReadPairContainer(new File("src/test/resources/testdata/runFoldersForMultipleSample/runfolder2/Sample_1/exampleFASTQ_L001_R1_file.fastq").getAbsoluteFile(),
                         new File("src/test/resources/testdata/runFoldersForMultipleSample/runfolder2/Sample_1/exampleFASTQ_L001_R2_file.fastq").getAbsoluteFile(),
                         "1"))))
@@ -123,7 +123,7 @@ class SetupXMLReaderSnpSeqUnitTest {
         // Run the test and evaluate the result
         val actual: Map[String, Seq[SampleAPI]] = setupXMLReader.getSamples()
 
-        assert(expected.sameElements(actual))
+        assert(expected.sameElements(actual), "actual=" + actual + " expected=" + expected)
         assert(expected.keys.equals(actual.keys))        
     }
 

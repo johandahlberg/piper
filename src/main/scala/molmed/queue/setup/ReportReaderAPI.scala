@@ -11,5 +11,7 @@ trait ReportReaderAPI {
 
   def getPlatformUnitID(sampleName: String, lane: Int): String =
     getFlowcellId + "." + sampleName + "." + lane
+    
+  def getNumberOfReadsPassedFilter(sampleName: String, lane: Int): Option[Int]
 
 }
