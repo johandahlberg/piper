@@ -81,7 +81,10 @@ class AlignWithTophat extends QScript with UppmaxXMLConfiguration {
 
     val placeHolderFile = new File(sampleDir + "/qscript_tophap.stdout.log")
 
-    add(tophatAligmentUtils.tophat(fastqs.mate1, fastqs.mate2, sampleDir, reference, annotations, libraryType, placeHolderFile, readGroupInfo, fusionSearch))
+    if(fastqs.isMatePaired)    	
+    	add(tophatAligmentUtils.tophat(fastqs.mate1, fastqs.mate2, sampleDir, reference, annotations, libraryType, placeHolderFile, readGroupInfo, fusionSearch))
+    else
+      add(tophatAligmentUtils.singleStrandedTophat(fastqs.mate1, sampleDir, reference, annotations, libraryType, placeHolderFile, readGroupInfo, fusionSearch))
 
     return (alignedBamFile, placeHolderFile)
   }

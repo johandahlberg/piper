@@ -24,23 +24,18 @@ abstract class AligmentUtils(projectName: Option[String], uppmaxConfig: UppmaxCo
 
 class TophatAligmentUtils(tophatPath: String, tophatThreads: Int, projectName: Option[String], uppmaxConfig: UppmaxConfig) extends AligmentUtils(projectName, uppmaxConfig) {
 
-  case class tophat(fastqs1: File, fastqs2: File, sampleOutputDir: File, reference: File, annotations: Option[File], libraryType: String, outputFile: File, readGroupInfo: String, fusionSearch: Boolean = false) extends EightCoreJob {
-
+  abstract class tophatBase(sampleOutputDir: File, reference: File, annotations: Option[File], libraryType: String,
+    outputFile: File, readGroupInfo: String, fusionSearch: Boolean = false)
+    extends EightCoreJob {
     // Sometime this should be kept, sometimes it shouldn't
     this.isIntermediate = false
-
-    @Input var files1 = fastqs1
-    @Input var files2 = fastqs2
     @Input var dir = sampleOutputDir
     @Input var ref = reference
 
     @Output var stdOut = outputFile
 
-    override def jobRunnerJobName =  projectName.get + "_tophat"
+    override def jobRunnerJobName = projectName.get + "_tophat"
     this.jobName = projectName.get + "_tophat"
-    
-    val file1String = files1.getAbsolutePath()
-    val file2String = if (files2 != null) files2.getAbsolutePath() else ""
 
     // Only add --GTF option if this has been defined as an option on the command line
     def annotationString = if (annotations.isDefined && annotations.get != null)
@@ -55,6 +50,36 @@ class TophatAligmentUtils(tophatPath: String, tophatThreads: Int, projectName: O
       this.memoryLimit = Some(48)
       " --fusion-search --bowtie1 --no-coverage-search "
     } else ""
+  }
+
+  case class singleStrandedTophat(fastqs1: File, sampleOutputDir: File, reference: File, annotations: Option[File], libraryType: String, outputFile: File, readGroupInfo: String, fusionSearch: Boolean = false)
+    extends tophatBase(sampleOutputDir, reference, annotations, libraryType, outputFile, readGroupInfo, fusionSearch) {
+
+    @Input var files1 = fastqs1
+
+    val file1String = files1.getAbsolutePath()
+
+    def commandLine = tophatPath +
+      " --library-type " + libraryType +
+      annotationString +
+      " -p " + tophatThreads +
+      " --output-dir " + dir +
+      " " + readGroupInfo +
+      " --keep-fasta-order " +
+      fusionSearchString +
+      ref + " " + file1String +
+      " 1> " + stdOut
+
+  }
+
+  case class tophat(fastqs1: File, fastqs2: File, sampleOutputDir: File, reference: File, annotations: Option[File], libraryType: String, outputFile: File, readGroupInfo: String, fusionSearch: Boolean = false)
+    extends tophatBase(sampleOutputDir, reference, annotations, libraryType, outputFile, readGroupInfo, fusionSearch) {
+
+    @Input var files1 = fastqs1
+    @Input var files2 = fastqs2
+
+    val file1String = files1.getAbsolutePath()
+    val file2String = if (files2 != null) files2.getAbsolutePath() else ""
 
     def commandLine = tophatPath +
       " --library-type " + libraryType +
@@ -137,7 +162,7 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
 
     def commandLine = bwaPath + " samse " + ref + " " + sai + " " + mate1 + " -r " + readGroupInfo +
       sortAndIndex(alignedBam)
-    override def jobRunnerJobName =  projectName.get + "_bwaSamSe"
+    override def jobRunnerJobName = projectName.get + "_bwaSamSe"
   }
 
   // Perform alignment of paired end reads
