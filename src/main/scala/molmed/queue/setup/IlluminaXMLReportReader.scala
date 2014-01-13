@@ -9,24 +9,40 @@ import molmed.xml.illuminareport.Read
 import javax.xml.bind.Marshaller
 import collection.JavaConversions._
 
+/**
+ * A reader for the xml report files produced by Sisyphus. (https://github.com/Molmed/sisyphus)
+ * The JAXB classes are generated using the XML binding compiler:
+ *     xjc -d src/main/java/ src/main/resources/PipelineSetupSchema.xsd
+ */
 class IlluminaXMLReportReader(file: File) extends ReportReaderAPI {
 
   /**
    * XML related fields
    */
-  val context = JAXBContext.newInstance(classOf[SequencingReport])
-  val illuminaUnmarshaller = context.createUnmarshaller()
-  val illuminaReportreader = new StringReader(scala.io.Source.fromFile(file).mkString)
-  val illuminaProject = illuminaUnmarshaller.unmarshal(illuminaReportreader).asInstanceOf[SequencingReport]
+  private val context = JAXBContext.newInstance(classOf[SequencingReport])
+  private val illuminaUnmarshaller = context.createUnmarshaller()
+  private val illuminaReportreader = new StringReader(scala.io.Source.fromFile(file).mkString)
+  private val illuminaProject = illuminaUnmarshaller.unmarshal(illuminaReportreader).asInstanceOf[SequencingReport]
 
   /**
    * Keeping the sample list as a field for convenience
    */
   private val sampleList = illuminaProject.getSampleMetrics().flatMap(sampleMetric => sampleMetric.getSample())
 
+  /**
+   * Get all sample matching the sample name
+   * @param sampleName	sample name of samples to find
+   * @retun all samples matching the sample name.
+   */
   private def getMatchingSamples(sampleName: String): Buffer[molmed.xml.illuminareport.Sample] =
     sampleList.filter(p => p.getId().equalsIgnoreCase(sampleName))
 
+  /**
+   * Get all samples matching a certain lane.
+   * @param samples	buffer of samples
+   * @param lane	lane to match
+   * @return a buffer of sample and tag tuples (sample,tag) matching the lane.
+   */
   private def getSampleAndTagMatchingLane(samples: Buffer[molmed.xml.illuminareport.Sample], lane: Int): Buffer[(molmed.xml.illuminareport.Sample, molmed.xml.illuminareport.Tag)] = {
     for (
       sample <- samples;
@@ -38,6 +54,11 @@ class IlluminaXMLReportReader(file: File) extends ReportReaderAPI {
     }
   }
 
+  /**
+   * Map samples to reads
+   * @param samples	samples to convert to reads
+   * @returns all the reads matching the samples in the original collection.
+   */
   private def getReadForSamples(samples: Buffer[molmed.xml.illuminareport.Sample]): Buffer[Read] = {
     samples.flatMap(f =>
       f.getTag().flatMap(p =>
@@ -45,6 +66,9 @@ class IlluminaXMLReportReader(file: File) extends ReportReaderAPI {
           x.getRead())))
   }
 
+  /**
+   * @see molmed.queue.setup.ReportReaderAPI
+   */
   def getReadLibrary(sampleName: String, lane: Int): String = {
 
     // Get all matching samples
@@ -70,9 +94,15 @@ class IlluminaXMLReportReader(file: File) extends ReportReaderAPI {
 
   }
 
+  /**
+   * @see molmed.queue.setup.ReportReaderAPI
+   */
   def getFlowcellId(): String =
     illuminaProject.getMetaData().getFlowCellId()
 
+  /**
+   * @see molmed.queue.setup.ReportReaderAPI
+   */
   def getLanes(sampleName: String): List[Int] = {
     getMatchingSamples(sampleName).flatMap(f =>
       f.getTag().flatMap(p =>

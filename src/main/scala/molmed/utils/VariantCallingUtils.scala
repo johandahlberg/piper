@@ -9,22 +9,41 @@ import org.broadinstitute.sting.queue.extensions.gatk.ApplyRecalibration
 import org.broadinstitute.sting.queue.extensions.gatk.VariantEval
 import org.broadinstitute.sting.queue.QScript
 
+/**
+ * Wrapping case classed and functions for doing variant calling using the GATK.
+ */
 class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxConfig: UppmaxConfig) extends GATKUtils(gatkOptions, projectName, uppmaxConfig) {
 
+  /**
+   * @param	qscript				the qscript to run the commandline wrappers in
+   * @param bams				the bam files to run on
+   * @param outputDir			output dir
+   * @param runSeparatly		Create one vcf per bam sample instead of running on full cohort
+   * @param notHuman			true if not running on human sample
+   * @param isLowPass			true if low pass
+   * @param isExome				true if this is a exome
+   * @param	noRecal				true if no recal to be done, e.g. if this is not a human sample
+   * @param noIndels			true if indel calling should be skipped
+   * @param testMode			true if running in test mode (skips adding dates to files)
+   * @param downsampleFraction	downsample to this fraction of the reads (0-1)
+   * @param minimumBaseQuality	the minimum base quality to be used for variant calling
+   * @param deletions			maximum number of deletions at site to call snp
+   * @param noBAQ				skip BAQ calculations
+   */
   def performVariantCalling(qscript: QScript,
-    bams: Seq[File],
-    outputDir: File,
-    runSeparatly: Boolean,
-    notHuman: Boolean,
-    isLowPass: Boolean,
-    isExome: Boolean,
-    noRecal: Boolean,
-    noIndels: Boolean,
-    testMode: Boolean,
-    downsampleFraction: Option[Double],
-    minimumBaseQuality: Option[Int],
-    deletions: Option[Double],
-    noBAQ: Boolean): Seq[File] = {
+                            bams: Seq[File],
+                            outputDir: File,
+                            runSeparatly: Boolean,
+                            notHuman: Boolean,
+                            isLowPass: Boolean,
+                            isExome: Boolean,
+                            noRecal: Boolean,
+                            noIndels: Boolean,
+                            testMode: Boolean,
+                            downsampleFraction: Option[Double],
+                            minimumBaseQuality: Option[Int],
+                            deletions: Option[Double],
+                            noBAQ: Boolean): Seq[File] = {
 
     val targets: Seq[VariantCallingTarget] = (runSeparatly, notHuman) match {
       case (true, false) =>
@@ -45,19 +64,19 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
 
       case (false, true) =>
         Seq(new VariantCallingTarget(outputDir,
-            projectName.get,
-            gatkOptions.reference,
-            bams,
-            gatkOptions.intervalFile,
-            isLowPass, false, bams.size))
+          projectName.get,
+          gatkOptions.reference,
+          bams,
+          gatkOptions.intervalFile,
+          isLowPass, false, bams.size))
 
       case (false, false) =>
         Seq(new VariantCallingTarget(outputDir,
-            projectName.get,
-            gatkOptions.reference,
-            bams,
-            gatkOptions.intervalFile,
-            isLowPass, isExome, bams.size))
+          projectName.get,
+          gatkOptions.reference,
+          bams,
+          gatkOptions.intervalFile,
+          isLowPass, isExome, bams.size))
     }
 
     // Make sure resource files are available if recal is to be performed
@@ -125,7 +144,7 @@ class VariantCallingUtils(gatkOptions: GATKOptions, projectName: Option[String],
   // 1a.) Call SNPs with UG
   class snpCall(t: VariantCallingTarget, testMode: Boolean, downsampleFraction: Option[Double], minimumBaseQuality: Option[Int], deletions: Option[Double], noBAQ: Boolean) extends GenotyperBase(t, testMode, downsampleFraction) {
 
-    if (minimumBaseQuality.isDefined && minimumBaseQuality.get >= 0 )
+    if (minimumBaseQuality.isDefined && minimumBaseQuality.get >= 0)
       this.min_base_quality_score = minimumBaseQuality
     if (deletions.isDefined && deletions.get >= 0)
       this.max_deletion_fraction = deletions

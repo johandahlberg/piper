@@ -22,9 +22,6 @@ import molmed.utils.UppmaxXMLConfiguration
  * run, but using the "--cutadapt" will add that step. Can also experimentally do
  * fusion search, however, this does not seem to be useful in the results
  * it generates.
- *  
- * @TODO
- * - Add single end capabilities.
  */
 
 class AlignWithTophat extends QScript with UppmaxXMLConfiguration {
@@ -84,7 +81,7 @@ class AlignWithTophat extends QScript with UppmaxXMLConfiguration {
     if(fastqs.isMatePaired)    	
     	add(tophatAligmentUtils.tophat(fastqs.mate1, fastqs.mate2, sampleDir, reference, annotations, libraryType, placeHolderFile, readGroupInfo, fusionSearch))
     else
-      add(tophatAligmentUtils.singleStrandedTophat(fastqs.mate1, sampleDir, reference, annotations, libraryType, placeHolderFile, readGroupInfo, fusionSearch))
+      add(tophatAligmentUtils.singleReadTophat(fastqs.mate1, sampleDir, reference, annotations, libraryType, placeHolderFile, readGroupInfo, fusionSearch))
 
     return (alignedBamFile, placeHolderFile)
   }

@@ -2,6 +2,9 @@ package molmed.utils
 
 import java.io.File
 
+/**
+ * Container class for GATK options and input files.
+ */
 case class GATKOptions(
   reference: File,
   nbrOfThreads: Option[Int] = Some(8),

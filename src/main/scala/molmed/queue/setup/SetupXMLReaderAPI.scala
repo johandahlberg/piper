@@ -2,35 +2,52 @@ package molmed.queue.setup
 
 import java.io.File
 
+/**
+ * API for reading setup xmls. This needs to be implemented by setup file
+ * reads if you want to use some other format.
+ */
 trait SetupXMLReaderAPI {
-    def getSampleFolder(sampleName: String, runFolderName: String): File
+  /**
+   * @param sampleName
+   * @param runFolderName
+   * @return a file matching the parameters.
+   */
+  def getSampleFolder(sampleName: String, runFolderName: String): File
 
-    /**
-     * Return platform
-     * 
-     * For example: "Illumina"
-     */
-    def getPlatform(): String
+  /**
+   * @return a sequencing platform, e.g. "Illumina"
+   */
+  def getPlatform(): String
 
-    /**
-     * Return the sequencing center
-     * 
-     * For example: "Snp and Seq platform, Uppsala"
-     */
-    def getSequencingCenter(): String
+  /**
+   * @return a sequencing center e.g. "Snp and Seq platform, Uppsala"
+   */
+  def getSequencingCenter(): String
 
-    /**
-     * Return the project name 
-     * 
-     * For example: "ExampleProject123"
-     */
-    def getProjectName(): Option[String]
+  /**
+   * @return the project name e.g. "ExampleProject123"
+   */
+  def getProjectName(): Option[String]
 
-    def getSamples(): Map[String, Seq[SampleAPI]]
+  /**
+   * @return all samples associate with the project as mapped by the sample name
+   */
+  def getSamples(): Map[String, Seq[SampleAPI]]
 
-    def getReference(sampleName: String): File
+  /**
+   * @param sampleNam
+   * @return the reference that the sample shold be aligned to.
+   */
+  def getReference(sampleName: String): File
 
-    def getUppmaxProjectId(): String
-    
-    def getUppmaxQoSFlag(): Option[String]
+  /**
+   * @return the uppmax project id, i.e. the project which should be charged for the 
+   * hours.
+   */
+  def getUppmaxProjectId(): String
+
+  /**
+   * @return the QoS flag to be sent to the cluster.
+   */
+  def getUppmaxQoSFlag(): Option[String]
 }

@@ -4,6 +4,9 @@ import org.broadinstitute.sting.commandline._
 import java.io.File
 import org.broadinstitute.sting.queue.extensions.picard.PicardBamFunction
 
+/**
+ * Queue extension for Picard FixMatInformation
+ */
 class FixMateInformation extends org.broadinstitute.sting.queue.function.JavaCommandLineFunction with PicardBamFunction {
 
     analysisName = "FixMateInformation"

@@ -21,13 +21,23 @@ import org.broadinstitute.sting.queue.function.InProcessFunction
 import java.io.PrintWriter
 import scala.io.Source
 
+/**
+ * Assorted commandline wappers, mostly for file doing small things link indexing files. See case classes to figure out
+ * what's what.
+ */
 class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) extends UppmaxUtils(uppmaxConfig) {
 
+  /**
+   * Creates a bam index for a bam file.
+   */
   case class createIndex(@Input bam: File, @Output index: File) extends BuildBamIndex with OneCoreJob {
     this.input = bam
     this.output = index
   }
 
+  /**
+   * Joins the bam file specified to a single bam file.
+   */
   case class joinBams(@Input inBams: Seq[File], @Output outBam: File) extends MergeSamFiles with OneCoreJob {
     this.input = inBams
     this.output = outBam
@@ -37,12 +47,18 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     this.isIntermediate = false
   }
 
+  /**
+   * Writes that paths of the inBams to a file, which one file on each line.
+   */
   case class writeList(inBams: Seq[File], outBamList: File) extends ListWriterFunction {
     this.inputFiles = inBams
     this.listFile = outBamList
     override def jobRunnerJobName = projectName.get + "_bamList"
   }
 
+  /**
+   * Sorts a bam file.
+   */
   case class sortSam(inSam: File, outBam: File, sortOrderP: SortOrder) extends SortSam with OneCoreJob {
     this.input :+= inSam
     this.output = outBam
@@ -50,6 +66,9 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     override def jobRunnerJobName = projectName.get + "_sortSam"
   }
 
+  /**
+   * Runs cutadapt on a fastqfile and syncs it (adds a N to any reads which are empty after adaptor trimming).
+   */
   case class cutadapt(@Input fastq: File, cutFastq: File, @Argument adaptor: String, @Argument cutadaptPath: String, @Argument syncPath: String = "resources/FixEmptyReads.pl") extends OneCoreJob {
 
     @Output val fastqCut: File = cutFastq
@@ -59,6 +78,9 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     override def jobRunnerJobName = projectName.get + "_cutadapt"
   }
 
+  /**
+   * Wraps Picard MarkDuplicates
+   */
   case class dedup(inBam: File, outBam: File, metricsFile: File) extends MarkDuplicates with TwoCoreJob {
 
     this.input :+= inBam
@@ -68,6 +90,9 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     override def jobRunnerJobName = projectName.get + "_dedup"
   }
 
+  /**
+   * Wraps Picard ValidateSamFile
+   */
   case class validate(inBam: File, outLog: File, reference: File) extends ValidateSamFile with OneCoreJob {
     this.input :+= inBam
     this.output = outLog
@@ -76,12 +101,18 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     override def jobRunnerJobName = projectName.get + "_validate"
   }
 
+  /**
+   * Wraps Picard FixMateInformation
+   */
   case class fixMatePairs(inBam: Seq[File], outBam: File) extends FixMateInformation with OneCoreJob {
     this.input = inBam
     this.output = outBam
     override def jobRunnerJobName = projectName.get + "_fixMates"
   }
 
+  /**
+   * Wraps Picard RevertSam. Removes aligment information from bam file.
+   */
   case class revert(inBam: File, outBam: File, removeAlignmentInfo: Boolean) extends RevertSam with OneCoreJob {
     this.output = outBam
     this.input :+= inBam
@@ -91,12 +122,18 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
 
   }
 
+  /**
+   * Wraps SamToFastq. Converts a sam file to a fastq file.
+   */
   case class convertToFastQ(inBam: File, outFQ: File) extends SamToFastq with OneCoreJob {
     this.input :+= inBam
     this.fastq = outFQ
     override def jobRunnerJobName = projectName.get + "_convert2fastq"
   }
 
+  /**
+   * Wrapper for RNA-SeQC.
+   */
   case class RNA_QC(@Input bamfile: File, @Input bamIndex: File, rRNATargetsFile: File, downsampling: Int, referenceFile: File, outDir: File, transcriptFile: File, ph: File, pathRNASeQC: File) extends RNASeQC with ThreeCoreJob {
 
     @Output
@@ -124,6 +161,12 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     override def jobRunnerJobName = projectName.get + "_RNA_QC"
   }
 
+  /**
+   * InProcessFunction which searches a file tree for files matching metrics.tsv
+   * (the output files from RNA-SeQC) and create a file containing the results 
+   * from all the separate runs.
+   * 
+   */
   case class createAggregatedMetrics(phs: Seq[File], @Input outputDir: File, @Output aggregatedMetricsFile: File) extends InProcessFunction {
 
     @Input
@@ -151,6 +194,9 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
 
 }
 
+/**
+ * Contains some general utility functions. See each description.
+ */
 object GeneralUtils {
 
   /**

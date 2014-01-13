@@ -2,6 +2,11 @@ package molmed.utils
 
 import org.broadinstitute.sting.queue.function.CommandLineFunction
 
+/**
+ * Utility class holding uppmax resource configurations and settings. 
+ * Extend this to be able to extend your commandline wrappers with the
+ * the resource management traits, e.g. TwoCores.
+ */
 class UppmaxUtils(uppmaxConfig: UppmaxConfig) {
 
   val qosFlag = if (!uppmaxConfig.uppmaxQoSFlag.isEmpty) " --qos=" + uppmaxConfig.uppmaxQoSFlag.get else ""

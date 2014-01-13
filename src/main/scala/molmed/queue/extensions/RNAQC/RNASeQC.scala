@@ -4,6 +4,9 @@ import org.broadinstitute.sting.commandline._
 import java.io.File
 import org.broadinstitute.sting.queue.function.CommandLineFunction
 
+/**
+ * Queue extension for RNASeQC
+ */
 class RNASeQC extends CommandLineFunction {
 
   analysisName = "RNASeQC"

@@ -5,6 +5,9 @@ import java.io.File
 import net.sf.picard.analysis.MetricAccumulationLevel
 import org.broadinstitute.sting.queue.extensions.picard.PicardMetricsFunction
 
+/**
+ * Queue extension for CollectTargetedPcrMetrics
+ */
 class CollectTargetedPcrMetrics extends org.broadinstitute.sting.queue.function.JavaCommandLineFunction with PicardMetricsFunction {
 
   analysisName = "CollectTargetedPcrMetrics"

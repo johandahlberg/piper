@@ -8,7 +8,7 @@ object PiperBuild extends Build {
         base = file("."),
         settings = Project.defaultSettings ++
             Seq(
-                scalacOptions in Compile ++= Seq("-deprecation", "–optimise", "-unchecked"),
+                scalacOptions in Compile ++= Seq("-deprecation", "-unchecked"),
                 fork in Test := true,
                 parallelExecution in Test := false)
                 ++ dependencies)

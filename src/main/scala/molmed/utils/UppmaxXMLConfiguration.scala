@@ -5,6 +5,11 @@ import molmed.queue.setup.SetupXMLReader
 import java.io.File
 import org.broadinstitute.sting.commandline.Input
 
+/**
+ * Trait used with QScripts to load a setup xml file.
+ * Provided function to load all uppmax required
+ * configurations.
+ */
 trait UppmaxXMLConfiguration extends Uppmaxable {
 
   @Input(doc = "input pipeline setup xml", fullName = "xml_input", shortName = "xi", required = true)
@@ -12,7 +17,13 @@ trait UppmaxXMLConfiguration extends Uppmaxable {
 
   var setupReader: SetupXMLReaderAPI = _
 
-  // Load the setup
+  /**
+   * Will set all the uppmax parameters in the Uppmaxable trait.
+   * 
+   * @param setupXML	xml setup file
+   * @param testMode	run in test mode
+   * @return a container with the uppmax config.
+   */
   def loadUppmaxConfigFromXML(setupXML: File = this.setupXML, testMode: Boolean = false): UppmaxConfig = {
 
     setupReader = new SetupXMLReader(setupXML)

@@ -20,13 +20,22 @@ import net.sf.samtools.SAMFileReader
 
 import molmed.utils.ReadGroupUtils._
 
+/**
+ * Base class for alignment workflows.
+ */
 abstract class AligmentUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) extends UppmaxUtils(uppmaxConfig)
 
+/**
+ * Holds classes and functions used for aligning with tophat
+ */
 class TophatAligmentUtils(tophatPath: String, tophatThreads: Int, projectName: Option[String], uppmaxConfig: UppmaxConfig) extends AligmentUtils(projectName, uppmaxConfig) {
 
+  /**
+   * Base class for tophat. All general setting independent of wether it's single or double stranded alignment goes here.
+   */
   abstract class tophatBase(sampleOutputDir: File, reference: File, annotations: Option[File], libraryType: String,
-    outputFile: File, readGroupInfo: String, fusionSearch: Boolean = false)
-    extends EightCoreJob {
+                            outputFile: File, readGroupInfo: String, fusionSearch: Boolean = false)
+      extends EightCoreJob {
     // Sometime this should be kept, sometimes it shouldn't
     this.isIntermediate = false
     @Input var dir = sampleOutputDir
@@ -52,8 +61,11 @@ class TophatAligmentUtils(tophatPath: String, tophatThreads: Int, projectName: O
     } else ""
   }
 
-  case class singleStrandedTophat(fastqs1: File, sampleOutputDir: File, reference: File, annotations: Option[File], libraryType: String, outputFile: File, readGroupInfo: String, fusionSearch: Boolean = false)
-    extends tophatBase(sampleOutputDir, reference, annotations, libraryType, outputFile, readGroupInfo, fusionSearch) {
+  /**
+   * Commandline wrapper for for single read alignment with tophat.
+   */
+  case class singleReadTophat(fastqs1: File, sampleOutputDir: File, reference: File, annotations: Option[File], libraryType: String, outputFile: File, readGroupInfo: String, fusionSearch: Boolean = false)
+      extends tophatBase(sampleOutputDir, reference, annotations, libraryType, outputFile, readGroupInfo, fusionSearch) {
 
     @Input var files1 = fastqs1
 
@@ -72,8 +84,11 @@ class TophatAligmentUtils(tophatPath: String, tophatThreads: Int, projectName: O
 
   }
 
+  /**
+   * Commandline wrapper for for paired end alignment with tophat.
+   */
   case class tophat(fastqs1: File, fastqs2: File, sampleOutputDir: File, reference: File, annotations: Option[File], libraryType: String, outputFile: File, readGroupInfo: String, fusionSearch: Boolean = false)
-    extends tophatBase(sampleOutputDir, reference, annotations, libraryType, outputFile, readGroupInfo, fusionSearch) {
+      extends tophatBase(sampleOutputDir, reference, annotations, libraryType, outputFile, readGroupInfo, fusionSearch) {
 
     @Input var files1 = fastqs1
     @Input var files2 = fastqs2
@@ -94,11 +109,25 @@ class TophatAligmentUtils(tophatPath: String, tophatThreads: Int, projectName: O
   }
 }
 
+/**
+ * Utility classes and functions for running bwa
+ */
 class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samtoolsPath: String, projectName: Option[String], uppmaxConfig: UppmaxConfig) extends AligmentUtils(projectName, uppmaxConfig) {
 
-  // Takes a list of processed BAM files and realign them using the BWA option requested  (bwase or bwape).
-  // Returns a list of realigned BAM files.
-  def performAlignment(qscript: QScript)(fastqs: ReadPairContainer, readGroupInfo: String, reference: File, outputDir: File, isIntermediateAlignment: Boolean = false): File = {
+  /**
+   * @param qscript						the qscript to in which the alignments should be used (usually "this")
+   * @param fastqs						the read pair container with the fastq files
+   * @param readGroupInfo				read group info to be added to bam file
+   * @param	reference					reference to align to
+   * @param outputDir					output it to this dir
+   * @param isIntermediateAlignment		true if the files should be deleted when dependents have been run.
+   * @return a bam file with aligned reads.
+   */
+  private def performAlignment(qscript: QScript)(fastqs: ReadPairContainer,
+                                         readGroupInfo: String,
+                                         reference: File,
+                                         outputDir: File,
+                                         isIntermediateAlignment: Boolean = false): File = {
 
     val saiFile1 = new File(outputDir + "/" + fastqs.sampleName + ".1.sai")
     val saiFile2 = new File(outputDir + "/" + fastqs.sampleName + ".2.sai")
@@ -117,6 +146,11 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
     alignedBamFile
   }
 
+  /**
+   * @param 	sample			sample to align
+   * @param	outputDir		output dir to use
+   * @param	asIntermidiate	should this be kept of not
+   */
   def align(sample: SampleAPI, outputDir: File, asIntermidate: Boolean): File = {
 
     val sampleName = sample.getSampleName()

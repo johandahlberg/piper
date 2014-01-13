@@ -25,6 +25,11 @@ import org.broadinstitute.sting.queue.extensions.gatk.RealignerTargetCreator
 import org.broadinstitute.sting.queue.extensions.gatk.IndelRealigner
 import java.io.File
 
+/**
+ * Utility class to fetch resource files based on a based folder.
+ * @todo In the future this will probably be removed as it's quite bulky
+ * and unreliable.
+ */
 class Resources(resources: File, testMode: Boolean = false) {
 
   // For each resource get the matching file

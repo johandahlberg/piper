@@ -4,6 +4,9 @@ import org.broadinstitute.sting.commandline._
 import java.io.File
 import org.broadinstitute.sting.queue.extensions.picard.PicardBamFunction
 
+/**
+ * Queue extension for the BuildBamIndex program in Picard.
+ */
 class BuildBamIndex extends org.broadinstitute.sting.queue.function.JavaCommandLineFunction {
 
   analysisName = "BuildBamIndex"
