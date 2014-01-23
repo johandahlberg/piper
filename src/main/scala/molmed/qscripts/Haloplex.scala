@@ -38,7 +38,7 @@ import molmed.utils.BwaAlignmentUtils
 import molmed.utils.GeneralUtils
 import molmed.utils.UppmaxConfig
 import molmed.utils.UppmaxXMLConfiguration
-import molmed.utils.UppmaxUtils
+import molmed.utils.UppmaxJob
 
 /**
  * Haloplex best practice analysis from fastqs to variant calls.
@@ -271,7 +271,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
    * Case class wappers for external programs
    */
 
-  class HaloplexUtils(uppmaxConfig: UppmaxConfig) extends UppmaxUtils(uppmaxConfig) {
+  class HaloplexUtils(uppmaxConfig: UppmaxConfig) extends UppmaxJob(uppmaxConfig) {
 
     // General arguments to GATK walkers
     trait CommandLineGATKArgs extends CommandLineGATK

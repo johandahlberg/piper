@@ -12,7 +12,7 @@ import java.util.regex.Pattern
 import org.broadinstitute.sting.commandline.Hidden
 import molmed.utils.Uppmaxable
 import molmed.utils.GeneralUtils
-import molmed.utils.UppmaxUtils
+import molmed.utils.UppmaxJob
 import molmed.utils.TophatAligmentUtils
 import molmed.utils.UppmaxConfig
 import molmed.utils.UppmaxXMLConfiguration

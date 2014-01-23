@@ -7,7 +7,7 @@ import java.io.File
 import net.sf.samtools.SAMFileReader
 import molmed.utils.ReadGroupUtils
 import molmed.utils.Uppmaxable
-import molmed.utils.UppmaxUtils
+import molmed.utils.UppmaxJob
 import molmed.utils.UppmaxConfig
 import molmed.utils.UppmaxXMLConfiguration
 
@@ -101,7 +101,7 @@ class Cuffdiff extends QScript with UppmaxXMLConfiguration {
   /**
    * Cuffdiff commandline case classes.
    */
-  class CuffDiffUtils(uppmaxConfig: UppmaxConfig) extends UppmaxUtils(uppmaxConfig) {
+  class CuffDiffUtils(uppmaxConfig: UppmaxConfig) extends UppmaxJob(uppmaxConfig) {
     case class cuffdiff(samplesAndLables: Map[File, String], replicates: Map[String, List[String]], outputFile: File) extends EightCoreJob {
 
       this.isIntermediate = false

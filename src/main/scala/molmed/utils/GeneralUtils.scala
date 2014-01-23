@@ -25,7 +25,7 @@ import scala.io.Source
  * Assorted commandline wappers, mostly for file doing small things link indexing files. See case classes to figure out
  * what's what.
  */
-class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) extends UppmaxUtils(uppmaxConfig) {
+class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) extends UppmaxJob(uppmaxConfig) {
 
   /**
    * Creates a bam index for a bam file.

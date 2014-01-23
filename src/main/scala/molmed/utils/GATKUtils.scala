@@ -11,7 +11,7 @@ import org.broadinstitute.sting.commandline.Argument
 /**
  * Commandline wappers for GATK programs.
  */
-class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxConfig: UppmaxConfig) extends UppmaxUtils(uppmaxConfig) {
+class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxConfig: UppmaxConfig) extends UppmaxJob(uppmaxConfig) {
 
   // General arguments to GATK walkers
   trait CommandLineGATKArgs extends CommandLineGATK {

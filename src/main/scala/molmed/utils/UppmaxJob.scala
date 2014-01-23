@@ -7,7 +7,7 @@ import org.broadinstitute.sting.queue.function.CommandLineFunction
  * Extend this to be able to extend your commandline wrappers with the
  * the resource management traits, e.g. TwoCores.
  */
-class UppmaxUtils(uppmaxConfig: UppmaxConfig) {
+class UppmaxJob(uppmaxConfig: UppmaxConfig) {
 
   val qosFlag = if (!uppmaxConfig.uppmaxQoSFlag.isEmpty) " --qos=" + uppmaxConfig.uppmaxQoSFlag.get else ""
   val projectBaseString = Seq("-A " + uppmaxConfig.projId, qosFlag)

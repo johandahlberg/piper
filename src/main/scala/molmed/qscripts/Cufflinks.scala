@@ -5,7 +5,7 @@ import org.broadinstitute.sting.queue.function.ListWriterFunction
 import org.broadinstitute.sting.queue.util.QScriptUtils
 import java.io.File
 import molmed.utils.ReadGroupUtils
-import molmed.utils.UppmaxUtils
+import molmed.utils.UppmaxJob
 import molmed.utils.Uppmaxable
 import molmed.utils.UppmaxConfig
 import molmed.utils.UppmaxXMLConfiguration
@@ -129,7 +129,7 @@ class Cufflinks extends QScript with UppmaxXMLConfiguration {
 
   }
 
-  class CufflinksUtils(uppmaxConfig: UppmaxConfig) extends UppmaxUtils(uppmaxConfig) {
+  class CufflinksUtils(uppmaxConfig: UppmaxConfig) extends UppmaxJob(uppmaxConfig) {
     case class cufflinks(inputBamFile: File, sampleOutputDir: File, outputFile: File) extends TwoCoreJob {
 
       // Sometime this should be kept, sometimes it shouldn't

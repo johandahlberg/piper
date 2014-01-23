@@ -23,7 +23,7 @@ import molmed.utils.ReadGroupUtils._
 /**
  * Base class for alignment workflows.
  */
-abstract class AligmentUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) extends UppmaxUtils(uppmaxConfig)
+abstract class AligmentUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) extends UppmaxJob(uppmaxConfig)
 
 /**
  * Holds classes and functions used for aligning with tophat
