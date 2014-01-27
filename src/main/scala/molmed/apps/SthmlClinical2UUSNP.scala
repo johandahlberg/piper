@@ -60,7 +60,10 @@ object SthmlClinical2UUSNP extends App {
         "R" + readPairNumber,
         "001.fastq.gz").mkString("_")
 
-      Files.createLink(Paths.get(firstInPair), Paths.get(uuStyleFileName))        
+      val targetFile = new File(uuSampleFolder + "/" + uuStyleFileName)
+      targetFile.createNewFile()
+        
+      Files.createLink(Paths.get(firstInPair), Paths.get(targetFile.getAbsolutePath()))        
     }
 
     createHardLink(firstInPair, 1)
