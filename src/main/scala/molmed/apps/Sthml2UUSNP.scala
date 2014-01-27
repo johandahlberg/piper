@@ -33,12 +33,15 @@ object Sthml2UUSNP extends App {
 
   reportWriter.println(List("#SampleName", "Lane", "ReadLibrary", "FlowcellId").mkString("\t"))
 
-  val files = GeneralUtils.getFileTree(sthlmRoot).filter(p => p.getName().contains(".fastq.gz"))
+  val files = GeneralUtils.getFileTree(sthlmRoot).
+    filter(p => p.getName().contains(".fastq.gz")).
+    sortBy(f => f.getName())
 
-  for (file <- files) {
+  // Group them to get the read pairs together
+  for (file <- files.grouped(2)) {
 
     // 1_131129_AH7W5YADXX_P700_401_2.fastq.gz
-    val fileName = file.getName()
+    val fileName = file(0).getName()
 
     val splitFileName = fileName.split("_")
 
@@ -66,7 +69,8 @@ object Sthml2UUSNP extends App {
       Files.createLink(Paths.get(targetFile.getAbsolutePath()), Paths.get(readPair.getAbsolutePath()))
     }
 
-    if(splitFileName(indexOfLastPart).contains("1")) createHardLink(file, 1) else createHardLink(file, 2)     
+    createHardLink(file(0), 1)
+    createHardLink(file(1), 2)
 
     reportWriter.println(List(sampleName, lane, sampleName, flowCellId).mkString("\t"))
 
