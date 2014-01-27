@@ -11,11 +11,11 @@ import java.io.PrintWriter
  *  the number of libraries sequenced for the sample
  *  the number of reads passed filter from the sequencer for the sample
  *  
- * Usage is: java -classpath <classpath> molmed.queue.utils.ReportParser <setup xml> <output file>
+ * Usage is: java -classpath <classpath> molmed.apps.ReportParser <setup xml> <output file>
  */
 object ReportParser extends App {
 
-  val usage = "Missing input file. Usage is: java -classpath <classpath> molmed.queue.utils.ReportParser <setup xml> <output file>"
+  val usage = "Missing input file. Usage is: java -classpath <classpath> molmed.apps.ReportParser <setup xml> <output file>"
   
   val setupFile = try {
     new File(args(0))
