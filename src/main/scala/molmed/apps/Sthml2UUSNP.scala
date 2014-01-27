@@ -45,7 +45,7 @@ object Sthml2UUSNP extends App {
     val lane = splitFileName(0).toInt
     val flowCellId = splitFileName(2)
     val indexOfLastPart = splitFileName.indexWhere(s => s.contains(".fastq.gz"))
-    val sampleName = splitFileName.slice(3, indexOfLastPart - 1)
+    val sampleName = splitFileName.slice(3, indexOfLastPart - 1).mkString("_")
     // TODO Ugly hack since we don't know the index used
     val index = "AAAAAA"
 
