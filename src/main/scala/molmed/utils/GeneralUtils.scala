@@ -187,12 +187,8 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
 
     def run() = {
 
-      def getFileTree(f: File): Stream[File] =
-        f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)
-        else Stream.empty)
-
       val writer = new PrintWriter(aggregatedMetricsFile)
-      val metricsFiles = getFileTree(outputDir).filter(file => file.getName().matches("metrics.tsv"))
+      val metricsFiles = GeneralUtils.getFileTree(outputDir).filter(file => file.getName().matches("metrics.tsv"))
       val header = Source.fromFile(metricsFiles(0)).getLines.take(1).next.toString()
 
       writer.println(header)
@@ -298,5 +294,14 @@ object GeneralUtils {
 
     rep(totalStringLength - i.toString().length()) { "0" } + i
   }
+
+  /**
+   * Get file tree starting from file
+   * @param file root to get file tree from
+   * @return the file tree starting from f
+   */
+  def getFileTree(f: File): Stream[File] =
+    f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)
+    else Stream.empty)
 
 }
