@@ -28,6 +28,7 @@ object Sthml2UUSNP extends App {
       throw new IllegalArgumentException(usage)
   }
 
+  newRootDir.mkdirs()
   val reportFile = new File(newRootDir + "/report.tsv")
   val reportWriter = new PrintWriter(reportFile)
 
