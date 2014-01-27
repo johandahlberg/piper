@@ -10,9 +10,9 @@ import java.nio.file.Paths
 /**
  * Utility program to convert sthlm sequencing platform meta format to UU SNP format.
  */
-object Sthml2UUSNP extends App {
+object Sthlm2UUSNP extends App {
 
-  val usage = "Missing input file. Usage is: java -classpath <classpath> molmed.apps.Sthml2UUSNP <old root> <new root dir>"
+  val usage = "Missing input file. Usage is: java -classpath <classpath> molmed.apps.Sthlm2UUSNP <old root> <new root dir>"
 
   val sthlmRoot = try {
     new File(args(0))
