@@ -33,7 +33,7 @@ object Sthml2UUSNP extends App {
 
   reportWriter.println(List("#SampleName", "Lane", "ReadLibrary", "FlowcellId").mkString("\t"))
 
-  val files = GeneralUtils.getFileTree(sthlmRoot)
+  val files = GeneralUtils.getFileTree(sthlmRoot).filter(p => p.getName().contains(".fastq.gz")
 
   for (file <- files) {
 
