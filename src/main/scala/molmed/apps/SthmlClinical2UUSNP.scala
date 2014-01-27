@@ -30,8 +30,8 @@ object SthmlClinical2UUSNP extends App {
 
   val reportFile = new File(rootDir + "/report.tsv")
   val reportWriter = new PrintWriter(reportFile)
-  
-  reportWriter.println(List("#SampleName","Lane", "ReadLibrary", "FlowcellId").mkString("\t"))
+
+  reportWriter.println(List("#SampleName", "Lane", "ReadLibrary", "FlowcellId").mkString("\t"))
 
   private val lines = Source.fromFile(metaFile).getLines.map(line => {
     val elements = line.split("\\s+")
@@ -47,29 +47,32 @@ object SthmlClinical2UUSNP extends App {
     val firstInPair = line(4)
     val secondInPair = line(5)
 
-    // Create Sample folders    
-    val uuSampleFolder = new File(rootDir + "/Sample_" + sampleName + "/")
-    uuSampleFolder.mkdirs()    
+    // Sometime the meta data file contains more files than the folder...
+    if (new File(firstInPair).exists() && new File(secondInPair).exists()) {
+      // Create Sample folders    
+      val uuSampleFolder = new File(rootDir + "/Sample_" + sampleName + "/")
+      uuSampleFolder.mkdirs()
 
-    // Create link hard links for the files
-    def createHardLink(readPair: String, readPairNumber: Int) = {
-      val uuStyleFileName = List(
-        sampleName,
-        index,
-        GeneralUtils.getZerroPaddedIntAsString(lane, 3),
-        "R" + readPairNumber,
-        "001.fastq.gz").mkString("_")
+      // Create link hard links for the files
+      def createHardLink(readPair: String, readPairNumber: Int) = {
+        val uuStyleFileName = List(
+          sampleName,
+          index,
+          GeneralUtils.getZerroPaddedIntAsString(lane, 3),
+          "R" + readPairNumber,
+          "001.fastq.gz").mkString("_")
 
-      val targetFile = new File(uuSampleFolder + "/" + uuStyleFileName)        
-      Files.createLink(Paths.get(targetFile.getAbsolutePath()), Paths.get(firstInPair))        
+        val targetFile = new File(uuSampleFolder + "/" + uuStyleFileName)
+        Files.createLink(Paths.get(targetFile.getAbsolutePath()), Paths.get(readPair))
+      }
+
+      createHardLink(firstInPair, 1)
+      createHardLink(secondInPair, 2)
+
+      reportWriter.println(List(sampleName, lane, sampleName, flowCellId).mkString("\t"))
     }
-
-    createHardLink(firstInPair, 1)
-    createHardLink(secondInPair, 2)
-   
-    reportWriter.println(List(sampleName, lane, sampleName, flowCellId).mkString("\t"))
   }
-  
+
   reportWriter.close()
 
 }
