@@ -183,7 +183,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
   case class createAggregatedMetrics(phs: Seq[File], @Input var outputDir: File, @Output var aggregatedMetricsFile: File) extends InProcessFunction {
 
     @Input
-    var placeHolderSeq: Seq[File] = phs
+    val placeHolderSeq: Seq[File] = phs
 
     def run() = {
 
@@ -282,6 +282,21 @@ object GeneralUtils {
     for (fileEnding <- Seq("amb", "ann", "bwt", "pac", "sa")) {
       assert(new File(referenceBasePath + "." + fileEnding).exists(), "Could not find index file with file ending: " + fileEnding)
     }
+  }
+
+  /**
+   * Returns the Int with zero padding to the desired length.
+   */
+  def getZerroPaddedIntAsString(i: Int, totalStringLength: Int): String = {
+
+    def rep(n: Int)(f: => String): String = {
+      if (n == 1)
+        f
+      else
+        f + rep(n - 1)(f)
+    }
+
+    rep(totalStringLength - i.toString().length()) { "0" } + i
   }
 
 }

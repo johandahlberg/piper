@@ -11,6 +11,7 @@ import collection.JavaConversions._
 import molmed.xml.setup.Project
 import molmed.xml.setup.Samplefolder
 import java.io.FileNotFoundException
+import molmed.utils.GeneralUtils
 
 /**
  * A Setup reader class which reads a setup xml, used for configuring the piper pipeline, based on the xml schema specified in src/main/resources/PipelineSetupSchema.xsd.
@@ -160,24 +161,12 @@ class SetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
 
     private def buildReadPairContainer(sampleFolder: Samplefolder, lane: Int): ReadPairContainer = {
 
-        def getZerroPaddedIntAsString(i: Int, totalStringLength: Int): String = {
-
-            def rep(n: Int)(f: => String): String = {
-                if (n == 1)
-                    f
-                else
-                    f + rep(n - 1)(f)
-            }
-
-            rep(totalStringLength - i.toString().length()) { "0" } + i
-        }
-
         val sampleName = sampleFolder.getName()
         val folder = new File(sampleFolder.getPath())
         require(folder.isDirectory(), folder + " was not a directory.")
 
-        val fastq1: List[File] = folder.listFiles().filter(f => f.getName().contains("_L" + getZerroPaddedIntAsString(lane, 3) + "_R1_")).toList
-        val fastq2: List[File] = folder.listFiles().filter(f => f.getName().contains("_L" + getZerroPaddedIntAsString(lane, 3) + "_R2_")).toList
+        val fastq1: List[File] = folder.listFiles().filter(f => f.getName().contains("_L" + GeneralUtils.getZerroPaddedIntAsString(lane, 3) + "_R1_")).toList
+        val fastq2: List[File] = folder.listFiles().filter(f => f.getName().contains("_L" + GeneralUtils.getZerroPaddedIntAsString(lane, 3) + "_R2_")).toList
 
         if (fastq1.size == 1 && fastq2.size == 1)
             new ReadPairContainer(fastq1.get(0).getAbsoluteFile(), fastq2.get(0).getAbsoluteFile(), sampleName)
