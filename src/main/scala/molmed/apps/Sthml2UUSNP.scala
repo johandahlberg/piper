@@ -58,7 +58,7 @@ object Sthml2UUSNP extends App {
       val uuStyleFileName = List(
         sampleName,
         index,
-        GeneralUtils.getZerroPaddedIntAsString(lane, 3),
+        "L" + GeneralUtils.getZerroPaddedIntAsString(lane, 3),
         "R" + readPairNumber,
         "001.fastq.gz").mkString("_")
 
