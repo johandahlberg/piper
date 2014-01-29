@@ -10,6 +10,8 @@ object PiperBuild extends Build {
             Seq(
                 scalacOptions in Compile ++= Seq("-deprecation", "-unchecked"),
                 fork in Test := true,
+                mappings in (Compile,packageBin) ~= 
+                	(_ filter { case (f,s) => !s.contains("molmed/qscripts") }),
                 parallelExecution in Test := false)
                 ++ dependencies)
         .configs(PipelineTestRun)
