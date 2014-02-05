@@ -37,6 +37,12 @@ class RNAQC extends QScript with UppmaxXMLConfiguration {
   @Input(doc = "GTF File defining the transcripts (must end in .gtf)", shortName = "t", fullName = "transcripts", required = true)
   var transcripts: File = _
 
+  @Input(doc = "BED File defining the transcripts (must end in .bed)", shortName = "tb", fullName = "bed_transcripts", required = true)
+  var bedTranscripts: File = _
+  
+  @Input(doc = "The path to rseqc geneBody_coverage.py", shortName = "gbcp", fullName = "path_to_gene_body_coverage_script", required = true)
+  var pathToCalcGeneBodyScript: File = _
+  
   /**
    * **************************************************************************
    * Optional Parameters
@@ -59,6 +65,9 @@ class RNAQC extends QScript with UppmaxXMLConfiguration {
   @Argument(doc = "The path to RNA-SeQC", shortName = "rnaseqc", fullName = "rna_seqc", required = false)
   var pathToRNASeQC: File = new File("resources/RNA-SeQC_v1.1.7.jar")
 
+
+
+  
   /**
    * **************************************************************************
    * Main script
@@ -86,8 +95,13 @@ class RNAQC extends QScript with UppmaxXMLConfiguration {
       val index = new File(bam.replace(".bam", ".bai"))
       add(generalUtils.createIndex(bam, index))
 
+      // Run RNA_QC
       val placeHolderFile = new File(sampleOutputDir + "/qscript_RNASeQC.stdout.log")
       add(generalUtils.RNA_QC(bam, index, rRNATargetsFile, downsampling, reference, sampleOutputDir, transcripts, placeHolderFile, pathToRNASeQC))
+      
+      // Run Gene body coverage calculator
+      add(generalUtils.CalculateGeneBodyCoverage(pathToCalcGeneBodyScript, bam, bedTranscripts, sampleName, sampleOutputDir + "/gene_body_coverage/"))
+      
       placeHolderFile
     }
 

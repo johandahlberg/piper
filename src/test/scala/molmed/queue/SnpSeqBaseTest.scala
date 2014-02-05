@@ -45,10 +45,12 @@ object SnpSeqBaseTest {
   val hg19_rRNA = rnaSeqBaseDir + "hg19_rRNA.bed"
   val pathToReplicatesFile = "" // @TODO
   val hg19annotations = rnaSeqBaseDir + "Homo_sapiens/UCSC/hg19/Annotation/Archives/archive-2013-03-06-11-23-03/Genes/genes.gtf"
+  val hg19annotationsBED = rnaSeqBaseDir + "Homo_sapiens/UCSC/hg19/Annotation/Archives/archive-2013-03-06-11-23-03/Genes/genes.bed"
 
   val pathToCuffdiff = "/home/MOLMED/dahljo/Bin/cufflinks"
   val pathToCufflinks = "/home/MOLMED/dahljo/Bin/cufflinks"
 
   val pathToRNASeQC = "/home/MOLMED/dahljo/workspace/piper/resources/RNA-SeQC_v1.1.7.jar"
+  val pathToGeneBodyCoverageScript = "/home/MOLMED/johda411/.local/bin/geneBody_coverage.py"
 
 }

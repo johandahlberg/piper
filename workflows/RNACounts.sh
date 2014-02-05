@@ -76,18 +76,20 @@ function cufflinks {
 
 function RNA_QC {
     source piper -S ${SCRIPTS_DIR}/RNAQC.scala \
-	    -i $1 \
-	    --xml_input $PIPELINE_SETUP \
-	    --downsample 1000 \
-		-R ${GENOME_REFERENCE} \
-	    --transcripts ${ANNOTATIONS} \
-	    --rRNA_targets ${RRNA_TARGETS} \
-	    -outputDir ${RNA_QC_OUTPUT}/ \
-	    --path_to_samtools ${PATH_TO_SAMTOOLS} \
-	    -jobRunner ${JOB_RUNNER} \
-	    -jobNative "${JOB_NATIVE_ARGS}" \
-	    --job_walltime 172800 \
-	    ${RUN} ${DEBUG} 2>&1 | tee -a ${LOGS}/rnaQC.log
+            -i $1 \
+            --xml_input $PIPELINE_SETUP \
+            --downsample 1000 \
+            -R ${GENOME_REFERENCE} \
+            --transcripts ${ANNOTATIONS} \
+            --bed_transcripts ${BED_ANNOTATIONS}
+            --rRNA_targets ${RRNA_TARGETS} \
+            -outputDir ${RNA_QC_OUTPUT}/ \
+            --path_to_samtools ${PATH_TO_SAMTOOLS} \
+            --path_to_gene_body_coverage_script ${PATH_TO_GENE_COVERAGE_SCRIPT} \
+            -jobRunner ${JOB_RUNNER} \
+            -jobNative "${JOB_NATIVE_ARGS}" \
+            --job_walltime 172800 \
+            ${RUN} ${DEBUG} 2>&1 | tee -a ${LOGS}/rnaQC.log
 
 
     # Check the script exit status, and if it did not finish, clean up and exit
@@ -165,6 +167,7 @@ source globalConfig.sh
 
 GENOME_REFERENCE=${GATK_BUNDLE_B37}"/human_g1k_v37.fasta"
 ANNOTATIONS="/proj/b2010028/references/piper_references/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf"
+BED_ANNOTATIONS="/proj/b2010028/references/piper_references/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.bed"
 RRNA_TARGETS="/proj/b2010028/references/piper_references/rRNA_targets/rRNA.sorted.1-based.intervals.list"
 
 # We also need the correct java engine and R version

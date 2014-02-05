@@ -38,6 +38,8 @@ class RNAQCSnpSeqPipelineTest {
       " --xml_input " + snpSeqBaseTest.pathSetupFile,
       " --reference " + snpSeqBaseTest.hg19,
       " --transcripts " + snpSeqBaseTest.hg19annotations,
+      " --bed_transcripts " + snpSeqBaseTest.hg19annotationsBED,
+      " --path_to_gene_body_coverage_script " + snpSeqBaseTest.pathToGeneBodyCoverageScript,
       " --rna_seqc " + snpSeqBaseTest.pathToRNASeQC,
       " --rRNA_targets " + snpSeqBaseTest.hg19_rRNA,
       " -outputDir " + PipelineTest.runDir(spec.name, spec.jobRunners(0)),

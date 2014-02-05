@@ -132,13 +132,31 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
   }
 
   /**
+   * Wrapper for rseqc calculate gene body coverage script.
+   */
+  case class CalculateGeneBodyCoverage(@Argument pathToScript: File, @Input bamFile: File,
+    @Input referenceBed: File, @Argument outputPrefix: File, @Argument outputdir: File) extends EightCoreJob {
+
+    @Output var outputLog: File = new File(outputdir + "/calc_genebody_coverage.log")
+
+    this.isIntermediate = false
+    override def jobRunnerJobName = projectName.get + "_gene_body_coverage"
+
+    def commandLine = pathToScript.getAbsoluteFile() + " " +
+      " -i " + bamFile.getAbsolutePath() +
+      " -r " + referenceBed.getAbsolutePath() +
+      " -o " + outputdir + "/" + outputPrefix +
+      " 2>&1 " + outputLog.getAbsolutePath()
+  }
+
+  /**
    * Wrapper for RNA-SeQC.
    */
   case class RNA_QC(@Input bamfile: File, @Input bamIndex: File, rRNATargetsFile: File, downsampling: Int, referenceFile: File, outDir: File, transcriptFile: File, ph: File, pathRNASeQC: File) extends RNASeQC with ThreeCoreJob {
 
     @Output
     val placeHolder: File = ph
-    
+
     import molmed.utils.ReadGroupUtils._
 
     def createRNASeQCInputString(file: File): String = {
@@ -163,15 +181,15 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
 
   /**
    * InProcessFunction which searches a file tree for files matching metrics.tsv
-   * (the output files from RNA-SeQC) and create a file containing the results 
+   * (the output files from RNA-SeQC) and create a file containing the results
    * from all the separate runs.
-   * 
+   *
    */
   case class createAggregatedMetrics(phs: Seq[File], @Input outputDir: File, @Output aggregatedMetricsFile: File) extends InProcessFunction {
 
     @Input
     val placeHolderSeq: Seq[File] = phs
-    
+
     def run() = {
 
       def getFileTree(f: File): Stream[File] =
@@ -190,8 +208,8 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
       writer.close()
 
     }
+    this.jobName = aggregatedMetricsFile.getAbsolutePath()
   }
-
 }
 
 /**
