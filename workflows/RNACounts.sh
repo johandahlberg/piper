@@ -81,7 +81,7 @@ function RNA_QC {
             --downsample 1000 \
             -R ${GENOME_REFERENCE} \
             --transcripts ${ANNOTATIONS} \
-            --bed_transcripts ${BED_ANNOTATIONS}
+            --bed_transcripts ${BED_ANNOTATIONS} \
             --rRNA_targets ${RRNA_TARGETS} \
             -outputDir ${RNA_QC_OUTPUT}/ \
             --path_to_samtools ${PATH_TO_SAMTOOLS} \
