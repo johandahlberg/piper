@@ -88,8 +88,8 @@ class RNAQC extends QScript with UppmaxXMLConfiguration {
 
     val placeHolderFileList = for (bam <- bams) yield {
 
-      val sampleName = getSampleNameFromReadGroups(bam)
-      val sampleOutputDir = new File(getOutputDir + sampleName)
+      val sampleSampleID = getIDFromReadGroups(bam)
+      val sampleOutputDir = new File(getOutputDir + sampleSampleID)
       sampleOutputDir.mkdir()
 
       val index = new File(bam.replace(".bam", ".bai"))
@@ -100,7 +100,7 @@ class RNAQC extends QScript with UppmaxXMLConfiguration {
       add(generalUtils.RNA_QC(bam, index, rRNATargetsFile, downsampling, reference, sampleOutputDir, transcripts, placeHolderFile, pathToRNASeQC))
       
       // Run Gene body coverage calculator
-      add(generalUtils.CalculateGeneBodyCoverage(pathToCalcGeneBodyScript, bam, bedTranscripts, sampleName, sampleOutputDir + "/gene_body_coverage/"))
+      add(generalUtils.CalculateGeneBodyCoverage(pathToCalcGeneBodyScript, bam, bedTranscripts, sampleSampleID, sampleOutputDir + "/gene_body_coverage/"))
       
       placeHolderFile
     }

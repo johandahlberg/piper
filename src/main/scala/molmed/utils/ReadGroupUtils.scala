@@ -25,6 +25,22 @@ object ReadGroupUtils {
    * It will throw an exception otherwise.
    *
    * @param bam
+   * @return the sample id.
+   */
+  def getIDFromReadGroups(bam: File): String = {
+    val samHeader = getSamHeaderFromFile(bam)
+    val sampleNames = samHeader.getReadGroups().map(rg => rg.getId()).toSet
+    require(!sampleNames.isEmpty, "Couldn't find read groups in file: " + bam.getAbsolutePath() + ". This is required for the script to work.")
+    require(sampleNames.size == 1, "More than one ID in file: " + bam.getAbsolutePath() +
+      ". Please make sure that there is only one ID per file in input.")
+    sampleNames.toList(0)
+  }
+
+  /**
+   * NOTE: This function demands that there is only one sample present in the bam file.
+   * It will throw an exception otherwise.
+   *
+   * @param bam
    * @return the sample name.
    */
   def getSampleNameFromReadGroups(bam: File): String = {
