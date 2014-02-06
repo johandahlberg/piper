@@ -100,8 +100,8 @@ class RNAQC extends QScript with UppmaxXMLConfiguration {
       add(generalUtils.CalculateGeneBodyCoverage(pathToCalcGeneBodyScript, bam, bedTranscripts, sampleSampleID, sampleOutputDir + "/gene_body_coverage/"))
 
       // Deduplicate, downsample and flagstat the results (can be used to estimate the duplication rates)
-      val tmpDupMarkedBam = new File(swapExt(bam, ".bam", ".tmp.markdups.bam"))
-      val dupMetericsFile = new File(swapExt(bam, ".bam", ".tmp.markdups.metrics"))
+      val tmpDupMarkedBam = new File(GeneralUtils.swapExt(sampleOutputDir, bam, ".bam", ".tmp.markdups.bam"))
+      val dupMetericsFile = new File(GeneralUtils.swapExt(sampleOutputDir, bam, ".bam", ".tmp.markdups.metrics"))
       val flagstatFile = new File(sampleOutputDir + "/flagstat/" + sampleSampleID + ".flagstat.txt")
 
       add(generalUtils.dedup(bam, tmpDupMarkedBam, dupMetericsFile, asIntermediate = true))
