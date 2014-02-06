@@ -169,7 +169,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
 
     def commandLine =
       samtools + " view -hu " + inFile.getAbsolutePath() +
-        " | " + samtools + " sort -no - " +  inFile.getAbsolutePath() " | " + samtools + " view -h -  | head -" + downsampleToX + " | " + samtools + " view -Shu - | " + samtools + " flagstat - " +
+        " | " + samtools + " sort -no - " +  inFile.getAbsolutePath() + " | " + samtools + " view -h -  | head -" + downsampleToX + " | " + samtools + " view -Shu - | " + samtools + " flagstat - " +
         " > " + outFile.getAbsolutePath()
   }
 
