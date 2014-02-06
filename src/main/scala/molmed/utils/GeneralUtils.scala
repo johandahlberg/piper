@@ -81,7 +81,9 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
   /**
    * Wraps Picard MarkDuplicates
    */
-  case class dedup(inBam: File, outBam: File, metricsFile: File) extends MarkDuplicates with TwoCoreJob {
+  case class dedup(inBam: File, outBam: File, metricsFile: File, asIntermediate: Boolean = false) extends MarkDuplicates with TwoCoreJob {
+
+    this.isIntermediate = asIntermediate
 
     this.input :+= inBam
     this.output = outBam
@@ -149,10 +151,32 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
       " 2>&1 " + outputLog.getAbsolutePath()
   }
 
+  //samtools view -hu src/test/resources/testdata/exampleBAM.bam | samtools sort -no - - | samtools view -h -  | head -15 | samtools view -Shu - | samtools flagstat -
+
+  /**
+   * Will downsample the bam file to x reads and then get the flagstat results.
+   * This is used to estimate the duplication rates in RNA data.
+   */
+  case class DownSampleAndFlagstat(@Argument samtoolsPath: File, bamFile: File, outputFile: File, @Argument downsampleToX: Int = 10000000) extends OneCoreJob {
+
+    @Input val inFile: File = bamFile
+    @Output val outFile: File = outputFile
+
+    this.isIntermediate = false
+    override def jobRunnerJobName = projectName.get + "_downsample_flagstat"
+
+    val samtools = samtoolsPath.getAbsoluteFile()
+
+    def commandLine =
+      samtools + " view -hu " + inFile.getAbsolutePath() +
+        " | " + samtools + " sort -no - - | " + samtools + " view -h -  | head -" + downsampleToX + " | " + samtools + " view -Shu - | " + samtools + " flagstat - " +
+        " > " + outFile.getAbsolutePath()
+  }
+
   /**
    * Wrapper for RNA-SeQC.
    */
-  case class RNA_QC(@Input bamfile: File, @Input bamIndex: File, rRNATargetsFile: File, downsampling: Int, referenceFile: File, outDir: File, transcriptFile: File, ph: File, pathRNASeQC: File) extends RNASeQC with ThreeCoreJob {
+  case class RNA_QC(@Input bamfile: File, @Input bamIndex: File, sampleSampleID: String, rRNATargetsFile: File, downsampling: Int, referenceFile: File, outDir: File, transcriptFile: File, ph: File, pathRNASeQC: File) extends RNASeQC with ThreeCoreJob {
 
     @Output
     val placeHolder: File = ph
@@ -161,7 +185,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
 
     def createRNASeQCInputString(file: File): String = {
       val sampleName = getSampleNameFromReadGroups(file)
-      "\"" + sampleName + "|" + file.getAbsolutePath() + "|" + sampleName + "\""
+      "\"" + sampleName + "|" + file.getAbsolutePath() + "|" + sampleSampleID + "\""
     }
 
     val inputString = createRNASeQCInputString(bamfile)

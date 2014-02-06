@@ -45,7 +45,7 @@ class RNAQCSnpSeqPipelineTest {
       " -outputDir " + PipelineTest.runDir(spec.name, spec.jobRunners(0)),
       " -startFromScratch ").mkString
 
-    spec.fileMD5s += aggregatedMetrics -> "560b4a92982055adc1b5116a0d5723c7"
+    spec.fileMD5s += aggregatedMetrics -> "c98adad47f671f1dbeb576175f48f5e5"
 
     spec.run = run
     PipelineTest.executeTest(spec)

@@ -39,10 +39,10 @@ class RNAQC extends QScript with UppmaxXMLConfiguration {
 
   @Input(doc = "BED File defining the transcripts (must end in .bed)", shortName = "tb", fullName = "bed_transcripts", required = true)
   var bedTranscripts: File = _
-  
+
   @Input(doc = "The path to rseqc geneBody_coverage.py", shortName = "gbcp", fullName = "path_to_gene_body_coverage_script", required = true)
   var pathToCalcGeneBodyScript: File = _
-  
+
   /**
    * **************************************************************************
    * Optional Parameters
@@ -65,9 +65,6 @@ class RNAQC extends QScript with UppmaxXMLConfiguration {
   @Argument(doc = "The path to RNA-SeQC", shortName = "rnaseqc", fullName = "rna_seqc", required = false)
   var pathToRNASeQC: File = new File("resources/RNA-SeQC_v1.1.7.jar")
 
-
-
-  
   /**
    * **************************************************************************
    * Main script
@@ -97,11 +94,19 @@ class RNAQC extends QScript with UppmaxXMLConfiguration {
 
       // Run RNA_QC
       val placeHolderFile = new File(sampleOutputDir + "/qscript_RNASeQC.stdout.log")
-      add(generalUtils.RNA_QC(bam, index, rRNATargetsFile, downsampling, reference, sampleOutputDir, transcripts, placeHolderFile, pathToRNASeQC))
-      
+      add(generalUtils.RNA_QC(bam, index, sampleSampleID, rRNATargetsFile, downsampling, reference, sampleOutputDir, transcripts, placeHolderFile, pathToRNASeQC))
+
       // Run Gene body coverage calculator
       add(generalUtils.CalculateGeneBodyCoverage(pathToCalcGeneBodyScript, bam, bedTranscripts, sampleSampleID, sampleOutputDir + "/gene_body_coverage/"))
-      
+
+      // Deduplicate, downsample and flagstat the results (can be used to estimate the duplication rates)
+      val tmpDupMarkedBam = new File(swapExt(bam, ".bam", ".tmp.markdups.bam"))
+      val dupMetericsFile = new File(swapExt(bam, ".bam", ".tmp.markdups.metrics"))
+      val flagstatFile = new File(sampleOutputDir + "/flagstat/" + sampleSampleID + ".flagstat.txt")
+
+      add(generalUtils.dedup(bam, tmpDupMarkedBam, dupMetericsFile, asIntermediate = true))
+      add(generalUtils.DownSampleAndFlagstat(samtoolsPath, tmpDupMarkedBam, flagstatFile, downsampleToX = 10000000))
+
       placeHolderFile
     }
 
