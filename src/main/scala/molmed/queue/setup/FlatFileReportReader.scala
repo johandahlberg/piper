@@ -49,5 +49,5 @@ class FlatFileReportReader(setupFile: File) extends ReportReaderAPI {
       map(s => s.lane)
   }
 
-  def getNumberOfReadsPassedFilter(sampleName: String, lane: Int): Option[Int] = throw new NotImplementedException()
+  def getNumberOfReadsPassedFilter(sampleName: String, lane: Int): Option[Int] = None
 }
