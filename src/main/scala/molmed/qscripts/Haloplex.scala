@@ -318,13 +318,13 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
       writer.close()
     }
 
-    case class convertCoveredToIntervals(@Input bed: File, @Output intervalFile: File, @Input bam: File) extends InProcessFunction {
+    case class convertCoveredToIntervals(@Input var bed: File, @Output var intervalFile: File, @Input var bam: File) extends InProcessFunction {
       def run(): Unit = {
         writeIntervals(bed, intervalFile, bam, formatFromCovered)
       }
     }
 
-    case class convertAmpliconsToIntervals(@Input bed: File, @Output intervalFile: File, @Input bam: File) extends InProcessFunction {
+    case class convertAmpliconsToIntervals(@Input var bed: File, @Output var intervalFile: File, @Input var bam: File) extends InProcessFunction {
       def run(): Unit = {
         writeIntervals(bed, intervalFile, bam, formatFromAmplicons)
       }
