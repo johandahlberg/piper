@@ -95,7 +95,12 @@ Running
 
 Pick the workflow that you want to run, e.g. haloplex. Then initiate it (by simply running it, or if you do not have access to node where you can continually run a JVM by using `sbatch` to send it to a node) accoding to the examples below.
 
-Note that all workflows are by default setup to be run with the human_g1k_v37.fasta reference, and associated annotations. This means that if you need some other reference, you will have to set it up manually by configuring the "Run Template" part of the workflow script (and depending somewhat on the use case, make changes to the qscripts themself). It's also worth mentioning that all the scripts have a optional `onlyaligment` flag which can be set if you are only interested in running the aligments. This is useful what you are working on a projec where data is added over time, but you want to create the aligments as data comes in, and then join across the sequencing runs and continue with the downstream analysis.
+Note that all workflows are by default setup to be run with the human_g1k_v37.fasta reference, and associated annotations. This means that if you need some other reference, you will have to set it up manually by configuring the "Run Template" part of the workflow script (and depending somewhat on the use case, make changes to the qscripts themself). 
+
+It's also worth mentioning that all the scripts have a optional `alignments_only` flag which can be set if you are only interested in running the aligments. This is useful what you are working on a project where data is added over time, but you want to create the aligments as data comes in, and then join across the sequencing runs and continue with the downstream analysis.
+
+Unless the `run` flag is added to the workflow commandline the pipeline will only dry run (i.e. it will not actually run any jobs), this is useful to make sure that all commandline have been setup up properly. Once you are happy with the setup add `run` to the commandline to run the pipeline.
+
 
 **Haloplex**
 
@@ -113,7 +118,10 @@ Library types depends on the protcol used. For ScriptSeq, it's for example `fr-s
 
     ./workflows/RNADifferentialExpression.sh --xml_input <setup.xml> --library_type <fr-secondstrand/fr-firststrand/fr-unstranded> [--replicates <replicate_file>] [--alignments_only] [--run]
 
+To be able to run this workflow samtools needs to be available on the `PATH`, you can get this by loading the samtools module in your `.bashrc` or by explicitly adding it to the `PATH` variable.
+
 If you have replicates in you cohort specify them in a file (under `--replicates`) accoring to the following: On each line should be the label (e.g. the name of the condition) and sample names of the samples included in that condition seperated by tabs. Please note that only samples which have replicates need to be specified. The default is one sample - one replicate.
+
 
 **Exome**
     
