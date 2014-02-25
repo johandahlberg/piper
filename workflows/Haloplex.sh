@@ -89,6 +89,7 @@ source piper -S ${SCRIPTS_DIR}/Haloplex.scala \
 	     -jobRunner ${JOB_RUNNER} \
              -jobNative "${JOB_NATIVE_ARGS}" \
 	     --job_walltime 36000 \
+	     -sg 1 \
 	     ${RUN} ${ONLY_ALIGNMENTS} ${DEBUG} 2>&1 | tee ${LOGS}/haloplex.log
 
 # Perform final clean up
