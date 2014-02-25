@@ -276,17 +276,22 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
     // General arguments to GATK walkers
     trait CommandLineGATKArgs extends CommandLineGATK
 
-    def intervalFormatString(contig: String, start: String, end: String, strand: String, intervalName: String): String =
-      "%s\t%s\t%s\t%s\t%s".format(contig, start, end, strand, intervalName)
+    // Uses + strand if no strand if is provided. Unfortunately the is no NA option for this field in the 
+    // Picard IntervalList.
+    def intervalFormatString(contig: String, start: String, end: String, strand: Option[String], intervalName: String): String =
+      "%s\t%s\t%s\t%s\t%s".format(contig, start, end, strand.getOrElse("+"), intervalName)
 
-   def conversions(s: String) = if(doNotConvert) s else s.replace("chrM", "MT").replace("chr", "")    
-      
+    def conversions(s: String) = if (doNotConvert) s else s.replace("chrM", "MT").replace("chr", "")
+
     def formatFromCovered(split: Array[String]): String = {
-      intervalFormatString(conversions(split(0)), (split(1).toInt + 1).toString, split(2), "+", split(3))
+      intervalFormatString(conversions(split(0)), (split(1).toInt + 1).toString, split(2), None, split(3))
     }
 
     def formatFromAmplicons(split: Array[String]): String = {
-      intervalFormatString(conversions(split(0)), (split(1).toInt + 1).toString, split(2), split(5), split(3))
+      intervalFormatString(
+        conversions(split(0)), (split(1).toInt + 1).toString, split(2),
+        if (split(5) != null) Some(split(5)) else None,
+        split(3))
     }
 
     def writeIntervals(bed: File, intervalFile: File, bam: File, formatFrom: Array[String] => String): Unit = {
