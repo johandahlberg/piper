@@ -293,7 +293,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
           conversions(split(0)), (split(1).toInt + 1).toString, split(2),
           if (split(5) != null) Some(split(5)) else None,
           split(3))
-      else if(split.length == 5)
+      else if(split.length == 4)
         intervalFormatString(
           conversions(split(0)), (split(1).toInt + 1).toString, split(2),
           None,
@@ -301,7 +301,8 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
           else
             throw new Exception("Unknown number of fields in amplicon bed file. " +
             		"The number of fields  should be 6 (if there is strand information) " +
-            		"or 5 (if there is no strand info).")
+            		"or 5 (if there is no strand info). Number of fields was: " + 
+            		split.length)
     }
 
     def writeIntervals(bed: File, intervalFile: File, bam: File, formatFrom: Array[String] => String): Unit = {
