@@ -167,10 +167,10 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
    * from all the separate runs.
    * 
    */
-  case class createAggregatedMetrics(phs: Seq[File], @Input outputDir: File, @Output aggregatedMetricsFile: File) extends InProcessFunction {
+  case class createAggregatedMetrics(phs: Seq[File], @Input var outputDir: File, @Output var aggregatedMetricsFile: File) extends InProcessFunction {
 
     @Input
-    val placeHolderSeq: Seq[File] = phs
+    var placeHolderSeq: Seq[File] = phs
     
     def run() = {
 
