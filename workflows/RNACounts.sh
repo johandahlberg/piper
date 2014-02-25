@@ -33,7 +33,7 @@ function alignWithTophat {
 	    -jobRunner ${JOB_RUNNER} \
 	    -jobNative "${JOB_NATIVE_ARGS}" \
 	    --job_walltime 518400 \
-	    ${RUN} ${DEBUG} 2>&1 | tee -a ${LOGS}/alignWithTophat.log
+	    ${RUN} ${DEBUG} &>> ${LOGS}/alignWithTophat.log
 
     # Check the script exit status, and if it did not finish, clean up and exit
     if [ $? -ne 0 ]; then 
@@ -57,7 +57,7 @@ function cufflinks {
          	     -jobRunner ${JOB_RUNNER} \
 	             -jobNative "${JOB_NATIVE_ARGS}" \
 	             --job_walltime 172800 \
-	             ${RUN} ${DEBUG} 2>&1 | tee -a ${LOGS}/cufflinks.log
+	             ${RUN} ${DEBUG} &>> ${LOGS}/cufflinks.log
 
 
     # Check the script exit status, and if it did not finish, clean up and exit
@@ -87,7 +87,7 @@ function RNA_QC {
 	    -jobRunner ${JOB_RUNNER} \
 	    -jobNative "${JOB_NATIVE_ARGS}" \
 	    --job_walltime 172800 \
-	    ${RUN} ${DEBUG} 2>&1 | tee -a ${LOGS}/rnaQC.log
+	    ${RUN} ${DEBUG} &>> ${LOGS}/rnaQC.log
 
 
     # Check the script exit status, and if it did not finish, clean up and exit
@@ -199,7 +199,7 @@ fi
 # in a different way.
 #---------------------------------------------
 
-if [ -n "$ONLY_ALIGNMENTS" ]; then
+if [ ! -z "$ONLY_ALIGNMENTS" ]; then
     ALIGN_OUTPUT=$(alignWithTophat ${PIPELINE_SETUP_XML})
 else
     ALIGN_OUTPUT=$(alignWithTophat ${PIPELINE_SETUP_XML})
