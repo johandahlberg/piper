@@ -64,7 +64,7 @@ while :
        esac
    done
 
-if [ ! "$PIPELINE_SETUP" ] || [ ! "$AMPLICONS" ] || [ ! "$AMPLICONS" ]; then
+if [ ! "$PIPELINE_SETUP" ] || [ ! "$INTERVALS" ] || [ ! "$AMPLICONS" ]; then
    usage
    exit 1
 fi
