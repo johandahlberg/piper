@@ -252,7 +252,7 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
     this.isIntermediate = intermediate
 
     def commandLine =
-      bwaPath + " mem -t " + nbrOfThreads + " " +
+      bwaPath + " mem -t -M " + nbrOfThreads + " " +
         ref + " " + mate1 + " " + mate2 +
         " -R " + readGroupInfo +
         sortAndIndex(alignedBam)
@@ -273,7 +273,7 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
     this.isIntermediate = intermediate
 
     def commandLine =
-      bwaPath + " mem -t " + nbrOfThreads + " " +
+      bwaPath + " mem -t -M" + nbrOfThreads + " " +
         ref + " " + mate1 + " " +
         " -R " + readGroupInfo +
         sortAndIndex(alignedBam)
