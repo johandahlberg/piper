@@ -75,7 +75,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
   var bwaPath: File = _
 
   @Argument(doc = "The type of bwa aligner to use. Options are BWA_MEM and BWA_ALN. (Default: BWA_MEM)", fullName = "bwa_aligner", shortName = "bwaa", required = false)
-  var bwaAlignerType: String = "BwaMem"
+  var bwaAlignerType: String = "BWA_MEM"
 
   @Input(doc = "The path to the binary of samtools", fullName = "path_to_samtools", shortName = "samtools", required = false)
   var samtoolsPath: File = "/usr/bin/samtools"

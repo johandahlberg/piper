@@ -245,6 +245,12 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
                      reference: File,
                      nbrOfThreads: Int = 8,
                      intermediate: Boolean = false) extends EightCoreJob {
+
+    def sortAndIndex(alignedBam: File): String = " | " + samtoolsPath + " view -Su - | " +
+      samtoolsPath + " sort -@ " + nbrOfThreads + " -m " + nbrOfThreads*8 + "G " +  
+      " - " + alignedBam.getAbsolutePath().replace(".bam", "") + ";" +
+      samtoolsPath + " index " + alignedBam.getAbsoluteFile()
+
     @Input(doc = "fastq file with mate 1 to be aligned") var mate1 = fastq1
     @Input(doc = "fastq file with mate 2 file to be aligned") var mate2 = fastq2
     @Input(doc = "reference") var ref = reference
@@ -260,10 +266,11 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
       " " + mate1 + " "
 
     def commandLine =
-      bwaPath + " mem -t -M " + nbrOfThreads + " " +
+      bwaPath + " mem -M -t " + nbrOfThreads + " " +
+        " -R " + readGroupInfo + " " +
         ref + mateString +
-        " -R " + readGroupInfo +
         sortAndIndex(alignedBam)
+
     override def jobRunnerJobName = projectName.get + "_bwaMem"
   }
 

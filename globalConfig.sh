@@ -19,8 +19,8 @@ then
 else
 	JOB_RUNNER=" Shell"
 	JOB_NATIVE_ARGS=""
-	PATH_TO_BWA="/usr/bin/bwa"
-	PATH_TO_SAMTOOLS="/usr/bin/samtools"
+	PATH_TO_BWA="~/Bin/bwa-0.7.5a/bwa"
+	PATH_TO_SAMTOOLS="~/Bin/samtools-0.1.19/samtools"
 	PATH_TO_TOPHAT="/usr/local/bin/tophat2"
 	PATH_TO_CUTADAPT="/usr/local/bin/cutadapt"
 	PATH_TO_CUFFLINKS="$HOME/Bin/cufflinks/cufflinks"
