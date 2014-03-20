@@ -109,15 +109,15 @@ class TophatAligmentUtils(tophatPath: String, tophatThreads: Int, projectName: O
   }
 }
 
+// Possible alignment options.
+sealed trait Aligner
+case object BwaMem extends Aligner
+case object BwaAln extends Aligner
+
 /**
  * Utility classes and functions for running bwa
  */
 class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samtoolsPath: String, projectName: Option[String], uppmaxConfig: UppmaxConfig) extends AligmentUtils(projectName, uppmaxConfig) {
-
-  // Possible alignment options.
-  sealed trait Aligner
-  case class BwaMem extends Aligner
-  case class BwaAln extends Aligner
 
   /**
    * @param qscript						the qscript to in which the alignments should be used (usually "this")
@@ -141,7 +141,7 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
     val alignedBamFile = new File(outputDir + "/" + fastqs.sampleName + ".bam")
 
     aligner match {
-      case Some(BwaAln()) => {
+      case Some(BwaAln) => {
         if (fastqs.isMatePaired) {
           // Add jobs to the qgraph
           qscript.add(bwa_aln_se(fastqs.mate1, saiFile1, reference),
@@ -152,13 +152,14 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
             bwa_sam_se(fastqs.mate1, saiFile1, alignedBamFile, readGroupInfo, reference, isIntermediateAlignment))
         }
       }
-      case Some(BwaMem()) => {
+      case Some(BwaMem) => {
         if (fastqs.isMatePaired) {
-          qscript.add(bwa_mem_pe(fastqs.mate1, fastqs.mate2, alignedBamFile, readGroupInfo, reference, intermediate = isIntermediateAlignment))
+          qscript.add(bwa_mem(fastqs.mate1, Some(fastqs.mate2), alignedBamFile, readGroupInfo, reference, intermediate = isIntermediateAlignment))
         } else {
-          qscript.add(bwa_mem_se(fastqs.mate1, alignedBamFile, readGroupInfo, reference, intermediate = isIntermediateAlignment))
+          qscript.add(bwa_mem(fastqs.mate1, None, alignedBamFile, readGroupInfo, reference, intermediate = isIntermediateAlignment))
         }
       }
+      case None => throw new Exception("No Aligner was set in performAlignment(...)!")
     }
 
     alignedBamFile
@@ -169,8 +170,9 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
    * @param	outputDir		output dir to use
    * @param	asIntermidiate	should this be kept of not
    * @param aligner			Aligner to be used. Defaults to BwaMem.
+   * @returns a aligned bam file.
    */
-  def align(sample: SampleAPI, outputDir: File, asIntermidate: Boolean, aligner: Option[Aligner] = Some(BwaMem())): File = {
+  def align(sample: SampleAPI, outputDir: File, asIntermidate: Boolean, aligner: Option[Aligner] = Some(BwaMem)): File = {
 
     val sampleName = sample.getSampleName()
     val fastqs = sample.getFastqs()
@@ -236,13 +238,13 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
     override def jobRunnerJobName = projectName.get + "_bwaSamPe"
   }
 
-  // @TODO need option for single read  
-  case class bwa_mem_pe(fastq1: File, fastq2: File,
-                        outBam: File,
-                        readGroupInfo: String,
-                        reference: File,
-                        nbrOfThreads: Int = 8,
-                        intermediate: Boolean = false) extends EightCoreJob {
+  // Bwa mem alignment container.
+  case class bwa_mem(fastq1: File, fastq2: Option[File],
+                     outBam: File,
+                     readGroupInfo: String,
+                     reference: File,
+                     nbrOfThreads: Int = 8,
+                     intermediate: Boolean = false) extends EightCoreJob {
     @Input(doc = "fastq file with mate 1 to be aligned") var mate1 = fastq1
     @Input(doc = "fastq file with mate 2 file to be aligned") var mate2 = fastq2
     @Input(doc = "reference") var ref = reference
@@ -251,30 +253,15 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
     // The output from this is a samfile, which can be removed later
     this.isIntermediate = intermediate
 
+    // Setup paired end or single end case
+    def mateString = if (fastq2.isDefined)
+      " " + mate1 + " " + mate2.get + " "
+    else
+      " " + mate1 + " "
+
     def commandLine =
       bwaPath + " mem -t -M " + nbrOfThreads + " " +
-        ref + " " + mate1 + " " + mate2 +
-        " -R " + readGroupInfo +
-        sortAndIndex(alignedBam)
-    override def jobRunnerJobName = projectName.get + "_bwaMem"
-  }
-
-  case class bwa_mem_se(fastq1: File,
-                        outBam: File,
-                        readGroupInfo: String,
-                        reference: File,
-                        nbrOfThreads: Int = 8,
-                        intermediate: Boolean = false) extends EightCoreJob {
-    @Input(doc = "fastq file with mate 1 to be aligned") var mate1 = fastq1
-    @Input(doc = "reference") var ref = reference
-    @Output(doc = "output aligned bam file") var alignedBam = outBam
-
-    // The output from this is a samfile, which can be removed later
-    this.isIntermediate = intermediate
-
-    def commandLine =
-      bwaPath + " mem -t -M" + nbrOfThreads + " " +
-        ref + " " + mate1 + " " +
+        ref + mateString +
         " -R " + readGroupInfo +
         sortAndIndex(alignedBam)
     override def jobRunnerJobName = projectName.get + "_bwaMem"

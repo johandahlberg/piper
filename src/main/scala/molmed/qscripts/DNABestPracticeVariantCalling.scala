@@ -29,6 +29,9 @@ import molmed.utils.GATKDataProcessingUtils
 import molmed.utils.GATKDataProcessingUtils
 import molmed.utils.GATKDataProcessingUtils
 import molmed.utils.VariantCallingUtils
+import molmed.utils.Aligner
+import molmed.utils.BwaMem
+import molmed.utils.BwaAln
 
 /**
  *
@@ -70,6 +73,9 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
 
   @Input(doc = "The path to the binary of bwa (usually BAM files have already been mapped - but if you want to remap this is the option)", fullName = "path_to_bwa", shortName = "bwa", required = false)
   var bwaPath: File = _
+
+  @Input(doc = "The type of bwa aligner to use. Options are BWA_MEM and BWA_ALN. (Default: BWA_MEM)", fullName = "bwa_aligner", shortName = "bwaa", required = false)
+  var bwaAlignerType: String = "BwaMem"
 
   @Input(doc = "The path to the binary of samtools", fullName = "path_to_samtools", shortName = "samtools", required = false)
   var samtoolsPath: File = "/usr/bin/samtools"
@@ -128,6 +134,25 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
 
   /**
    * **************************************************************************
+   * Helper functions
+   * **************************************************************************
+   */
+
+  /**
+   * Deparces string options into proper Aligner options
+   * @param stringOption	Text to convert to Option class
+   * @returns A Option[Aligner] holding a valid aligner option
+   */
+  def decideAlignerType(stringOption: String): Option[Aligner] = {
+    stringOption match {
+      case "BWA_MEM" => Some(BwaMem)
+      case "BWA_ALN" => Some(BwaAln)
+      case s: String => throw new IllegalArgumentException("Did not recognize aligner option: " + s) 
+    }
+  }
+  
+  /**
+   * **************************************************************************
    * Main script
    * **************************************************************************
    */
@@ -163,10 +188,11 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
     /**
      * Run alignments
      */
+    val aligner: Option[Aligner] = decideAlignerType(bwaAlignerType)
     val alignmentUtils = new BwaAlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, projectName, uppmaxConfig)
     val sampleNamesAndalignedBamFiles = samples.values.flatten.map(sample =>
       (sample.getSampleName,
-        alignmentUtils.align(sample, aligmentOutputDir, asIntermidate = true)))
+        alignmentUtils.align(sample, aligmentOutputDir, asIntermidate = true, aligner)))
     val sampleNamesToBamMap = sampleNamesAndalignedBamFiles.groupBy(f => f._1).mapValues(f => f.map(x => x._2).toSeq)
 
     // Stop here is only aligments option is enabled.

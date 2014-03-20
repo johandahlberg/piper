@@ -39,6 +39,7 @@ import molmed.utils.GeneralUtils
 import molmed.utils.UppmaxConfig
 import molmed.utils.UppmaxXMLConfiguration
 import molmed.utils.UppmaxJob
+import molmed.utils.BwaAln
 
 /**
  * Haloplex best practice analysis from fastqs to variant calls.
@@ -207,7 +208,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
     // Align with bwa
     val alignmentHelper = new BwaAlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, projectName, uppmaxConfig)
     val cohortList =
-      cutAndSyncedSamples.values.flatten.map(sample => alignmentHelper.align(sample, bamOutputDir, false)).toSeq
+      cutAndSyncedSamples.values.flatten.map(sample => alignmentHelper.align(sample, bamOutputDir, false, Some(BwaAln))).toSeq
 
     // Convert intervals and amplicons from bed files to
     // picard metric files.
