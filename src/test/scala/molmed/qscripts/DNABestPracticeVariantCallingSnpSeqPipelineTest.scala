@@ -49,10 +49,10 @@ class DNABestPracticeVariantCallingSnpSeqPipelineTest {
       " -test ",
       " -startFromScratch "
       ).mkString
-    spec.fileMD5s += co1156bam -> "d2e69f2cca454143a272ceb46a4022e8"
-    spec.fileMD5s += co454bam -> "6cfca1908f301e804a4b6621d6afc849"
-    spec.fileMD5s += rawSnps -> "8dd97afb4947841077b4336dd705603d"
-    spec.fileMD5s += rawIndels -> "f521b96d2db8cba5cb5565a8f283a0f7"
+    spec.fileMD5s += co1156bam -> "c5b7787eb82eac7aaa6b359851561cd4"
+    spec.fileMD5s += co454bam -> "122eef66ce52b5a1a178991813a8e1e3"
+    spec.fileMD5s += rawSnps -> "4825361e107c122a84b1f48647fee071"
+    spec.fileMD5s += rawIndels -> "c48dfabccf1665df64c541623727427b"
     spec.run = this.run
     PipelineTest.executeTest(spec)
   }
@@ -88,10 +88,10 @@ class DNABestPracticeVariantCallingSnpSeqPipelineTest {
       " -startFromScratch "
       ).mkString
 
-    spec.fileMD5s += co1156bam -> "e5e3dfc5e1759f8e277a87b053b8c5f7"
-    spec.fileMD5s += co454bam -> "77d25515ce117aa16ac00cbafeae8e24"
-    spec.fileMD5s += rawSnps -> "70d2dd0ed94b53dacc7575b1b59dc5d4"
-    spec.fileMD5s += rawIndels -> "33f7fbf293d2cc816088473d9241f904"
+    spec.fileMD5s += co1156bam -> "634d77c4a48bd066d4697d56f0a4e16e"
+    spec.fileMD5s += co454bam -> "a3b9e64cba88bbd12e4e5f2a5f0ea9a7"
+    spec.fileMD5s += rawSnps -> "dc4f26db5aeb15bbe043695f241b260f"
+    spec.fileMD5s += rawIndels -> "0521e600245245ba2745699c45a0f93d"
     spec.run = this.run
     PipelineTest.executeTest(spec)
   }

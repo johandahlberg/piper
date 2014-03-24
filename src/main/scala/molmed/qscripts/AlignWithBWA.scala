@@ -38,7 +38,7 @@ class AlignWithBWA extends QScript with UppmaxXMLConfiguration {
   var bwaPath: File = _
 
   @Input(doc = "The path to the binary of samtools", fullName = "path_to_samtools", shortName = "samtools", required = false)
-  var samtoolsPath: File = "/usr/bin/samtools"
+  var samtoolsPath: File = "samtools"
 
   @Argument(doc = "Output path for the processed BAM files.", fullName = "output_directory", shortName = "outputDir", required = false)
   var outputDir: String = ""

@@ -8,8 +8,8 @@ if [ -f "/sw/apps/build/slurm-drmaa/lib/libdrmaa.so" ];
 then
 	JOB_RUNNER=" Drmaa"
 	JOB_NATIVE_ARGS="-A ${PROJECT_ID} -p node -N 1 ${QOS}"
-	PATH_TO_BWA="/sw/apps/bioinfo/bwa/0.6.2/kalkyl/bwa"
-	PATH_TO_SAMTOOLS="/sw/apps/bioinfo/samtools/0.1.12-10/samtools"	
+	PATH_TO_BWA="/sw/apps/bioinfo/bwa/0.7.5a/milou/bin/bwa"
+	PATH_TO_SAMTOOLS="/sw/apps/bioinfo/samtools/0.1.19/milou/bin/samtools"	
 	PATH_TO_TOPHAT="/sw/apps/bioinfo/tophat/2.0.4/kalkyl/bin/tophat2"
 	PATH_TO_CUTADAPT="/sw/apps/bioinfo/cutadapt/1.2.1/kalkyl/bin/cutadapt"
 	PATH_TO_CUFFLINKS="/sw/apps/bioinfo/cufflinks/2.1.1/kalkyl/"

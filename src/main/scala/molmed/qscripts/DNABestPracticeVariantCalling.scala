@@ -78,7 +78,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
   var bwaAlignerType: String = "BWA_MEM"
 
   @Input(doc = "The path to the binary of samtools", fullName = "path_to_samtools", shortName = "samtools", required = false)
-  var samtoolsPath: File = "/usr/bin/samtools"
+  var samtoolsPath: File = "samtools"
 
   @Argument(doc = "Output path for the processed BAM files.", fullName = "output_directory", shortName = "outputDir", required = false)
   var outputDir: String = "pipeline_output"

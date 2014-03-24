@@ -77,7 +77,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
   var bwaPath: File = _
 
   @Input(doc = "The path to the binary of samtools", fullName = "path_to_samtools", shortName = "samtools", required = false)
-  var samtoolsPath: File = "/usr/bin/samtools"
+  var samtoolsPath: File = "samtools"
 
   @Input(doc = "The path to the binary of butadapt", fullName = "path_to_cutadapt", shortName = "cutadapt", required = false)
   var cutadaptPath: File = _

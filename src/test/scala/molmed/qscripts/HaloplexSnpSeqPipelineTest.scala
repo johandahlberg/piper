@@ -43,8 +43,8 @@ class HaloplexSnpSeqPipelineTest {
       " --scatter_gather 1 ",
       " --test_mode ",
       " -startFromScratch ").mkString
-    spec.fileMD5s += testRawVcf -> "ceb0c297f085b964cdb5058a8d2d11d4"
-    spec.fileMD5s += testRawFilteredVcf -> "03a2cd239159fa57211b33426e3b35d2"
+    spec.fileMD5s += testRawVcf -> "d3d6ed9bbe58d670e8d4f2ad60f3b685"
+    spec.fileMD5s += testRawFilteredVcf -> "5b3575d7093bd6e8001f27d2e5535ba8"
 
     spec.run = run
     PipelineTest.executeTest(spec)
@@ -72,7 +72,7 @@ class HaloplexSnpSeqPipelineTest {
       " --test_mode ",
       " -startFromScratch ",
       " --onlyAlignments ").mkString
-    spec.fileMD5s += testRawBam -> "e40c06979df19f5934fc3c2335923f67"
+    spec.fileMD5s += testRawBam -> "eaedd6117bf9fe8d94be613f5662e6bb"
 
     spec.run = run
     PipelineTest.executeTest(spec)
