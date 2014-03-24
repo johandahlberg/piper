@@ -81,8 +81,10 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
   /**
    * Wraps Picard MarkDuplicates
    */
-  case class dedup(inBam: File, outBam: File, metricsFile: File) extends MarkDuplicates with TwoCoreJob {
+  case class dedup(inBam: File, outBam: File, metricsFile: File, asIntermediate: Boolean = true) extends MarkDuplicates with TwoCoreJob {
 
+    this.isIntermediate = asIntermediate
+    
     this.input :+= inBam
     this.output = outBam
     this.metrics = metricsFile

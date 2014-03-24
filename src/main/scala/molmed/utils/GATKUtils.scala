@@ -46,9 +46,11 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxCon
 
   }
 
-  case class clean(inBams: Seq[File], tIntervals: File, outBam: File, @Argument cleanModelEnum: ConsensusDeterminationModel, testMode: Boolean) extends IndelRealigner with CommandLineGATKArgs with OneCoreJob {
+  case class clean(inBams: Seq[File], tIntervals: File, outBam: File,
+                   @Argument cleanModelEnum: ConsensusDeterminationModel,
+                   testMode: Boolean, asIntermediate: Boolean = true) extends IndelRealigner with CommandLineGATKArgs with OneCoreJob {
 
-    //TODO This should probably be a core job since it does not support parallel exection.         
+    this.isIntermediate = asIntermediate
 
     this.input_file = inBams
     this.targetIntervals = tIntervals
@@ -82,10 +84,10 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxCon
 
   }
 
-  case class recal(inBam: File, inRecalFile: File, outBam: File) extends PrintReads with CommandLineGATKArgs with EightCoreJob {
-
-    //TODO This should probably be a core job since it does not support parallel exection.   
-
+  case class recal(inBam: File, inRecalFile: File, outBam: File, asIntermediate: Boolean = false) extends PrintReads with CommandLineGATKArgs with EightCoreJob {
+   
+    this.isIntermediate = asIntermediate
+    
     this.input_file :+= inBam
 
     this.BQSR = inRecalFile
