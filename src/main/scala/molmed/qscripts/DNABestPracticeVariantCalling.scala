@@ -122,6 +122,9 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
   @Argument(doc = "Only do the aligments - useful when there is more data to be delivered in a project", fullName = "onlyAlignments", shortName = "oa", required = false)
   var onlyAlignment: Boolean = false
 
+  @Argument(doc = "Remove the raw merged alignment files.", fullName = "remove_raw_merged_alignments", shortName = "rrma", required = false)
+  var removeMergedAlignments: Boolean = false
+
   /**
    * **************************************************************************
    * Hidden Parameters - for dev.
@@ -147,10 +150,10 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
     stringOption match {
       case "BWA_MEM" => Some(BwaMem)
       case "BWA_ALN" => Some(BwaAln)
-      case s: String => throw new IllegalArgumentException("Did not recognize aligner option: " + s) 
+      case s: String => throw new IllegalArgumentException("Did not recognize aligner option: " + s)
     }
   }
-  
+
   /**
    * **************************************************************************
    * Main script
@@ -202,7 +205,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
        * Merge by sample
        */
       val mergeFilesUtils = new MergeFilesUtils(this, projectName, uppmaxConfig)
-      val mergedBamFiles = mergeFilesUtils.mergeFilesBySampleName(sampleNamesToBamMap, mergedAligmentOutputDir)
+      val mergedBamFiles = mergeFilesUtils.mergeFilesBySampleName(sampleNamesToBamMap, mergedAligmentOutputDir, asIntermediate = removeMergedAlignments)
 
       /**
        * Get QC statistics

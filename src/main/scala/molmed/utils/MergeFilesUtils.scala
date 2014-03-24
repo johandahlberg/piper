@@ -17,7 +17,7 @@ class MergeFilesUtils(qscript: QScript, projectName: Option[String], uppmaxConfi
    * @param sampleNamesAndfiles		A map with the sample names as keys and the files associated with she sample as values
    * @param	outputDir				The dir to output to
    */
-  def mergeFilesBySampleName(sampleNameAndFiles: Map[String, Seq[File]], outputDir: File): Seq[File] = {
+  def mergeFilesBySampleName(sampleNameAndFiles: Map[String, Seq[File]], outputDir: File, asIntermediate: Boolean = false): Seq[File] = {
 
     val cohortList =
       for (sampleNamesAndFiles <- sampleNameAndFiles) yield {
@@ -29,10 +29,10 @@ class MergeFilesUtils(qscript: QScript, projectName: Option[String], uppmaxConfi
         // If there is only on file associated with the sample name, just create a
         // hard link instead of merging.
         if (files.size > 1) {
-          qscript.add(joinBams(files, mergedFile))
+          qscript.add(joinBams(files, mergedFile, asIntermediate))
           mergedFile
         } else {
-          qscript.add(createLink(files(0), mergedFile, new File(files(0) + ".bai"), new File(mergedFile + ".bai")))
+          qscript.add(createLink(files(0), mergedFile, new File(files(0) + ".bai"), new File(mergedFile + ".bai"), asIntermediate))
           mergedFile
         }
       }
@@ -48,8 +48,10 @@ class MergeFilesUtils(qscript: QScript, projectName: Option[String], uppmaxConfi
    * @param ii	the input bam index file
    * @param	oi	the output bam index file
    */
-  case class createLink(in: File, out: File, ii: File, oi: File) extends InProcessFunction {
+  case class createLink(in: File, out: File, ii: File, oi: File, asIntermediate: Boolean = false) extends InProcessFunction {
 
+    this.isIntermediate = asIntermediate
+    
     @Input
     var inBam: File = in
     @Output

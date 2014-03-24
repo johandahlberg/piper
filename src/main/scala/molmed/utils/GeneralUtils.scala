@@ -38,7 +38,10 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
   /**
    * Joins the bam file specified to a single bam file.
    */
-  case class joinBams(@Input inBams: Seq[File], @Output outBam: File) extends MergeSamFiles with OneCoreJob {
+  case class joinBams(@Input inBams: Seq[File], @Output outBam: File, asIntermediate: Boolean = false) extends MergeSamFiles with OneCoreJob {
+    
+    this.isIntermediate = asIntermediate
+    
     this.input = inBams
     this.output = outBam
 
