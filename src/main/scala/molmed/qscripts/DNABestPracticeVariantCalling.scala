@@ -195,7 +195,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
     val alignmentUtils = new BwaAlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, projectName, uppmaxConfig)
     val sampleNamesAndalignedBamFiles = samples.values.flatten.map(sample =>
       (sample.getSampleName,
-        alignmentUtils.align(sample, aligmentOutputDir, asIntermidate = true, aligner)))
+        alignmentUtils.align(sample, aligmentOutputDir, asIntermidate = !onlyAlignment, aligner)))
     val sampleNamesToBamMap = sampleNamesAndalignedBamFiles.groupBy(f => f._1).mapValues(f => f.map(x => x._2).toSeq)
 
     // Stop here is only aligments option is enabled.
