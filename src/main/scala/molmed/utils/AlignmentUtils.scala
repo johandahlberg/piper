@@ -243,7 +243,7 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
                      outBam: File,
                      readGroupInfo: String,
                      reference: File,
-                     nbrOfThreads: Int = 8,
+                     nbrOfThreads: Int = 7,
                      intermediate: Boolean = false) extends EightCoreJob {
 
     def sortAndIndex(alignedBam: File): String = " | " + samtoolsPath + " view -Su - | " +
