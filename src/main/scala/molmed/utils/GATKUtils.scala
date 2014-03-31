@@ -11,7 +11,7 @@ import org.broadinstitute.sting.commandline.Argument
 /**
  * Commandline wappers for GATK programs.
  */
-class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxConfig: UppmaxConfig) extends UppmaxJob(uppmaxConfig) {
+class GATKUtils(gatkOptions: GATKConfig, projectName: Option[String], uppmaxConfig: UppmaxConfig) extends UppmaxJob(uppmaxConfig) {
 
   // General arguments to GATK walkers
   trait CommandLineGATKArgs extends CommandLineGATK {
@@ -85,9 +85,9 @@ class GATKUtils(gatkOptions: GATKOptions, projectName: Option[String], uppmaxCon
   }
 
   case class recal(inBam: File, inRecalFile: File, outBam: File, asIntermediate: Boolean = false) extends PrintReads with CommandLineGATKArgs with EightCoreJob {
-   
+
     this.isIntermediate = asIntermediate
-    
+
     this.input_file :+= inBam
 
     this.BQSR = inRecalFile

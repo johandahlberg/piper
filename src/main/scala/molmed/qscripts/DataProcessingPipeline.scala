@@ -16,7 +16,7 @@ import net.sf.samtools.SAMFileHeader.SortOrder
 import net.sf.samtools.SAMFileReader
 import molmed.utils.Uppmaxable
 import molmed.utils.GATKUtils
-import molmed.utils.GATKOptions
+import molmed.utils.GATKConfig
 import molmed.utils.GeneralUtils
 import molmed.utils.UppmaxConfig
 import molmed.utils.UppmaxXMLConfiguration
@@ -276,7 +276,7 @@ class DataProcessingPipeline extends QScript with UppmaxXMLConfiguration {
     val gatkOptions = {
       implicit def file2Option(file: File) = if (file == null) None else Some(file)
       implicit def seqfile2Option(seq: Seq[File]) = if (seq == null) None else Some(seq)
-      new GATKOptions(reference, nbrOfThreads, nContigs, intervals, dbSNP, indels)
+      new GATKConfig(reference, nbrOfThreads, nContigs, intervals, dbSNP, indels)
     }
     val gatkUtils = new GATKUtils(gatkOptions, projectName, uppmaxConfig)    
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)

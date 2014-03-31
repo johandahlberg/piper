@@ -6,7 +6,7 @@ import org.broadinstitute.sting.queue.QScript
 /**
  * Contains functions for running quality control (right now a very simple one which uses the GATK DepthOfCoverage walker).
  */
-class AlignmentQCUtils(qscript: QScript, gatkOptions: GATKOptions, projectName: Option[String], uppmaxConfig: UppmaxConfig)
+class AlignmentQCUtils(qscript: QScript, gatkOptions: GATKConfig, projectName: Option[String], uppmaxConfig: UppmaxConfig)
   extends GATKUtils(gatkOptions, projectName, uppmaxConfig) {
 
   /**

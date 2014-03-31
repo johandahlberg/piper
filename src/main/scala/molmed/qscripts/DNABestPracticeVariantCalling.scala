@@ -1,37 +1,21 @@
 package molmed.qscripts
 
-import org.broadinstitute.sting.queue.QScript
-import scala.xml._
-import collection.JavaConversions._
-import net.sf.samtools.SAMFileReader
-import net.sf.samtools.SAMFileHeader.SortOrder
-import org.broadinstitute.sting.queue.extensions.picard._
-import org.broadinstitute.sting.queue.util.QScriptUtils
-import org.broadinstitute.sting.queue.function.ListWriterFunction
 import org.broadinstitute.sting.commandline.Hidden
-import molmed.queue.setup._
-import org.broadinstitute.sting.queue.function.InProcessFunction
-import org.broadinstitute.sting.utils.io.IOUtils
-import molmed.utils.GeneralUtils._
-import molmed.utils.BwaAlignmentUtils
-import molmed.utils.Uppmaxable
-import molmed.utils.GeneralUtils
-import molmed.utils.UppmaxConfig
-import molmed.utils.UppmaxXMLConfiguration
-import net.sf.picard.reference.IndexedFastaSequenceFile
-import java.io.FileNotFoundException
-import molmed.utils.GATKOptions
-import molmed.utils.GATKUtils
-import molmed.utils.GATKOptions
-import molmed.utils.MergeFilesUtils
-import molmed.utils.AlignmentQCUtils
-import molmed.utils.GATKDataProcessingUtils
-import molmed.utils.GATKDataProcessingUtils
-import molmed.utils.GATKDataProcessingUtils
-import molmed.utils.VariantCallingUtils
+import org.broadinstitute.sting.queue.QScript
+
+import molmed.queue.setup.SampleAPI
 import molmed.utils.Aligner
-import molmed.utils.BwaMem
+import molmed.utils.AlignmentQCUtils
+import molmed.utils.BwaAlignmentUtils
 import molmed.utils.BwaAln
+import molmed.utils.BwaMem
+import molmed.utils.GATKConfig
+import molmed.utils.GATKDataProcessingUtils
+import molmed.utils.GeneralUtils
+import molmed.utils.MergeFilesUtils
+import molmed.utils.UppmaxXMLConfiguration
+import molmed.utils.VariantCallingConfig
+import molmed.utils.VariantCallingUtils
 
 /**
  *
@@ -185,7 +169,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
 
     val gatkOptions = {
       implicit def file2Option(file: File) = if (file == null) None else Some(file)
-      new GATKOptions(reference, nbrOfThreads, scatterGatherCount, intervals, dbSNP, Some(indels), hapmap, omni, mills)
+      new GATKConfig(reference, nbrOfThreads, scatterGatherCount, intervals, dbSNP, Some(indels), hapmap, omni, mills)
     }
 
     /**
@@ -227,7 +211,23 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
        * Variant calling
        */
       val variantCallingUtils = new VariantCallingUtils(gatkOptions, projectName, uppmaxConfig)
-      variantCallingUtils.performVariantCalling(this, processedBamFiles, variantCallsOutputDir, runSeparatly, notHuman, isLowPass, isExome, noRecal, noIndels, testMode, downsampleFraction, minimumBaseQuality, deletions, noBAQ)
+      val variantCallingConfig = new VariantCallingConfig(
+        qscript = this,
+        processedBamFiles,
+        variantCallsOutputDir,
+        runSeparatly,
+        notHuman,
+        isLowPass,
+        isExome,
+        noRecal,
+        noIndels,
+        testMode,
+        downsampleFraction,
+        minimumBaseQuality,
+        deletions,
+        noBAQ)
+
+      variantCallingUtils.performVariantCalling(variantCallingConfig)
 
     }
 

@@ -8,7 +8,7 @@ import org.broadinstitute.sting.gatk.walkers.indels.IndelRealigner.ConsensusDete
 /**
  * Functions to run GATK data processing workflows.
  */
-class GATKDataProcessingUtils(qscript: QScript, gatkOptions: GATKOptions, generalUtils: GeneralUtils, projectName: Option[String], uppmaxConfig: UppmaxConfig)
+class GATKDataProcessingUtils(qscript: QScript, gatkOptions: GATKConfig, generalUtils: GeneralUtils, projectName: Option[String], uppmaxConfig: UppmaxConfig)
     extends GATKUtils(gatkOptions, projectName, uppmaxConfig) {
 
   /**

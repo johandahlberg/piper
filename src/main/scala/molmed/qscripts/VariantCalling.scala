@@ -12,7 +12,7 @@ import molmed.utils.Resources
 import molmed.utils.Uppmaxable
 import molmed.utils.VariantCallingTarget
 import molmed.utils.VariantCallingUtils
-import molmed.utils.GATKOptions
+import molmed.utils.GATKConfig
 import molmed.utils.VariantCallingUtils
 import molmed.utils.UppmaxConfig
 import molmed.utils.UppmaxXMLConfiguration
@@ -123,7 +123,7 @@ class VariantCalling extends QScript with UppmaxXMLConfiguration {
     val uppmaxConfig = loadUppmaxConfigFromXML()
     val gatkOptions = {
       implicit def file2Option(file: File) = if (file == null) None else Some(file)
-      new GATKOptions(reference, nbrOfThreads, nContigs, intervals, dbSNP, Some(indels), hapmap, omni, mills)
+      new GATKConfig(reference, nbrOfThreads, nContigs, intervals, dbSNP, Some(indels), hapmap, omni, mills)
     }    
     val variantCallingUtils = new VariantCallingUtils(gatkOptions, projectName, uppmaxConfig)
 
@@ -140,7 +140,7 @@ class VariantCalling extends QScript with UppmaxXMLConfiguration {
       if (!skipCalling) {
         if (!noIndels) {
           // Indel calling, recalibration and evaulation
-          add(new variantCallingUtils.indelCall(target, testMode, downsampleFraction))
+          add(new variantCallingUtils.UnifiedGenotyperIndelCall(target, testMode, downsampleFraction))
           if (!noRecal) {
             add(new variantCallingUtils.indelRecal(target))
             add(new variantCallingUtils.indelCut(target))
@@ -148,7 +148,7 @@ class VariantCalling extends QScript with UppmaxXMLConfiguration {
           }
         }
         // SNP calling, recalibration and evaluation
-        add(new variantCallingUtils.snpCall(target, testMode, downsampleFraction, minimumBaseQuality, deletions, noBAQ))
+        add(new variantCallingUtils.UnifiedGenotyperSnpCall(target, testMode, downsampleFraction, minimumBaseQuality, deletions, noBAQ))
         if (!noRecal) {
           add(new variantCallingUtils.snpRecal(target))
           add(new variantCallingUtils.snpCut(target))
