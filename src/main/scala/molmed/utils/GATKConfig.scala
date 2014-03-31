@@ -5,7 +5,7 @@ import java.io.File
 /**
  * Container class for GATK options and input files.
  */
-case class GATKOptions(
+case class GATKConfig(
   reference: File,
   nbrOfThreads: Option[Int] = Some(8),
   scatterGatherCount: Option[Int] = Some(1),
