@@ -2,7 +2,6 @@ package molmed.qscripts
 
 import org.broadinstitute.sting.commandline.Hidden
 import org.broadinstitute.sting.queue.QScript
-
 import molmed.queue.setup.SampleAPI
 import molmed.utils.Aligner
 import molmed.utils.AlignmentQCUtils
@@ -16,6 +15,7 @@ import molmed.utils.MergeFilesUtils
 import molmed.utils.UppmaxXMLConfiguration
 import molmed.utils.VariantCallingConfig
 import molmed.utils.VariantCallingUtils
+import molmed.utils.GATKHaplotypeCaller
 
 /**
  *
@@ -109,6 +109,8 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
   @Argument(doc = "Remove the raw merged alignment files.", fullName = "remove_raw_merged_alignments", shortName = "rrma", required = false)
   var removeMergedAlignments: Boolean = false
 
+  @Argument(doc = "Indicate if the libraries was prepared using a PCR free library or not.", fullName = "pcr_free_libraries", shortName = "pcrfree", required = false)
+  var pcrFreeLibrary: Boolean = false
   /**
    * **************************************************************************
    * Hidden Parameters - for dev.
@@ -213,6 +215,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
       val variantCallingUtils = new VariantCallingUtils(gatkOptions, projectName, uppmaxConfig)
       val variantCallingConfig = new VariantCallingConfig(
         qscript = this,
+        variantCaller = GATKHaplotypeCaller,
         processedBamFiles,
         variantCallsOutputDir,
         runSeparatly,
@@ -225,7 +228,8 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
         downsampleFraction,
         minimumBaseQuality,
         deletions,
-        noBAQ)
+        noBAQ,
+        Some(pcrFreeLibrary))
 
       variantCallingUtils.performVariantCalling(variantCallingConfig)
 

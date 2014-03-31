@@ -142,17 +142,17 @@ class VariantCalling extends QScript with UppmaxXMLConfiguration {
           // Indel calling, recalibration and evaulation
           add(new variantCallingUtils.UnifiedGenotyperIndelCall(target, testMode, downsampleFraction))
           if (!noRecal) {
-            add(new variantCallingUtils.indelRecal(target))
-            add(new variantCallingUtils.indelCut(target))
-            add(new variantCallingUtils.indelEvaluation(target))
+            add(new variantCallingUtils.IndelRecalibration(target))
+            add(new variantCallingUtils.IndelCut(target))
+            add(new variantCallingUtils.IndelEvaluation(target))
           }
         }
         // SNP calling, recalibration and evaluation
         add(new variantCallingUtils.UnifiedGenotyperSnpCall(target, testMode, downsampleFraction, minimumBaseQuality, deletions, noBAQ))
         if (!noRecal) {
-          add(new variantCallingUtils.snpRecal(target))
-          add(new variantCallingUtils.snpCut(target))
-          add(new variantCallingUtils.snpEvaluation(target))
+          add(new variantCallingUtils.SnpRecalibration(target))
+          add(new variantCallingUtils.SnpCut(target))
+          add(new variantCallingUtils.SnpEvaluation(target))
         }
       }
     }

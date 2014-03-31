@@ -8,6 +8,7 @@ import org.broadinstitute.sting.queue.extensions.gatk.TaggedFile
 import org.broadinstitute.sting.queue.extensions.gatk.ApplyRecalibration
 import org.broadinstitute.sting.queue.extensions.gatk.VariantEval
 import org.broadinstitute.sting.queue.QScript
+import org.broadinstitute.sting.queue.extensions.gatk.HaplotypeCaller
 
 /**
  * Wrapping case classed and functions for doing variant calling using the GATK.
@@ -18,6 +19,53 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
   def performVariantCalling(config: VariantCallingConfig): Seq[File] = {
 
+    /**
+     * Utility function for performing the variant calling workflow associated
+     * with the UnifiedGenotyper
+     */
+    def variantCallUsingUnifiedGenotyper(target: VariantCallingTarget) = {
+      if (!config.noIndels) {
+        // Indel calling, recalibration and evaulation
+        config.qscript.add(new UnifiedGenotyperIndelCall(target, config.testMode, config.downsampleFraction))
+        if (!config.noRecal) {
+          config.qscript.add(new IndelRecalibration(target))
+          config.qscript.add(new IndelCut(target))
+          config.qscript.add(new IndelEvaluation(target))
+        }
+      }
+      // SNP calling, recalibration and evaluation
+      config.qscript.add(new UnifiedGenotyperSnpCall(
+        target, config.testMode,
+        config.downsampleFraction, config.minimumBaseQuality,
+        config.deletions, config.noBAQ))
+      if (!config.noRecal) {
+        config.qscript.add(new SnpRecalibration(target))
+        config.qscript.add(new SnpCut(target))
+        config.qscript.add(new SnpEvaluation(target))
+      }
+    }
+
+    /**
+     * Utility function for performing the variant calling workflow associated
+     * with the HaploTypeCaller
+     */
+    def variantCallUsingHaplotypeCaller(target: VariantCallingTarget) = {
+
+      // Call variants
+      config.qscript.add(new HaplotypeCallerBase(target, config.testMode, config.downsampleFraction, config.pcrFree))
+
+      // @TODO Figure out if this actually needs to be done now!
+      // Or if we can skip this for NGI/1KSG
+      // Perform recalibration      
+      //      if (!config.noRecal) {
+      //        config.qscript.add(new SnpRecalibration(target))
+      //        config.qscript.add(new SnpCut(target))
+      //        config.qscript.add(new SnpEvaluation(target))
+      //      }
+    }
+
+    // Establish if all samples should be run separately of if they should be
+    // run together.
     val targets: Seq[VariantCallingTarget] = (config.runSeparatly, config.notHuman) match {
       case (true, false) =>
         config.bams.map(bam => new VariantCallingTarget(config.outputDir,
@@ -52,7 +100,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
           config.isLowPass, config.isExome, config.bams.size))
     }
 
-    // Make sure resource files are available if recal is to be performed
+    // Make sure resource files are available if recalibration is to be performed
     if (!config.noRecal) {
 
       def assertResourceExists(resourceName: String, resource: Option[File]) = {
@@ -68,21 +116,9 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     }
 
     for (target <- targets) {
-      if (!config.noIndels) {
-        // Indel calling, recalibration and evaulation
-        config.qscript.add(new UnifiedGenotyperIndelCall(target, config.testMode, config.downsampleFraction))
-        if (!config.noRecal) {
-          config.qscript.add(new IndelRecalibration(target))
-          config.qscript.add(new IndelCut(target))
-          config.qscript.add(new IndelEvaluation(target))
-        }
-      }
-      // SNP calling, recalibration and evaluation
-      config.qscript.add(new UnifiedGenotyperSnpCall(target, config.testMode, config.downsampleFraction, config.minimumBaseQuality, config.deletions, config.noBAQ))
-      if (!config.noRecal) {
-        config.qscript.add(new SnpRecalibration(target))
-        config.qscript.add(new SnpCut(target))
-        config.qscript.add(new SnpEvaluation(target))
+      config.variantCaller match {
+        case GATKUnifiedGenotyper => variantCallUsingUnifiedGenotyper(target)
+        case GATKHaplotypeCaller  => variantCallUsingHaplotypeCaller(target)
       }
     }
 
@@ -91,6 +127,56 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
   }
 
   def bai(bam: File): File = new File(bam + ".bai")
+
+  /**
+   *
+   */
+  case class HaplotypeCallerBase(
+    t: VariantCallingTarget,
+    testMode: Boolean,
+    downsampleFraction: Option[Double],
+    pcrFree: Option[Boolean])
+      extends HaplotypeCaller with CommandLineGATKArgs with SixteenCoreJob {
+
+    if (testMode)
+      this.no_cmdline_in_header = true
+
+    if (downsampleFraction.isDefined && downsampleFraction.get >= 0)
+      this.downsample_to_fraction = downsampleFraction
+    else
+      this.dcov = if (t.isLowpass) { Some(50) } else { Some(250) }
+
+    this.reference_sequence = t.reference
+    if (!t.intervals.isEmpty) this.intervals :+= t.intervals.get
+    this.scatterCount = gatkOptions.scatterGatherCount.get
+    this.nct = gatkOptions.nbrOfThreads
+
+    this.stand_call_conf = Some(30.0)
+    this.stand_emit_conf = Some(10.0)
+
+    this.input_file = t.bamList
+    if (!gatkOptions.dbSNP.isEmpty)
+      this.D = gatkOptions.dbSNP.get
+
+    // Make sure we emit a GVCF
+    this.emitRefConfidence =
+      org.broadinstitute.sting.gatk.walkers.haplotypecaller.HaplotypeCaller.ReferenceConfidenceMode.GVCF
+
+    // Make sure to follow recommendations how to analyze 
+    // PCR free libraries.
+    this.pcr_indel_model =
+      if (pcrFree.isDefined)
+        org.broadinstitute.sting.gatk.walkers.haplotypecaller.PairHMMLikelihoodCalculationEngine.PCR_ERROR_MODEL.NONE
+      else
+        org.broadinstitute.sting.gatk.walkers.haplotypecaller.PairHMMLikelihoodCalculationEngine.PCR_ERROR_MODEL.CONSERVATIVE
+
+    // This use vector optimization to speed up.
+    this.pair_hmm_implementation =
+      org.broadinstitute.sting.utils.pairhmm.PairHMM.HMM_IMPLEMENTATION.LOGLESS_CACHING
+        
+        
+    override def jobRunnerJobName = projectName.get + "_HCs"
+  }
 
   // 1.) Unified Genotyper Base
   class UnifiedGenotyperBase(t: VariantCallingTarget, testMode: Boolean, downsampleFraction: Option[Double])
