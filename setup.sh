@@ -20,10 +20,7 @@ check_errs()
   fi
 }
 
-#TODO Reset this to the normal broad branch when jobRunnerName patch has been included
-# there.
-#git clone https://github.com/broadgsa/gatk-protected.git gatk-protected
-git clone https://github.com/johandahlberg/gatk-protected.git gatk-protected
+git clone https://github.com/broadgsa/gatk-protected.git gatk-protected
 check_errs $? "git clone FAILED"
 
 cd gatk-protected
@@ -32,10 +29,10 @@ cd gatk-protected
 #git checkout 6bda5696664da40bc2baef4f4cb69e4ef1f86ce5
 #check_errs $? "git checkout FAILED"
 
-ant
+mvn package
 check_errs $? "gatk compilation FAILED"
 mkdir ../lib
-cp dist/* ../lib/
+cp target/* ../lib/
 cd ..
 rm -rf gatk-protected
 
