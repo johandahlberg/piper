@@ -9,6 +9,7 @@ import org.broadinstitute.sting.queue.extensions.gatk.ApplyRecalibration
 import org.broadinstitute.sting.queue.extensions.gatk.VariantEval
 import org.broadinstitute.sting.queue.QScript
 import org.broadinstitute.sting.queue.extensions.gatk.HaplotypeCaller
+import org.broadinstitute.sting.queue.extensions.gatk.GenotypeGVCFs
 
 /**
  * Wrapping case classed and functions for doing variant calling using the GATK.
@@ -51,8 +52,33 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
      */
     def variantCallUsingHaplotypeCaller(target: VariantCallingTarget) = {
 
-      // Call variants
-      config.qscript.add(new HaplotypeCallerBase(target, config.testMode, config.downsampleFraction, config.pcrFree))
+      // Call variants separately and merge into one vcf file
+      // if the pipeline is set to run a combined analysis.
+      if (target.nSamples > 1) {
+        val gVcfFiles =
+          target.bamList.map(bam => {
+
+            val modifiedTarget =
+              new VariantCallingTarget(config.outputDir,
+                bam.getName(),
+                gatkOptions.reference,
+                Seq(bam),
+                gatkOptions.intervalFile,
+                config.isLowPass, config.isExome, 1)
+
+            config.qscript.add(new HaplotypeCallerBase(modifiedTarget, config.testMode, config.downsampleFraction, config.pcrFree))
+            modifiedTarget.gVCFFile
+          })
+        config.qscript.add(new GenotypeGVCF(gVcfFiles, target))
+
+      } // If the pipeline is setup to run each sample individually, 
+      // output one final vcf file per sample.
+      else {
+        config.qscript.add(new HaplotypeCallerBase(target, config.testMode, config.downsampleFraction, config.pcrFree))
+        config.qscript.add(new GenotypeGVCF(Seq(target.gVCFFile), target))
+      }
+
+      //@TODO Processed with same workflow as for UnifiedGenotyper
 
       // @TODO Figure out if this actually needs to be done now!
       // Or if we can skip this for NGI/1KSG
@@ -129,7 +155,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
   def bai(bam: File): File = new File(bam + ".bai")
 
   /**
-   *
+   * Class to run the Haplotype caller.
    */
   case class HaplotypeCallerBase(
     t: VariantCallingTarget,
@@ -149,23 +175,32 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     this.reference_sequence = t.reference
     if (!t.intervals.isEmpty) this.intervals :+= t.intervals.get
     this.scatterCount = gatkOptions.scatterGatherCount.get
-    this.nct = gatkOptions.nbrOfThreads
+
+    //@TODO figure out if this is reasonable or not!
+    this.nct = Some(16)
 
     this.stand_call_conf = Some(30.0)
     this.stand_emit_conf = Some(10.0)
 
     this.input_file = t.bamList
+    this.out = t.gVCFFile
+
     if (!gatkOptions.dbSNP.isEmpty)
       this.D = gatkOptions.dbSNP.get
 
     // Make sure we emit a GVCF
+    // @TODO make this optional
     this.emitRefConfidence =
       org.broadinstitute.sting.gatk.walkers.haplotypecaller.HaplotypeCaller.ReferenceConfidenceMode.GVCF
+
+    this.variant_index_type =
+      org.broadinstitute.sting.utils.variant.GATKVCFIndexType.LINEAR
+    this.variant_index_parameter = Some(128000)
 
     // Make sure to follow recommendations how to analyze 
     // PCR free libraries.
     this.pcr_indel_model =
-      if (pcrFree.isDefined)
+      if (pcrFree.isDefined && pcrFree.get)
         org.broadinstitute.sting.gatk.walkers.haplotypecaller.PairHMMLikelihoodCalculationEngine.PCR_ERROR_MODEL.NONE
       else
         org.broadinstitute.sting.gatk.walkers.haplotypecaller.PairHMMLikelihoodCalculationEngine.PCR_ERROR_MODEL.CONSERVATIVE
@@ -173,9 +208,21 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     // This use vector optimization to speed up.
     this.pair_hmm_implementation =
       org.broadinstitute.sting.utils.pairhmm.PairHMM.HMM_IMPLEMENTATION.LOGLESS_CACHING
-        
-        
-    override def jobRunnerJobName = projectName.get + "_HCs"
+
+    override def jobRunnerJobName = projectName.get + "_HC"
+  }
+
+  class GenotypeGVCF(gVCFFiles: Seq[File], t: VariantCallingTarget) extends GenotypeGVCFs with CommandLineGATKArgs with EightCoreJob {
+    this.reference_sequence = t.reference
+    this.nt = gatkOptions.nbrOfThreads
+
+    this.variant = gVCFFiles
+    this.out = t.rawCombinedVariants
+
+    if (!gatkOptions.dbSNP.isEmpty)
+      this.dbsnp = gatkOptions.dbSNP.get
+
+    override def jobRunnerJobName = projectName.get + "_GT_gVCF"
   }
 
   // 1.) Unified Genotyper Base

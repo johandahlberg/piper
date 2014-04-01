@@ -16,8 +16,10 @@ import java.io.File
 
     val name = outputDir + "/" + baseName
     val clusterFile = new File(name + ".clusters")
-    val rawSnpVCF = new File(name + ".raw.snp.vcf")
+    val gVCFFile = new File(name + ".gvcf")
+    val rawSnpVCF = new File(name + ".raw.snp.vcf")    
     val rawIndelVCF = new File(name + ".raw.indel.vcf")
+    val rawCombinedVariants = new File(name + ".raw.vcf")
     val filteredIndelVCF = new File(name + ".filtered.indel.vcf")
     val recalibratedSnpVCF = new File(name + ".snp.recalibrated.snp.vcf")
     val recalibratedIndelVCF = new File(name + ".indel.recalibrated.vcf")
