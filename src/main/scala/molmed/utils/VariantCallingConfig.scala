@@ -6,9 +6,9 @@ import java.io.File
 /**
  * The possible types of variant callers to use
  */
-sealed trait VariantCaller
-case object GATKUnifiedGenotyper extends VariantCaller
-case object GATKHaplotypeCaller extends VariantCaller
+sealed trait VariantCallerOption
+case object GATKUnifiedGenotyper extends VariantCallerOption
+case object GATKHaplotypeCaller extends VariantCallerOption
 
 /**
  * Config encapsulating all options for the variant calling.
@@ -32,7 +32,7 @@ case object GATKHaplotypeCaller extends VariantCaller
  * @param pcrFree				Indicated if the library was prepared using PCR or not (Default: None).
  */
 case class VariantCallingConfig(qscript: QScript,
-								variantCaller: VariantCaller = GATKHaplotypeCaller,
+								variantCaller: Option[VariantCallerOption] = Some(GATKHaplotypeCaller),
                                 bams: Seq[File],
                                 outputDir: File,
                                 runSeparatly: Boolean,

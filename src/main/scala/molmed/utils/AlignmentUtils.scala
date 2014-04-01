@@ -110,9 +110,9 @@ class TophatAligmentUtils(tophatPath: String, tophatThreads: Int, projectName: O
 }
 
 // Possible alignment options.
-sealed trait Aligner
-case object BwaMem extends Aligner
-case object BwaAln extends Aligner
+sealed trait AlignerOption
+case object BwaMem extends AlignerOption
+case object BwaAln extends AlignerOption
 
 /**
  * Utility classes and functions for running bwa
@@ -134,7 +134,7 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
                                                  reference: File,
                                                  outputDir: File,
                                                  isIntermediateAlignment: Boolean = false,
-                                                 aligner: Option[Aligner]): File = {
+                                                 aligner: Option[AlignerOption]): File = {
 
     val saiFile1 = new File(outputDir + "/" + fastqs.sampleName + ".1.sai")
     val saiFile2 = new File(outputDir + "/" + fastqs.sampleName + ".2.sai")
@@ -172,7 +172,7 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
    * @param aligner			Aligner to be used. Defaults to BwaMem.
    * @returns a aligned bam file.
    */
-  def align(sample: SampleAPI, outputDir: File, asIntermidate: Boolean, aligner: Option[Aligner] = Some(BwaMem)): File = {
+  def align(sample: SampleAPI, outputDir: File, asIntermidate: Boolean, aligner: Option[AlignerOption] = Some(BwaMem)): File = {
 
     val sampleName = sample.getSampleName()
     val fastqs = sample.getFastqs()

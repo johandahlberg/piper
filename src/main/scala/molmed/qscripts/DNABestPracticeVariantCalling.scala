@@ -3,7 +3,7 @@ package molmed.qscripts
 import org.broadinstitute.sting.commandline.Hidden
 import org.broadinstitute.sting.queue.QScript
 import molmed.queue.setup.SampleAPI
-import molmed.utils.Aligner
+import molmed.utils.AlignerOption
 import molmed.utils.AlignmentQCUtils
 import molmed.utils.BwaAlignmentUtils
 import molmed.utils.BwaAln
@@ -16,6 +16,9 @@ import molmed.utils.UppmaxXMLConfiguration
 import molmed.utils.VariantCallingConfig
 import molmed.utils.VariantCallingUtils
 import molmed.utils.GATKHaplotypeCaller
+import molmed.utils.GATKUnifiedGenotyper
+import molmed.utils.VariantCallerOption
+import molmed.utils.VariantCallerOption
 
 /**
  *
@@ -111,6 +114,9 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
 
   @Argument(doc = "Indicate if the libraries was prepared using a PCR free library or not.", fullName = "pcr_free_libraries", shortName = "pcrfree", required = false)
   var pcrFreeLibrary: Boolean = false
+    
+  @Argument(doc = "Choose which variant caller to use. Options are: HaplotypeCaller, UnifiedGenotyper", fullName = "variant_caller", shortName = "vc", required = false)
+  var variantCaller: String = "HaplotypeCaller"
   /**
    * **************************************************************************
    * Hidden Parameters - for dev.
@@ -128,11 +134,24 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
    */
 
   /**
+   * Deparces string options into proper Variant caller options
+   * @param stringOption	Text to convert to Option class
+   * @returns A Option[Aligner] holding a valid aligner option
+   */
+  def decideVariantCallerType(stringOption: String): Option[VariantCallerOption] = {
+    stringOption match {
+      case "HaplotypeCaller" => Some(GATKHaplotypeCaller)
+      case "UnifiedGenotyper" => Some(GATKUnifiedGenotyper)
+      case s: String => throw new IllegalArgumentException("Did not recognize aligner option: " + s)
+    }
+  }
+  
+  /**
    * Deparces string options into proper Aligner options
    * @param stringOption	Text to convert to Option class
    * @returns A Option[Aligner] holding a valid aligner option
    */
-  def decideAlignerType(stringOption: String): Option[Aligner] = {
+  def decideAlignerType(stringOption: String): Option[AlignerOption] = {
     stringOption match {
       case "BWA_MEM" => Some(BwaMem)
       case "BWA_ALN" => Some(BwaAln)
@@ -177,7 +196,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
     /**
      * Run alignments
      */
-    val aligner: Option[Aligner] = decideAlignerType(bwaAlignerType)
+    val aligner: Option[AlignerOption] = decideAlignerType(bwaAlignerType)
     val alignmentUtils = new BwaAlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, projectName, uppmaxConfig)
     val sampleNamesAndalignedBamFiles = samples.values.flatten.map(sample =>
       (sample.getSampleName,
@@ -211,11 +230,13 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
 
       /**
        * Variant calling
-       */
+       */      
+      val variantCallerToUse: Option[VariantCallerOption] = decideVariantCallerType(variantCaller)
+      
       val variantCallingUtils = new VariantCallingUtils(gatkOptions, projectName, uppmaxConfig)
       val variantCallingConfig = new VariantCallingConfig(
         qscript = this,
-        variantCaller = GATKHaplotypeCaller,
+        variantCaller = variantCallerToUse,
         processedBamFiles,
         variantCallsOutputDir,
         runSeparatly,
