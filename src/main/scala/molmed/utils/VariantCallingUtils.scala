@@ -10,6 +10,7 @@ import org.broadinstitute.sting.queue.extensions.gatk.VariantEval
 import org.broadinstitute.sting.queue.QScript
 import org.broadinstitute.sting.queue.extensions.gatk.HaplotypeCaller
 import org.broadinstitute.sting.queue.extensions.gatk.GenotypeGVCFs
+import org.broadinstitute.sting.queue.extensions.gatk.SelectVariants
 
 /**
  * Wrapping case classed and functions for doing variant calling using the GATK.
@@ -71,23 +72,28 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
           })
         config.qscript.add(new GenotypeGVCF(gVcfFiles, target))
 
-      } // If the pipeline is setup to run each sample individually, 
-      // output one final vcf file per sample.
-      else {
+      } else {
+        // If the pipeline is setup to run each sample individually, 
+        // output one final vcf file per sample.
         config.qscript.add(new HaplotypeCallerBase(target, config.testMode, config.downsampleFraction, config.pcrFree))
         config.qscript.add(new GenotypeGVCF(Seq(target.gVCFFile), target))
       }
 
-      //@TODO Processed with same workflow as for UnifiedGenotyper
+      config.qscript.add(new SelectVariantType(target, SNPs))
+      config.qscript.add(new SelectVariantType(target, INDELs))
 
       // @TODO Figure out if this actually needs to be done now!
       // Or if we can skip this for NGI/1KSG
       // Perform recalibration      
-      //      if (!config.noRecal) {
-      //        config.qscript.add(new SnpRecalibration(target))
-      //        config.qscript.add(new SnpCut(target))
-      //        config.qscript.add(new SnpEvaluation(target))
-      //      }
+      if (!config.noRecal) {
+        config.qscript.add(new SnpRecalibration(target))
+        config.qscript.add(new SnpCut(target))
+        config.qscript.add(new SnpEvaluation(target))
+
+        config.qscript.add(new IndelRecalibration(target))
+        config.qscript.add(new IndelCut(target))
+        config.qscript.add(new IndelEvaluation(target))
+      }
     }
 
     // Establish if all samples should be run separately of if they should be
@@ -212,7 +218,10 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     override def jobRunnerJobName = projectName.get + "_HC"
   }
 
-  class GenotypeGVCF(gVCFFiles: Seq[File], t: VariantCallingTarget) extends GenotypeGVCFs with CommandLineGATKArgs with EightCoreJob {
+  /**
+   * Genotypes the gVCF file from the Haplotype caller
+   */
+  case class GenotypeGVCF(gVCFFiles: Seq[File], t: VariantCallingTarget) extends GenotypeGVCFs with CommandLineGATKArgs with EightCoreJob {
     this.reference_sequence = t.reference
     this.nt = gatkOptions.nbrOfThreads
 
@@ -223,6 +232,33 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
       this.dbsnp = gatkOptions.dbSNP.get
 
     override def jobRunnerJobName = projectName.get + "_GT_gVCF"
+  }
+
+  /**
+   * Possible variant types to select
+   */
+  sealed trait VariantType
+  case object SNPs extends VariantType
+  case object INDELs extends VariantType
+
+  /**
+   * Select a variant type - either SNPs or INDELs
+   * Used to separate the classes before  variant recalibration
+   */
+  case class SelectVariantType(t: VariantCallingTarget, variantType: VariantType) extends SelectVariants with CommandLineGATKArgs with OneCoreJob {
+    this.reference_sequence = t.reference
+    this.variant = t.rawCombinedVariants
+
+    variantType match {
+      case SNPs => {
+        this.selectTypeToInclude = Seq(org.broadinstitute.variant.variantcontext.VariantContext.Type.SNP)
+        this.out = t.rawSnpVCF
+      }
+      case INDELs => {
+        this.selectTypeToInclude = Seq(org.broadinstitute.variant.variantcontext.VariantContext.Type.INDEL)
+        this.out = t.rawIndelVCF
+      }
+    }
   }
 
   // 1.) Unified Genotyper Base
