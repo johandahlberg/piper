@@ -15,7 +15,6 @@ class SetupXMLReaderStub extends SetupXMLReaderAPI{
     var uppmaxProjectId = null
     var uppmaxQoS = null
     
-    def getSampleFolder(sampleName: String, runFolderName: String): File  = {sampleFolder}  
     def getPlatform(): String = {platform}
     def getSequencingCenter(): String   = {sequencingCenter}
     def getProjectName(): Option[String] = {Some(projectName)}

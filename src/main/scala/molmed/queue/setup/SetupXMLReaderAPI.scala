@@ -7,13 +7,7 @@ import java.io.File
  * reads if you want to use some other format.
  */
 trait SetupXMLReaderAPI {
-  /**
-   * @param sampleName
-   * @param runFolderName
-   * @return a file matching the parameters.
-   */
-  def getSampleFolder(sampleName: String, runFolderName: String): File
-
+  
   /**
    * @return a sequencing platform, e.g. "Illumina"
    */
@@ -36,7 +30,7 @@ trait SetupXMLReaderAPI {
 
   /**
    * @param sampleNam
-   * @return the reference that the sample shold be aligned to.
+   * @return the reference that the sample should be aligned to.
    */
   def getReference(sampleName: String): File
 
