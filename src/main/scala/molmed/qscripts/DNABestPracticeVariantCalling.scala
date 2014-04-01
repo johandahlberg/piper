@@ -142,7 +142,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
     stringOption match {
       case "HaplotypeCaller" => Some(GATKHaplotypeCaller)
       case "UnifiedGenotyper" => Some(GATKUnifiedGenotyper)
-      case s: String => throw new IllegalArgumentException("Did not recognize aligner option: " + s)
+      case s: String => throw new IllegalArgumentException("Did not recognize variant caller option: " + s)
     }
   }
   

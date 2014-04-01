@@ -143,8 +143,8 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
     for (target <- targets) {
       config.variantCaller match {
-        case GATKUnifiedGenotyper => variantCallUsingUnifiedGenotyper(target)
-        case GATKHaplotypeCaller  => variantCallUsingHaplotypeCaller(target)
+        case Some(GATKUnifiedGenotyper) => variantCallUsingUnifiedGenotyper(target)
+        case Some(GATKHaplotypeCaller)  => variantCallUsingHaplotypeCaller(target)
       }
     }
 
