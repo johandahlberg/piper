@@ -203,7 +203,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
         alignmentUtils.align(sample, aligmentOutputDir, asIntermidate = !onlyAlignment, aligner)))
     val sampleNamesToBamMap = sampleNamesAndalignedBamFiles.groupBy(f => f._1).mapValues(f => f.map(x => x._2).toSeq)
 
-    // Stop here is only aligments option is enabled.
+    // Stop here is only alignments option is enabled.
     if (!onlyAlignment) {
 
       /**
