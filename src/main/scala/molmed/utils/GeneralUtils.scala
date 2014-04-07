@@ -91,7 +91,9 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     this.input :+= inBam
     this.output = outBam
     this.metrics = metricsFile
-    this.memoryLimit = Some(16)
+    // Set slightly than maximum lower to make sure it does
+    // not die from overflowing the memory limit.
+    this.memoryLimit = Some(14)
     override def jobRunnerJobName = projectName.get + "_dedup"
   }
 
