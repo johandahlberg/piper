@@ -16,6 +16,7 @@ then
 	PATH_TO_CUFFDIFF=$PATH_TO_CUFFLINKS
 	GATK_BUNDLE_B37="/proj/b2010028/references/piper_references/gatk_bundle/2.2/b37"
 	GATK_BUNDLE_HG19="/proj/b2010028/references/piper_references/gatk_bundle/2.2/hg19"
+	LOCAL_SCRATCH="/scratch/"
 else
 	JOB_RUNNER=" Shell"
 	JOB_NATIVE_ARGS=""
@@ -27,6 +28,7 @@ else
 	PATH_TO_CUFFDIFF=$PATH_TO_CUFFLINKS
 	GATK_BUNDLE_B37="/local/data/gatk_bundle/b37"
 	GATK_BUNDLE_HG19="/local/data/gatk_bundle/hg19"
+	LOCAL_SCRATCH="/local/scratch/"
 fi
 
 #---------------------------------------------
