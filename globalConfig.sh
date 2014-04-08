@@ -54,6 +54,8 @@ MILLS_HG19=${GATK_BUNDLE_HG19}"/Mills_and_1000G_gold_standard.indels.hg19.vcf"
 # Global variables
 #---------------------------------------------
 
+export LOCAL_SCRATCH
+
 # Note that the tmp folder needs to be placed in a location that can be reached from all nodes.
 # Note that $SNIC_TMP cannot be used since that will lose necessary data as the nodes/core switch.
 TMP=tmp/${PROJECT_NAME}
