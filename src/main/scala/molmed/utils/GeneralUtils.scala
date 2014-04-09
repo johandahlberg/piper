@@ -23,6 +23,7 @@ import scala.io.Source
 import org.broadinstitute.sting.queue.function.JavaCommandLineFunction
 import org.broadinstitute.sting.queue.extensions.picard.PicardBamFunction
 import org.broadinstitute.sting.queue.function.CommandLineFunction
+import org.broadinstitute.sting.queue.extensions.picard.PicardBamFunction
 
 /**
  * Assorted commandline wappers, mostly for file doing small things link indexing files. See case classes to figure out
@@ -84,10 +85,15 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     override def jobRunnerJobName = projectName.get + "_cutadapt"
   }
 
-  trait LocalScratch extends CommandLineFunction {
+  trait LocalScratch extends PicardBamFunction {
     // Do some check to see if local scratch exists
-    val localScratch = new File(System.getenv("LOCAL_SCRATCH"))      
-    jobTempDir = localScratch      
+    val localScratchEnvVariable = System.getenv("LOCAL_SCRATCH")
+    
+    override def localScratch: Option[File] =
+      if (localScratchEnvVariable != null)
+        Some(localScratchEnvVariable)
+      else
+        None
   }
 
   /**
