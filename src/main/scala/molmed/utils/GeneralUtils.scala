@@ -91,7 +91,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     
     override def localScratch: Option[File] =
       if (localScratchEnvVariable != null)
-        Some(localScratchEnvVariable)
+        Some(new File(localScratchEnvVariable))
       else
         None
   }
