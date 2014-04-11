@@ -16,7 +16,7 @@ import java.io.File
 
     val name = outputDir + "/" + baseName
     val clusterFile = new File(name + ".clusters")
-    val gVCFFile = new File(name + ".gvcf")
+    val gVCFFile = new File(name + ".genomic.vcf")
     val rawSnpVCF = new File(name + ".raw.snp.vcf")    
     val rawIndelVCF = new File(name + ".raw.indel.vcf")
     val rawCombinedVariants = new File(name + ".raw.vcf")
