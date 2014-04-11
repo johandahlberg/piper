@@ -91,6 +91,10 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     this.input :+= inBam
     this.output = outBam
     this.metrics = metricsFile
+    
+    // Maximum compression level since we need to write over the network.
+    this.compressionLevel = Some(9)
+    
     // Set slightly than maximum lower to make sure it does
     // not die from overflowing the memory limit.
     this.memoryLimit = Some(14)
