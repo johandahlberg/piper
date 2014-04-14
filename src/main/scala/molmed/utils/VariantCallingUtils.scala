@@ -139,11 +139,12 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
         assert(resource.isDefined, resourceName + " is not defined. This is needed for variant recalibrations.")
         if (!resource.forall(p => p.exists())) throw new AssertionError("Couldn't find resource: " + resource.get + " This is needed for variant recalibrations.")
       }
-
+      
       assertResourceExists("hapmap", gatkOptions.hapmap)
       assertResourceExists("omni", gatkOptions.omni)
       assertResourceExists("dbSNP", gatkOptions.dbSNP)
       assertResourceExists("mills", gatkOptions.mills)
+      assertResourceExists("1000G", gatkOptions.thousandGenomes)
 
     }
 
@@ -348,7 +349,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     this.input :+= t.rawSnpVCF
 
     //  From best practice: -an DP -an QD -an FS -an MQRankSum -an ReadPosRankSum
-    this.use_annotation ++= List("DP", "QD", "MQRankSum", "ReadPosRankSum")
+    this.use_annotation ++= List("QD", "MQRankSum", "ReadPosRankSum")
     if (t.nSamples >= 10)
       this.use_annotation ++= List("InbreedingCoeff") // InbreedingCoeff is a population-wide statistic that requires at least 10 samples to calculate
 
@@ -356,16 +357,13 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     if (!t.isExome) {
       this.resource :+= new TaggedFile(gatkOptions.hapmap.get, "known=false,training=true,truth=true,prior=15.0")
       this.resource :+= new TaggedFile(gatkOptions.omni.get, "known=false,training=true,truth=true,prior=12.0")
-      this.resource :+= new TaggedFile(gatkOptions.dbSNP.get, "known=true,training=false,truth=false,prior=6.0")
+      this.resource :+= new TaggedFile(gatkOptions.thousandGenomes.get, "known=false,training=true,truth=false,prior=10.0")
+      this.resource :+= new TaggedFile(gatkOptions.dbSNP.get, "known=true,training=false,truth=false,prior=2.0")
 
       this.use_annotation ++= List("DP")
     } else // exome specific parameters
     {
       this.mG = Some(6)
-
-      this.resource :+= new TaggedFile(gatkOptions.hapmap.get, "known=false,training=true,truth=true,prior=15.0")
-      this.resource :+= new TaggedFile(gatkOptions.omni.get, "known=false,training=true,truth=false,prior=12.0")
-      this.resource :+= new TaggedFile(gatkOptions.dbSNP.get, "known=true,training=false,truth=false,prior=6.0")
 
       if (t.nSamples <= 30) { // very few exome samples means very few variants
         this.mG = Some(4)

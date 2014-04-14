@@ -14,4 +14,5 @@ case class GATKConfig(
   indels: Option[Seq[File]],
   hapmap: Option[File] = None,
   omni: Option[File] = None,
-  mills: Option[File] = None)
+  mills: Option[File] = None,
+  thousandGenomes: Option[File] = None)
