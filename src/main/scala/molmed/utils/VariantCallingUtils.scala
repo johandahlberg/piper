@@ -347,8 +347,8 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
     this.input :+= t.rawSnpVCF
 
-    //  From best practice: -an QD -an MQRankSum -an ReadPosRankSum -an FS -an DP
-    this.use_annotation ++= List("QD", "HaplotypeScore", "MQRankSum", "ReadPosRankSum", "MQ", "FS", "DP")
+    //  From best practice: -an DP -an QD -an FS -an MQRankSum -an ReadPosRankSum
+    this.use_annotation ++= List("DP", "QD", "MQRankSum", "ReadPosRankSum")
     if (t.nSamples >= 10)
       this.use_annotation ++= List("InbreedingCoeff") // InbreedingCoeff is a population-wide statistic that requires at least 10 samples to calculate
 
