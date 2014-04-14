@@ -340,7 +340,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     this.reference_sequence = t.reference
     if (!t.intervals.isEmpty) this.intervals :+= t.intervals.get
     this.allPoly = true
-    this.tranche ++= List("100.0", "99.9", "99.5", "99.3", "99.0", "98.9", "98.8", "98.5", "98.4", "98.3", "98.2", "98.1", "98.0", "97.9", "97.8", "97.5", "97.0", "95.0", "90.0")
+    this.tranche ++= List("100.0", "99.9", "99.0", "90.0")
   }
 
   class SnpRecalibration(t: VariantCallingTarget) extends VQSRBase(t) {
