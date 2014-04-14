@@ -388,7 +388,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     this.resource :+= new TaggedFile(gatkOptions.mills.get, "known=true,training=true,truth=true,prior=12.0")
 
     // From best practice: -an DP -an FS -an ReadPosRankSum -an MQRankSum
-    this.use_annotation ++= List("QD", "ReadPosRankSum", "FS", "DP", "MQRankSum")
+    this.use_annotation ++= List("ReadPosRankSum", "FS", "DP", "MQRankSum")
 
     this.mG = Some(4)
     this.std = Some(10)
