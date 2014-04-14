@@ -14,8 +14,8 @@ then
 	PATH_TO_CUTADAPT="/sw/apps/bioinfo/cutadapt/1.2.1/kalkyl/bin/cutadapt"
 	PATH_TO_CUFFLINKS="/sw/apps/bioinfo/cufflinks/2.1.1/kalkyl/"
 	PATH_TO_CUFFDIFF=$PATH_TO_CUFFLINKS
-	GATK_BUNDLE_B37="/proj/b2010028/references/piper_references/gatk_bundle/2.2/b37"
-	GATK_BUNDLE_HG19="/proj/b2010028/references/piper_references/gatk_bundle/2.2/hg19"
+	GATK_BUNDLE_B37="/proj/b2010028/references/piper_references/gatk_bundle/2.8/b37"
+	GATK_BUNDLE_HG19="/proj/b2010028/references/piper_references/gatk_bundle/2.8/hg19"
 else
 	JOB_RUNNER=" Shell"
 	JOB_NATIVE_ARGS=""
