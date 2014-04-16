@@ -92,6 +92,7 @@ source piper -S ${SCRIPTS_DIR}/DNABestPracticeVariantCalling.scala \
 	     --hapmap ${HAPMAP_B37} \
 	     --omni ${OMNI_B37} \
 	     --mills ${MILLS_B37} \
+	     --thousandGenomes ${THOUSAND_GENOMES_B37} \
 	     -bwa ${PATH_TO_BWA} \
 	     -samtools ${PATH_TO_SAMTOOLS} \
 	     --number_of_threads 8 \

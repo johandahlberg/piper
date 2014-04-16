@@ -55,6 +55,9 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
   @Input(doc = "Mills indel file to use with variant recalibration", fullName = "mills", shortName = "mi", required = false)
   var mills: File = _
 
+  @Input(doc = "1000 Genomes high confidence SNP  file to use with variant recalibration", fullName = "thousandGenomes", shortName = "tg", required = false)
+  var thousandGenomes: File = _
+
   @Argument(doc = "Cleaning model: KNOWNS_ONLY, USE_READS or USE_SW. (Default: USE_READS)", fullName = "clean_model", shortName = "cm", required = false)
   var cleaningModel: String = "USE_READS"
 
@@ -114,7 +117,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
 
   @Argument(doc = "Indicate if the libraries was prepared using a PCR free library or not.", fullName = "pcr_free_libraries", shortName = "pcrfree", required = false)
   var pcrFreeLibrary: Boolean = false
-    
+
   @Argument(doc = "Choose which variant caller to use. Options are: HaplotypeCaller, UnifiedGenotyper", fullName = "variant_caller", shortName = "vc", required = false)
   var variantCaller: String = "HaplotypeCaller"
   /**
@@ -140,12 +143,12 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
    */
   def decideVariantCallerType(stringOption: String): Option[VariantCallerOption] = {
     stringOption match {
-      case "HaplotypeCaller" => Some(GATKHaplotypeCaller)
+      case "HaplotypeCaller"  => Some(GATKHaplotypeCaller)
       case "UnifiedGenotyper" => Some(GATKUnifiedGenotyper)
-      case s: String => throw new IllegalArgumentException("Did not recognize variant caller option: " + s)
+      case s: String          => throw new IllegalArgumentException("Did not recognize variant caller option: " + s)
     }
   }
-  
+
   /**
    * Deparces string options into proper Aligner options
    * @param stringOption	Text to convert to Option class
@@ -190,7 +193,9 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
 
     val gatkOptions = {
       implicit def file2Option(file: File) = if (file == null) None else Some(file)
-      new GATKConfig(reference, nbrOfThreads, scatterGatherCount, intervals, dbSNP, Some(indels), hapmap, omni, mills)
+      new GATKConfig(reference, nbrOfThreads, scatterGatherCount,
+        intervals,
+        dbSNP, Some(indels), hapmap, omni, mills, thousandGenomes)
     }
 
     /**
@@ -230,9 +235,9 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
 
       /**
        * Variant calling
-       */      
+       */
       val variantCallerToUse: Option[VariantCallerOption] = decideVariantCallerType(variantCaller)
-      
+
       val variantCallingUtils = new VariantCallingUtils(gatkOptions, projectName, uppmaxConfig)
       val variantCallingConfig = new VariantCallingConfig(
         qscript = this,
