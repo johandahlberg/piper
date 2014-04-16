@@ -349,9 +349,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     this.input :+= t.rawSnpVCF
 
     //  From best practice: -an DP -an QD -an FS -an MQRankSum -an ReadPosRankSum
-    this.use_annotation ++= List("QD", "MQRankSum", "ReadPosRankSum")
-    if (t.nSamples >= 10)
-      this.use_annotation ++= List("InbreedingCoeff") // InbreedingCoeff is a population-wide statistic that requires at least 10 samples to calculate
+    this.use_annotation ++= List("QD", "FS", "MQRankSum", "ReadPosRankSum")
 
     // Whole genome case
     if (!t.isExome) {
@@ -360,6 +358,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
       this.resource :+= new TaggedFile(gatkOptions.thousandGenomes.get, "known=false,training=true,truth=false,prior=10.0")
       this.resource :+= new TaggedFile(gatkOptions.dbSNP.get, "known=true,training=false,truth=false,prior=2.0")
 
+      // Don't use the DP annotation for exome samples.
       this.use_annotation ++= List("DP")
     } else // exome specific parameters
     {
@@ -390,9 +389,6 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
     this.mG = Some(4)
     this.std = Some(10)
-
-    if (t.nSamples >= 10)
-      this.use_annotation ++= List("InbreedingCoeff") // InbreedingCoeff is a population-wide statistic that requires at least 10 samples to calculate
 
     this.tranches_file = t.tranchesIndelFile
     this.recal_file = t.recalIndelFile
