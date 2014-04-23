@@ -25,7 +25,7 @@ All supported workflows are available in the `workflows` directory in the projec
 Prerequisites and installation
 ==============================
 
-Piper has been tested on the Java(TM) SE Runtime Environment (build 1.7.0_25) on the [UPPMAX](http://www.uppmax.uu.se) cluster Kalkyl. It might run in other environments, but this is untested. Besides the JVM Piper depends on [Maven](http://maven.apache.org/) for building (the GATK) and [git](http://git-scm.com/) to checkout the source. To install piper, make sure that these programs are in you path, then clone this repository and run the setup script:
+Piper has been tested on the Java(TM) SE Runtime Environment (build 1.7.0_25) on the [UPPMAX](http://www.uppmax.uu.se) cluster Milou. It might run in other environments, but this is untested. Besides the JVM Piper depends on [Maven](http://maven.apache.org/) for building (the GATK) and [git](http://git-scm.com/) to checkout the source. To install piper, make sure that these programs are in you path, then clone this repository and run the setup script:
 
     git clone https://github.com/Molmed/piper.git
     cd piper
