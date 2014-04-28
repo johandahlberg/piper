@@ -221,7 +221,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     this.targets = targetIntervalFile
     this.reference = ref
 
-    override def jobRunnerJobName = projectName + "_collectPCRMetrics"
+    override def jobRunnerJobName = projectName.get + "_collectPCRMetrics"
 
   }
 
@@ -241,7 +241,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     
     this.reference = referenceFile
 
-    override def jobRunnerJobName = projectName + "_collectHSMetrics"
+    override def jobRunnerJobName = projectName.get + "_collectHSMetrics"
     
   }
 
