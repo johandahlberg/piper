@@ -192,20 +192,10 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
     /**
      * Setup of resources to use
      */
-
     val uppmaxConfig = loadUppmaxConfigFromXML(testMode = qscript.testMode)
     val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
     // NOTE: assumes all samples are to be aligned to the same reference.
     val reference = samples.head._2(0).getReference()
-
-    val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
-
-    val gatkOptions = {
-      implicit def file2Option(file: File) = if (file == null) None else Some(file)
-      new GATKConfig(reference, nbrOfThreads, scatterGatherCount,
-        intervals,
-        dbSNP, Some(indels), hapmap, omni, mills, thousandGenomes)
-    }
 
     /**
      * Run alignments
@@ -219,6 +209,8 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
 
     // Stop here is only alignments option is enabled.
     if (!onlyAlignment) {
+
+      val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
 
       /**
        * Merge by sample
@@ -237,6 +229,13 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
           BedToIntervalUtils.convertCoveredToIntervals(intervals, targetsAsIntervals, mergedBamFiles(0), doNotConvert)
           targetsAsIntervals
         }
+
+      val gatkOptions = {
+        implicit def file2Option(file: File) = if (file == null) None else Some(file)
+        new GATKConfig(reference, nbrOfThreads, scatterGatherCount,
+          intervalsToUse,
+          dbSNP, Some(indels), hapmap, omni, mills, thousandGenomes)
+      }
 
       /**
        * Get QC statistics
@@ -263,7 +262,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
 
         val outputMetrics: File = aligmentQCOutputDir + "/hybrid.selection.metrics"
         add(generalUtils.calculateHsMetrics(mergedBamFiles, baits,
-          intervals, outputMetrics))
+          intervalsToUse, outputMetrics))
       }
 
       /**
