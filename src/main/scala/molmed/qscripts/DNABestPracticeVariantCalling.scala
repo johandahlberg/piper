@@ -183,11 +183,17 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
      */
 
     val aligmentOutputDir: File = new File(outputDir + "/raw_alignments")
+    aligmentOutputDir.mkdirs()
     val mergedAligmentOutputDir: File = new File(outputDir + "/merged_aligments")
+    mergedAligmentOutputDir.mkdirs()
     val aligmentQCOutputDir: File = new File(outputDir + "/alignment_qc")
+    aligmentOutputDir.mkdirs()
     val processedAligmentsOutputDir: File = new File(outputDir + "/processed_alignments")
+    processedAligmentsOutputDir.mkdirs()
     val variantCallsOutputDir: File = new File(outputDir + "/variant_calls")
+    variantCallsOutputDir.mkdirs()
     val miscOutputDir: File = new File(outputDir + "/misc")
+    miscOutputDir.mkdirs()
 
     /**
      * Setup of resources to use
@@ -261,7 +267,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
           }
 
         for (bam <- mergedBamFiles) {
-          val outputMetrics: File = swapExt(aligmentQCOutputDir, bam, ".bam", ".hs.metrics")
+          val outputMetrics: File = swapExt(aligmentQCOutputDir, bam, ".bam", ".hs.metrics.txt")
           add(generalUtils.calculateHsMetrics(bam, baitsToUse,
             intervalsToUse, outputMetrics, reference))
         }
