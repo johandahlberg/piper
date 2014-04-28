@@ -260,9 +260,11 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
             baitsAsInterval
           }
 
-        val outputMetrics: File = aligmentQCOutputDir + "/hybrid.selection.metrics"
-        add(generalUtils.calculateHsMetrics(mergedBamFiles, baits,
-          intervalsToUse, outputMetrics, reference))
+        for (bam <- mergedBamFiles) {
+          val outputMetrics: File = swapExt(aligmentQCOutputDir, bam, ".bam", ".hs.metrics")
+          add(generalUtils.calculateHsMetrics(bam, baits,
+            intervalsToUse, outputMetrics, reference))
+        }
       }
 
       /**

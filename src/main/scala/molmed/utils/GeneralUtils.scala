@@ -228,12 +228,12 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
   /**
    * Run Picards CalculateHsMetrics
    */
-  case class calculateHsMetrics(@Input bams: Seq[File], @Input baitsToUse: File,
+  case class calculateHsMetrics(@Input bam: File, @Input baitsToUse: File,
                                 @Input targetsToUse: File, @Output outputMetrics: File,
                                 @Input referenceFile: File)
       extends CalculateHsMetrics with OneCoreJob {
 
-    this.input = bams
+    this.input = Seq(bam)
     this.output = outputMetrics
 
     this.baits = baitsToUse
