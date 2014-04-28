@@ -124,6 +124,10 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
 
   @Argument(doc = "Choose which variant caller to use. Options are: HaplotypeCaller, UnifiedGenotyper", fullName = "variant_caller", shortName = "vc", required = false)
   var variantCaller: String = "HaplotypeCaller"
+
+  @Argument(doc = "Do not convert from hg19 amplicons/convered etc. (Normally done when converting BED files to interval files)", fullName = "do_not_convert", shortName = "dnc", required = false)
+  var doNotConvert: Boolean = false
+
   /**
    * **************************************************************************
    * Hidden Parameters - for dev.
@@ -183,6 +187,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
     val aligmentQCOutputDir: File = new File(outputDir + "/alignment_qc")
     val processedAligmentsOutputDir: File = new File(outputDir + "/processed_alignments")
     val variantCallsOutputDir: File = new File(outputDir + "/variant_calls")
+    val miscOutputDir: File = new File(outputDir + "/misc")
 
     /**
      * Setup of resources to use
@@ -230,7 +235,18 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
       /**
        * For exomes, calculate hybrid selection metrics.
        */
-      if (isExome) {
+      if (isExome && baits != null) {
+
+        /**
+         * Check if we need to convert the baits from bed format or not.
+         */
+        val baitsToUse = if (baits.getName().endsWith(".interval_list"))
+          baits
+        else {
+          val baitsAsInterval: File = miscOutputDir + baits.getName().replace(".bed", ".interval_list")
+          BedToIntervalUtils.convertBaitsToIntervals(baits, baitsAsInterval, mergedBamFiles(0), doNotConvert)
+        }
+
         val outputMetrics: File = aligmentQCOutputDir + "/hybrid.selection.metrics"
         add(generalUtils.calculateHsMetrics(mergedBamFiles, baits,
           intervals, outputMetrics))
