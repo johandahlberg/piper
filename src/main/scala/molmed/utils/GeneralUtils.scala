@@ -20,6 +20,8 @@ import molmed.queue.extensions.RNAQC.RNASeQC
 import org.broadinstitute.sting.queue.function.InProcessFunction
 import java.io.PrintWriter
 import scala.io.Source
+import molmed.queue.extensions.picard.CollectTargetedPcrMetrics
+import org.broadinstitute.sting.queue.extensions.picard.CalculateHsMetrics
 
 /**
  * Assorted commandline wappers, mostly for file doing small things link indexing files. See case classes to figure out
@@ -39,9 +41,9 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
    * Joins the bam file specified to a single bam file.
    */
   case class joinBams(@Input inBams: Seq[File], @Output outBam: File, asIntermediate: Boolean = false) extends MergeSamFiles with OneCoreJob {
-    
+
     this.isIntermediate = asIntermediate
-    
+
     this.input = inBams
     this.output = outBam
 
@@ -87,14 +89,14 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
   case class dedup(inBam: File, outBam: File, metricsFile: File, asIntermediate: Boolean = true) extends MarkDuplicates with TwoCoreJob {
 
     this.isIntermediate = asIntermediate
-    
+
     this.input :+= inBam
     this.output = outBam
     this.metrics = metricsFile
-    
+
     // Maximum compression level since we need to write over the network.
     this.compressionLevel = Some(9)
-    
+
     // Set slightly than maximum lower to make sure it does
     // not die from overflowing the memory limit.
     this.memoryLimit = Some(14)
@@ -149,7 +151,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
 
     @Output
     val placeHolder: File = ph
-    
+
     import molmed.utils.ReadGroupUtils._
 
     def createRNASeQCInputString(file: File): String = {
@@ -174,15 +176,15 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
 
   /**
    * InProcessFunction which searches a file tree for files matching metrics.tsv
-   * (the output files from RNA-SeQC) and create a file containing the results 
+   * (the output files from RNA-SeQC) and create a file containing the results
    * from all the separate runs.
-   * 
+   *
    */
   case class createAggregatedMetrics(phs: Seq[File], @Input var outputDir: File, @Output var aggregatedMetricsFile: File) extends InProcessFunction {
 
     @Input
     var placeHolderSeq: Seq[File] = phs
-    
+
     def run() = {
 
       def getFileTree(f: File): Stream[File] =
@@ -201,6 +203,43 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
       writer.close()
 
     }
+  }
+
+  /**
+   * Run Picards CollectTargetedPcrMetrics
+   */
+  case class collectTargetedPCRMetrics(bam: File, generalStatisticsOutput: File, perTargetStat: File,
+                                       baitIntervalFile: File, targetIntervalFile: File, ref: File)
+      extends CollectTargetedPcrMetrics with OneCoreJob {
+
+    this.isIntermediate = false
+
+    this.input = Seq(bam)
+    this.output = generalStatisticsOutput
+    this.perTargetOutputFile = perTargetStat
+    this.amplicons = baitIntervalFile
+    this.targets = targetIntervalFile
+    this.reference = ref
+
+    override def jobRunnerJobName = projectName + "_collectPCRMetrics"
+
+  }
+
+  /**
+   * Run Picards CalculateHsMetrics
+   */
+  case class calculateHsMetrics(@Input bams: Seq[File], @Input baitsToUse: File,
+                                @Input targetsToUse: File, @Output outputMetrics: File)
+      extends CalculateHsMetrics with OneCoreJob {
+
+    this.input = bams
+    this.output = outputMetrics
+
+    this.baits = baitsToUse
+    this.targets = targetsToUse
+
+    override def jobRunnerJobName = projectName + "_collectHSMetrics"
+    
   }
 
 }

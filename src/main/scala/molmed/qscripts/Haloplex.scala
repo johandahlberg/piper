@@ -40,6 +40,7 @@ import molmed.utils.UppmaxConfig
 import molmed.utils.UppmaxXMLConfiguration
 import molmed.utils.UppmaxJob
 import molmed.utils.BwaAln
+import molmed.utils.BedToIntervalUtils
 
 /**
  * Haloplex best practice analysis from fastqs to variant calls.
@@ -215,8 +216,8 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
     val intervalsAsPicardIntervalFile = new File(swapExt(miscOutputDir, qscript.intervals, ".bed", ".intervals"))
     val ampliconsAsPicardIntervalFile = new File(swapExt(miscOutputDir, qscript.amplicons, ".bed", ".intervals"))
 
-    add(haloplexUtils.convertCoveredToIntervals(qscript.intervals, intervalsAsPicardIntervalFile, cohortList.toList(0)))
-    add(haloplexUtils.convertAmpliconsToIntervals(qscript.amplicons, ampliconsAsPicardIntervalFile, cohortList.toList(0)))
+    add(BedToIntervalUtils.convertCoveredToIntervals(qscript.intervals, intervalsAsPicardIntervalFile, cohortList.toList(0), doNotConvert))
+    add(BedToIntervalUtils.convertBaitsToIntervals(qscript.amplicons, ampliconsAsPicardIntervalFile, cohortList.toList(0), doNotConvert))
 
     if (!onlyAligment) {
       // Make raw variation calls
@@ -254,7 +255,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
       for (bam <- clippedAndRecalibratedBams) {
         val generalStatisticsOutputFile = swapExt(bamOutputDir, bam, ".bam", ".statistics")
         val perAmpliconStatisticsOutputFile = swapExt(bamOutputDir, bam, ".bam", ".amplicon.statistics")
-        add(haloplexUtils.collectTargetedPCRMetrics(bam, generalStatisticsOutputFile, perAmpliconStatisticsOutputFile,
+        add(generalUtils.collectTargetedPCRMetrics(bam, generalStatisticsOutputFile, perAmpliconStatisticsOutputFile,
           ampliconsAsPicardIntervalFile, intervalsAsPicardIntervalFile, reference))
       }
 
@@ -276,71 +277,6 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
 
     // General arguments to GATK walkers
     trait CommandLineGATKArgs extends CommandLineGATK
-
-    // Uses + strand if no strand if is provided. Unfortunately the is no NA option for this field in the 
-    // Picard IntervalList.
-    def intervalFormatString(contig: String, start: String, end: String, strand: Option[String], intervalName: String): String =
-      "%s\t%s\t%s\t%s\t%s".format(contig, start, end, strand.getOrElse("+"), intervalName)
-
-    def conversions(s: String) = if (doNotConvert) s else s.replace("chrM", "MT").replace("chr", "")
-
-    def formatFromCovered(split: Array[String]): String = {
-      intervalFormatString(conversions(split(0)), (split(1).toInt + 1).toString, split(2), None, split(3))
-    }
-
-    def formatFromAmplicons(split: Array[String]): String = {
-      if (split.length == 6)
-        intervalFormatString(
-          conversions(split(0)), (split(1).toInt + 1).toString, split(2),
-          if (split(5) != null) Some(split(5)) else None,
-          split(3))
-      else if(split.length == 4)
-        intervalFormatString(
-          conversions(split(0)), (split(1).toInt + 1).toString, split(2),
-          None,
-          split(3))
-          else
-            throw new Exception("Unknown number of fields in amplicon bed file. " +
-            		"The number of fields  should be 6 (if there is strand information) " +
-            		"or 5 (if there is no strand info). Number of fields was: " + 
-            		split.length)
-    }
-
-    def writeIntervals(bed: File, intervalFile: File, bam: File, formatFrom: Array[String] => String): Unit = {
-
-      def getSamHeader(bam: File): SAMFileHeader = {
-        val samReader = new SAMFileReader(bam)
-        samReader.getFileHeader
-      }
-
-      val header = getSamHeader(bam)
-      header.setProgramRecords(List())
-      header.setReadGroups(List())
-
-      val writer = new PrintWriter(intervalFile)
-
-      val codec = new SAMTextHeaderCodec();
-      codec.encode(writer, header)
-
-      for (row <- Source.fromFile(bed).getLines.drop(2)) {
-        val split = row.split("\t")
-        val intervalEntry = formatFrom(split)
-        writer.println(intervalEntry)
-      }
-      writer.close()
-    }
-
-    case class convertCoveredToIntervals(@Input var bed: File, @Output var intervalFile: File, @Input var bam: File) extends InProcessFunction {
-      def run(): Unit = {
-        writeIntervals(bed, intervalFile, bam, formatFromCovered)
-      }
-    }
-
-    case class convertAmpliconsToIntervals(@Input var bed: File, @Output var intervalFile: File, @Input var bam: File) extends InProcessFunction {
-      def run(): Unit = {
-        writeIntervals(bed, intervalFile, bam, formatFromAmplicons)
-      }
-    }
 
     case class genotype(@Input bam: Seq[File], reference: File, @Output @Gather(classOf[VcfGatherFunction]) vcf: File, isSecondPass: Boolean, @Input intervalFile: File) extends UnifiedGenotyper with CommandLineGATKArgs with EightCoreJob {
 
@@ -464,21 +400,6 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
       this.filterName = Seq("HARD_TO_VALIDATE", "LowCoverage", "VeryLowQual", "LowQual", "LowQD")
 
       override def jobRunnerJobName = projectName.get + "_filterVariants"
-
-    }
-
-    case class collectTargetedPCRMetrics(bam: File, generalStatisticsOutput: File, perTargetStat: File, ampliconIntervalFile: File, targetIntevalFile: File, ref: File) extends CollectTargetedPcrMetrics with OneCoreJob {
-
-      this.isIntermediate = false
-
-      this.input = Seq(bam)
-      this.output = generalStatisticsOutput
-      this.perTargetOutputFile = perTargetStat
-      this.amplicons = ampliconIntervalFile
-      this.targets = targetIntevalFile
-      this.reference = ref
-
-      override def jobRunnerJobName = projectName + "_collectPCRMetrics"
 
     }
 

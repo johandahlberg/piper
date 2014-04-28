@@ -19,6 +19,7 @@ import molmed.utils.GATKHaplotypeCaller
 import molmed.utils.GATKUnifiedGenotyper
 import molmed.utils.VariantCallerOption
 import molmed.utils.VariantCallerOption
+import molmed.utils.BedToIntervalUtils
 
 /**
  *
@@ -39,6 +40,9 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
 
   @Input(doc = "an intervals file to be used by GATK - output bams at intervals only", fullName = "gatk_interval_file", shortName = "intervals", required = false)
   var intervals: File = _
+
+  @Input(doc = "a baits file in BED format. Used to calculate HSMetrics for exomes.", fullName = "baits_file", shortName = "baits", required = false)
+  var baits: File = _
 
   @Input(doc = "dbsnp ROD to use (must be in VCF format)", fullName = "dbsnp", shortName = "D", required = false)
   var dbSNP: File = _
@@ -222,6 +226,15 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
        */
       val qualityControlUtils = new AlignmentQCUtils(qscript, gatkOptions, projectName, uppmaxConfig)
       val qualityControlPassed = qualityControlUtils.aligmentQC(mergedBamFiles, aligmentQCOutputDir)
+
+      /**
+       * For exomes, calculate hybrid selection metrics.
+       */
+      if (isExome) {
+        val outputMetrics: File = aligmentQCOutputDir + "/hybrid.selection.metrics"
+        add(generalUtils.calculateHsMetrics(mergedBamFiles, baits,
+          intervals, outputMetrics))
+      }
 
       /**
        * Data processing
