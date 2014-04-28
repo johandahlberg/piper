@@ -225,7 +225,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
         if (intervals.getName().endsWith(".interval_list"))
           intervals
         else {
-          val targetsAsIntervals: File = miscOutputDir + intervals.getName().replace(".bed", ".interval_list")
+          val targetsAsIntervals: File = swapExt(miscOutputDir, intervals, ".bed", ".interval_list")
           BedToIntervalUtils.convertCoveredToIntervals(intervals, targetsAsIntervals, mergedBamFiles(0), doNotConvert)
           targetsAsIntervals
         }
@@ -255,7 +255,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
           if (baits.getName().endsWith(".interval_list"))
             baits
           else {
-            val baitsAsInterval: File = miscOutputDir + baits.getName().replace(".bed", ".interval_list")
+            val baitsAsInterval: File = swapExt(miscOutputDir, baits, ".bed", ".interval_list")
             BedToIntervalUtils.convertBaitsToIntervals(baits, baitsAsInterval, mergedBamFiles(0), doNotConvert)
             baitsAsInterval
           }
