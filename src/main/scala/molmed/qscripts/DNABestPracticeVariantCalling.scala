@@ -227,6 +227,18 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
       val mergedBamFiles = mergeFilesUtils.mergeFilesBySampleName(sampleNamesToBamMap, mergedAligmentOutputDir, asIntermediate = removeMergedAlignments)
 
       /**
+       * If necessary convert interval files from bed format to Picards interval format
+       */
+      val intervalsToUse: File =
+        if (intervals.getName().endsWith(".interval_list"))
+          intervals
+        else {
+          val targetsAsIntervals: File = miscOutputDir + intervals.getName().replace(".bed", ".interval_list")
+          BedToIntervalUtils.convertCoveredToIntervals(intervals, targetsAsIntervals, mergedBamFiles(0), doNotConvert)
+          targetsAsIntervals
+        }
+
+      /**
        * Get QC statistics
        */
       val qualityControlUtils = new AlignmentQCUtils(qscript, gatkOptions, projectName, uppmaxConfig)
@@ -240,12 +252,14 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
         /**
          * Check if we need to convert the baits from bed format or not.
          */
-        val baitsToUse = if (baits.getName().endsWith(".interval_list"))
-          baits
-        else {
-          val baitsAsInterval: File = miscOutputDir + baits.getName().replace(".bed", ".interval_list")
-          BedToIntervalUtils.convertBaitsToIntervals(baits, baitsAsInterval, mergedBamFiles(0), doNotConvert)
-        }
+        val baitsToUse: File =
+          if (baits.getName().endsWith(".interval_list"))
+            baits
+          else {
+            val baitsAsInterval: File = miscOutputDir + baits.getName().replace(".bed", ".interval_list")
+            BedToIntervalUtils.convertBaitsToIntervals(baits, baitsAsInterval, mergedBamFiles(0), doNotConvert)
+            baitsAsInterval
+          }
 
         val outputMetrics: File = aligmentQCOutputDir + "/hybrid.selection.metrics"
         add(generalUtils.calculateHsMetrics(mergedBamFiles, baits,
