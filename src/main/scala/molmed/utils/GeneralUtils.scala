@@ -229,7 +229,8 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
    * Run Picards CalculateHsMetrics
    */
   case class calculateHsMetrics(@Input bams: Seq[File], @Input baitsToUse: File,
-                                @Input targetsToUse: File, @Output outputMetrics: File)
+                                @Input targetsToUse: File, @Output outputMetrics: File,
+                                @Input referenceFile: File)
       extends CalculateHsMetrics with OneCoreJob {
 
     this.input = bams
@@ -237,6 +238,8 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
 
     this.baits = baitsToUse
     this.targets = targetsToUse
+    
+    this.reference = referenceFile
 
     override def jobRunnerJobName = projectName + "_collectHSMetrics"
     
