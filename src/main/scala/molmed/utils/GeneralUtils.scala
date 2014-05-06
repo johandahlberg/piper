@@ -228,23 +228,22 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
   /**
    * Run Picards CalculateHsMetrics
    */
-  case class calculateHsMetrics(@Input bam: File, @Input baitsToUse: File,
-                                @Input targetsToUse: File, @Output outputMetrics: File,
+  case class calculateHsMetrics(@Input bam: File, @Input baitsToUse: Option[File],
+                                @Input targetsToUse: Option[File], @Output outputMetrics: File,
                                 @Input referenceFile: File)
       extends CalculateHsMetrics with OneCoreJob {
 
     this.input = Seq(bam)
     this.output = outputMetrics
 
-    this.baits = baitsToUse
-    this.targets = targetsToUse
-    
+    this.baits = baitsToUse.getOrElse(throw new IllegalArgumentException("Didn't find a bait file."))
+    this.targets = targetsToUse.getOrElse(throw new IllegalArgumentException("Didn't find a target/interval file."))
+
     this.reference = referenceFile
 
     override def jobRunnerJobName = projectName.get + "_collectHSMetrics"
-    
-  }
 
+  }
 }
 
 /**

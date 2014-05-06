@@ -179,6 +179,11 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
   def script() {
 
     /**
+     * Implicitly convert any File to Option File, as necessary.
+     */
+    implicit def file2Option(file: File) = if (file == null) None else Some(file)
+
+    /**
      * Defining output dirs for the different parts of the run
      */
 
@@ -227,21 +232,22 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
       /**
        * If necessary convert interval files from bed format to Picards interval format
        */
-      val intervalsToUse: File =
-        if (intervals.getName().endsWith(".interval_list"))
+      val intervalsToUse: Option[File] =
+        if (!intervals.isDefined)
+          None
+        else if (intervals.getName().endsWith(".interval_list"))
           intervals
         else {
-          val targetsAsIntervals: File =  new File(swapExt(miscOutputDir, intervals, ".bed", ".interval_list"))
+          val targetsAsIntervals: File = new File(swapExt(miscOutputDir, intervals, ".bed", ".interval_list"))
           add(BedToIntervalUtils.convertCoveredToIntervals(intervals, targetsAsIntervals, mergedBamFiles(0), doNotConvert))
           targetsAsIntervals
         }
 
-      val gatkOptions = {
-        implicit def file2Option(file: File) = if (file == null) None else Some(file)
+      val gatkOptions = 
         new GATKConfig(reference, nbrOfThreads, scatterGatherCount,
           intervalsToUse,
           dbSNP, Some(indels), hapmap, omni, mills, thousandGenomes)
-      }
+      
 
       /**
        * Get QC statistics
@@ -252,7 +258,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
       /**
        * For exomes, calculate hybrid selection metrics.
        */
-      if (isExome && baits != null) {
+      if (isExome && baits.isDefined) {
 
         /**
          * Check if we need to convert the baits from bed format or not.
@@ -269,7 +275,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
         for (bam <- mergedBamFiles) {
           val outputMetrics: File = swapExt(aligmentQCOutputDir, bam, ".bam", ".hs.metrics.txt")
           add(generalUtils.calculateHsMetrics(bam, baitsToUse,
-            intervalsToUse, outputMetrics, reference))
+              intervalsToUse, outputMetrics, reference))
         }
       }
 
