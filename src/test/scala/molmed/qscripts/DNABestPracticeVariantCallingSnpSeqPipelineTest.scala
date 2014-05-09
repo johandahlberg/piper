@@ -88,10 +88,10 @@ class DNABestPracticeVariantCallingSnpSeqPipelineTest {
       " -startFromScratch "
       ).mkString
 
-    spec.fileMD5s += co1156bam -> "634d77c4a48bd066d4697d56f0a4e16e"
-    spec.fileMD5s += co454bam -> "a3b9e64cba88bbd12e4e5f2a5f0ea9a7"
-    spec.fileMD5s += rawSnps -> "dc4f26db5aeb15bbe043695f241b260f"
-    spec.fileMD5s += rawIndels -> "0521e600245245ba2745699c45a0f93d"
+    spec.fileMD5s += co1156bam -> "4ae18efd9f0536b7b5f870946b4c5374"
+    spec.fileMD5s += co454bam -> "c80f86cebcbc3e8a0248fa759a77a3cb"
+    spec.fileMD5s += rawSnps -> "cd3cc11e8f6179afa186a35d5713e5f8"
+    spec.fileMD5s += rawIndels -> "beb907167b978807d93f59c3678cab5c"
     spec.run = this.run
     PipelineTest.executeTest(spec)
   }
