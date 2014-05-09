@@ -1,10 +1,10 @@
 # Start by exporting the shared drmaa libaries to the LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=/sw/apps/build/slurm-drmaa/1.0.6/lib/:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/proj/b2010028/piper_resources/slurm-drmaa/lib/:$LD_LIBRARY_PATH
 
 #---------------------------------------------
 # Check if we are running on uppmax or locally, and set the jobrunners and path accordingly
 #---------------------------------------------
-if [ -f "/sw/apps/build/slurm-drmaa/lib/libdrmaa.so" ];
+if [ -f "/proj/b2010028/piper_resources/slurm-drmaa/lib/" ];
 then
 	JOB_RUNNER=" Drmaa"
 	JOB_NATIVE_ARGS="-A ${PROJECT_ID} -p node -N 1 ${QOS}"
