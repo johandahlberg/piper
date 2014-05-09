@@ -70,17 +70,17 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
             config.qscript.add(new HaplotypeCallerBase(modifiedTarget, config.testMode, config.downsampleFraction, config.pcrFree))
             modifiedTarget.gVCFFile
           })
-        config.qscript.add(new GenotypeGVCF(gVcfFiles, target))
+        config.qscript.add(new GenotypeGVCF(gVcfFiles, target, config.testMode))
 
       } else {
         // If the pipeline is setup to run each sample individually, 
         // output one final vcf file per sample.
         config.qscript.add(new HaplotypeCallerBase(target, config.testMode, config.downsampleFraction, config.pcrFree))
-        config.qscript.add(new GenotypeGVCF(Seq(target.gVCFFile), target))
+        config.qscript.add(new GenotypeGVCF(Seq(target.gVCFFile), target, config.testMode))
       }
 
-      config.qscript.add(new SelectVariantType(target, SNPs))
-      config.qscript.add(new SelectVariantType(target, INDELs))
+      config.qscript.add(new SelectVariantType(target, SNPs, config.testMode))
+      config.qscript.add(new SelectVariantType(target, INDELs, config.testMode))
 
       // @TODO Figure out if this actually needs to be done now!
       // Or if we can skip this for NGI/1KSG
@@ -139,7 +139,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
         assert(resource.isDefined, resourceName + " is not defined. This is needed for variant recalibrations.")
         if (!resource.forall(p => p.exists())) throw new AssertionError("Couldn't find resource: " + resource.get + " This is needed for variant recalibrations.")
       }
-      
+
       assertResourceExists("hapmap", gatkOptions.hapmap)
       assertResourceExists("omni", gatkOptions.omni)
       assertResourceExists("dbSNP", gatkOptions.dbSNP)
@@ -222,7 +222,11 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
   /**
    * Genotypes the gVCF file from the Haplotype caller
    */
-  case class GenotypeGVCF(gVCFFiles: Seq[File], t: VariantCallingTarget) extends GenotypeGVCFs with CommandLineGATKArgs with EightCoreJob {
+  case class GenotypeGVCF(gVCFFiles: Seq[File], t: VariantCallingTarget, testMode: Boolean) extends GenotypeGVCFs with CommandLineGATKArgs with EightCoreJob {
+
+    if (testMode)
+      this.no_cmdline_in_header = true
+
     this.reference_sequence = t.reference
     this.nt = gatkOptions.nbrOfThreads
 
@@ -246,7 +250,11 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
    * Select a variant type - either SNPs or INDELs
    * Used to separate the classes before  variant recalibration
    */
-  case class SelectVariantType(t: VariantCallingTarget, variantType: VariantType) extends SelectVariants with CommandLineGATKArgs with OneCoreJob {
+  case class SelectVariantType(t: VariantCallingTarget, variantType: VariantType, testMode: Boolean) extends SelectVariants with CommandLineGATKArgs with OneCoreJob {
+
+    if (testMode)
+      this.no_cmdline_in_header = true
+
     this.reference_sequence = t.reference
     this.variant = t.rawCombinedVariants
 
