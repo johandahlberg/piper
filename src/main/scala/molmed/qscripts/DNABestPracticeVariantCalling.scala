@@ -115,9 +115,6 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
   @Argument(doc = "Downsample fraction of coverage in variant calling. [0.0 - 1.0]", fullName = "downsample_to_fraction", shortName = "dtf", required = false)
   var downsampleFraction: Double = -1
 
-  @Argument(doc = "Only do the aligments - useful when there is more data to be delivered in a project", fullName = "onlyAlignments", shortName = "oa", required = false)
-  var onlyAlignment: Boolean = false
-
   @Argument(doc = "Remove the raw merged alignment files.", fullName = "remove_raw_merged_alignments", shortName = "rrma", required = false)
   var removeMergedAlignments: Boolean = false
 
@@ -129,6 +126,18 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
 
   @Argument(doc = "Do not convert from hg19 amplicons/convered etc. (Normally done when converting BED files to interval files)", fullName = "do_not_convert", shortName = "dnc", required = false)
   var doNotConvert: Boolean = false
+
+  @Argument(doc = "Do the aligments and initial quality control.", fullName = "alignment_and_qc", shortName = "oaqc", required = false)
+  var doAlignmentAndQualityControl: Boolean = true
+
+  @Argument(doc = "Merge the samples based on their names.", fullName = "merge_alignments", shortName = "ma", required = false)
+  var doMergeSamples: Boolean = false
+
+  @Argument(doc = "Run GATK data processing.", fullName = "data_processing", shortName = "dp", required = false)
+  var doDataProcessing: Boolean = false
+
+  @Argument(doc = "Run variant calling.", fullName = "variant_calling", shortName = "vc", required = false)
+  var doVariantCalling: Boolean = false
 
   /**
    * **************************************************************************
@@ -188,7 +197,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
     val alignmentUtils = new BwaAlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, projectName, uppmaxConfig)
     val sampleNamesAndalignedBamFiles = samples.values.flatten.map(sample =>
       (sample.getSampleName,
-        alignmentUtils.align(sample, alignmentOutputDir, asIntermidate = !onlyAlignment, aligner)))
+        alignmentUtils.align(sample, alignmentOutputDir, asIntermidate = !doAlignmentAndQualityControl, aligner)))
     val sampleNamesToBamMap = sampleNamesAndalignedBamFiles.groupBy(f => f._1).mapValues(f => f.map(x => x._2).toSeq)
     sampleNamesToBamMap
 
@@ -364,10 +373,16 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
 
     /**
      *  Defined the workflow to run
-     */
-    //@TODO Construct and validate the analysis steps to run list.
-    val analysisStepsToRun = List(AnalysisSteps.Alignment, AnalysisSteps.QualityControl)
-    //val j = analysisStepsToRun ++ List(AnalysisSteps.DataProcessing)
+     */  
+    val analysisStepsToRun: List[AnalysisSteps.Value] =
+      if (doVariantCalling)
+        List(AnalysisSteps.VariantCalling)
+      else if (doDataProcessing)
+        List(AnalysisSteps.DataProcessing)
+      else if (doMergeSamples)
+        List(AnalysisSteps.MergePerSample)
+      else
+        List(AnalysisSteps.Alignment, AnalysisSteps.QualityControl)
 
     /**
      * Run the different parts depending on what parts have
