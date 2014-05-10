@@ -2,6 +2,7 @@ package molmed.qscripts
 
 import org.broadinstitute.sting.commandline.Hidden
 import org.broadinstitute.sting.queue.QScript
+
 import molmed.queue.setup.SampleAPI
 import molmed.utils.AlignerOption
 import molmed.utils.AlignmentQCUtils
@@ -10,18 +11,15 @@ import molmed.utils.BwaAln
 import molmed.utils.BwaMem
 import molmed.utils.GATKConfig
 import molmed.utils.GATKDataProcessingUtils
-import molmed.utils.GeneralUtils
-import molmed.utils.MergeFilesUtils
-import molmed.utils.UppmaxXMLConfiguration
-import molmed.utils.VariantCallingConfig
-import molmed.utils.VariantCallingUtils
 import molmed.utils.GATKHaplotypeCaller
 import molmed.utils.GATKUnifiedGenotyper
-import molmed.utils.VariantCallerOption
-import molmed.utils.VariantCallerOption
-import molmed.utils.BedToIntervalUtils
+import molmed.utils.GeneralUtils
+import molmed.utils.MergeFilesUtils
 import molmed.utils.UppmaxConfig
-import molmed.utils.GATKConfig
+import molmed.utils.UppmaxXMLConfiguration
+import molmed.utils.VariantCallerOption
+import molmed.utils.VariantCallingConfig
+import molmed.utils.VariantCallingUtils
 
 /**
  *
