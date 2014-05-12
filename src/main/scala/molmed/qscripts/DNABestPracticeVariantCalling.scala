@@ -122,19 +122,16 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
   @Argument(doc = "Choose which variant caller to use. Options are: HaplotypeCaller, UnifiedGenotyper", fullName = "variant_caller", shortName = "vc", required = false)
   var variantCaller: String = "HaplotypeCaller"
 
-  @Argument(doc = "Do not convert from hg19 amplicons/convered etc. (Normally done when converting BED files to interval files)", fullName = "do_not_convert", shortName = "dnc", required = false)
-  var doNotConvert: Boolean = false
-
-  @Argument(doc = "Do the aligments and initial quality control.", fullName = "alignment_and_qc", shortName = "oaqc", required = false)
+  @Argument(doc = "Do the aligments and initial quality control.", fullName = "alignment_and_qc", shortName = "doaqc", required = false)
   var doAlignmentAndQualityControl: Boolean = true
 
-  @Argument(doc = "Merge the samples based on their names.", fullName = "merge_alignments", shortName = "ma", required = false)
+  @Argument(doc = "Merge the samples based on their names.", fullName = "merge_alignments", shortName = "dma", required = false)
   var doMergeSamples: Boolean = false
 
-  @Argument(doc = "Run GATK data processing.", fullName = "data_processing", shortName = "dp", required = false)
+  @Argument(doc = "Run GATK data processing.", fullName = "data_processing", shortName = "ddp", required = false)
   var doDataProcessing: Boolean = false
 
-  @Argument(doc = "Run variant calling.", fullName = "variant_calling", shortName = "vc", required = false)
+  @Argument(doc = "Run variant calling.", fullName = "variant_calling", shortName = "dvc", required = false)
   var doVariantCalling: Boolean = false
 
   /**
