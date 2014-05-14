@@ -2,7 +2,6 @@ package molmed.qscripts
 
 import org.broadinstitute.sting.commandline.Hidden
 import org.broadinstitute.sting.queue.QScript
-
 import molmed.queue.setup.SampleAPI
 import molmed.utils.AlignerOption
 import molmed.utils.AlignmentQCUtils
@@ -20,6 +19,9 @@ import molmed.utils.UppmaxXMLConfiguration
 import molmed.utils.VariantCallerOption
 import molmed.utils.VariantCallingConfig
 import molmed.utils.VariantCallingUtils
+import org.broadinstitute.sting.queue.function.InProcessFunction
+import java.io.PrintWriter
+import org.broadinstitute.sting.commandline.Input
 
 /**
  *
@@ -74,8 +76,11 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
   @Input(doc = "The path to the binary of samtools", fullName = "path_to_samtools", shortName = "samtools", required = false)
   var samtoolsPath: File = "samtools"
 
-  @Argument(doc = "Output path for the processed BAM files.", fullName = "output_directory", shortName = "outputDir", required = false)
+  @Argument(doc = "Base path for all output working files.", fullName = "output_directory", shortName = "outputDir", required = false)
   var outputDir: String = "pipeline_output"
+
+  @Argument(doc = "Base path for final delivery folder structure.", fullName = "delivery_directory", shortName = "deliveryDir", required = false)
+  var deliveryDir: String = "pipeline_output/delivery"
 
   @Argument(doc = "Number of threads to use by default", fullName = "number_of_threads", shortName = "nt", required = false)
   var nbrOfThreads: Int = 1
@@ -133,6 +138,9 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
 
   @Argument(doc = "Run variant calling.", fullName = "variant_calling", shortName = "dvc", required = false)
   var doVariantCalling: Boolean = false
+
+  @Argument(doc = "Create the final delivery output structure (and report).", fullName = "create_delivery", shortName = "cdlvry", required = false)
+  var doGenerateDelivery: Boolean = false
 
   /**
    * **************************************************************************
@@ -296,11 +304,48 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
   }
 
   /**
+   * Create a folders structure ready for delivery
+   */
+  def runCreateDelivery(
+    fastqs: Seq[File],
+    processedBamFile: Seq[File],
+    qualityControlFiles: Seq[File],
+    variantCallFiles: Seq[File],
+    deliveryDirectory: File): Unit = {
+
+    case class SetupDeliveryStructure(
+      @Input fastqs: Seq[File],
+      @Input processedBamFile: Seq[File],
+      @Input qualityControlFiles: Seq[File],
+      @Input variantCallFiles: Seq[File])
+        extends InProcessFunction {
+
+      def run() {
+        /**
+         * @TODO Once it's been established that this picks up all the files
+         * correctly, create hard links to delivery folder structure.
+         */
+        
+        val pw = new PrintWriter(deliveryDirectory + "/test")
+        
+        pw.println("fastqs=" + fastqs)
+        pw.println("processedBamFile=" + processedBamFile)
+        pw.println("qualityControlFiles=" + qualityControlFiles)
+        pw.println("variantCallFiles=" + variantCallFiles)
+        
+        pw.close()
+      }
+    }
+
+    add(SetupDeliveryStructure(fastqs, processedBamFile, qualityControlFiles, variantCallFiles))
+  }
+
+  /**
    * Define possible steps in workflow
    */
   object AnalysisSteps extends Enumeration {
     type AnalysisSteps = Value
-    val Alignment, QualityControl, MergePerSample, DataProcessing, VariantCalling = Value
+    val Alignment, QualityControl, MergePerSample, DataProcessing, VariantCalling, GenerateDelivery = Value
   }
 
   /**
@@ -347,12 +392,16 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
      * together depending on which parts of the workflow are to be run.
      */
     val alignments =
-      runAlignments(_: Map[String, Seq[SampleAPI]],
+      runAlignments(
+        _: Map[String, Seq[SampleAPI]],
         uppmaxConfig,
         alignmentOutputDir)
 
     val mergedAlignments =
-      runMergeBySample(_: Map[String, Seq[File]], uppmaxConfig, mergedAligmentOutputDir)
+      runMergeBySample(
+        _: Map[String, Seq[File]],
+        uppmaxConfig,
+        mergedAligmentOutputDir)
 
     val qualityControl = runQualityControl(
       _: Seq[File], intervals, reference, uppmaxConfig,
@@ -368,9 +417,11 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
 
     /**
      *  Defined the workflow to run
-     */  
+     */
     val analysisStepsToRun: List[AnalysisSteps.Value] =
-      if (doVariantCalling)
+      if (doGenerateDelivery)
+        List(AnalysisSteps.GenerateDelivery)
+      else if (doVariantCalling)
         List(AnalysisSteps.VariantCalling)
       else if (doDataProcessing)
         List(AnalysisSteps.DataProcessing)
@@ -386,7 +437,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
     analysisStepsToRun match {
       case List(AnalysisSteps.Alignment, AnalysisSteps.QualityControl) => {
         qualityControl(
-          alignments(samples).values.flatten.toSeq)
+          alignments(samples).values.flatten.toSeq).map(f => f._1)
       }
       case e if e.contains(AnalysisSteps.MergePerSample) => {
         val aligments = alignments(samples)
@@ -403,6 +454,22 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
         val qc = qualityControl(aligments.values.flatten.toSeq)
         variantCalling(dataProcessing(mergedAlignments(aligments)))
       }
+      case e if e.contains(AnalysisSteps.GenerateDelivery) => {
+
+        val fastqs =
+          samples.
+            flatMap(x => x._2).
+            map(x => x.getFastqs).
+            flatMap(x => x.getFiles).
+            toSeq
+
+        val aligments = alignments(samples)
+        val qc = qualityControl(aligments.values.flatten.toSeq).map(x => x._1)
+        val processedAlignments = dataProcessing(mergedAlignments(aligments))
+        val variantCallFiles = variantCalling(processedAlignments)
+        runCreateDelivery(fastqs, processedAlignments, qc, variantCallFiles, deliveryDir)
+      }
+
     }
   }
 }

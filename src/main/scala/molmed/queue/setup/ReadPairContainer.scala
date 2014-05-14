@@ -11,5 +11,6 @@ import java.io.File
  * @todo It would be better if the sampleName was not mutable.
  */
 case class ReadPairContainer(mate1: File, mate2: File = null, var sampleName: String = null) {
-	def isMatePaired(): Boolean = {mate2 != null}	
+	def isMatePaired(): Boolean = {mate2 != null}
+	def getFiles(): Seq[File] = if(isMatePaired) Seq(mate1, mate2) else Seq(mate1)
 }
