@@ -304,4 +304,15 @@ object GeneralUtils {
     f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)
     else Stream.empty)
 
+  /**
+   * Create a hard link using the linux cp command
+   * Will overwrite destination file if it exists!
+   * @param inputFile	file to link
+   * @param	outputFile	path to hardlink
+   */
+  def linkProcess(inputFile: File, outputFile: File) = {
+    import scala.sys.process.Process
+    Process("""cp --recursive --force --link """ + inputFile.getAbsolutePath() + """ """ + outputFile.getAbsolutePath())
+  }
+
 }

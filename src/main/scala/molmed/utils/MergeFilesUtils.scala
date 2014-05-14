@@ -1,10 +1,13 @@
 package molmed.utils
 
-import molmed.utils.ReadGroupUtils._
 import java.io.File
-import org.broadinstitute.sting.queue.QScript
+
+import scala.annotation.elidable
+import scala.annotation.elidable.ASSERTION
+
 import org.broadinstitute.sting.commandline.Input
 import org.broadinstitute.sting.commandline.Output
+import org.broadinstitute.sting.queue.QScript
 import org.broadinstitute.sting.queue.function.InProcessFunction
 
 /**
@@ -63,17 +66,12 @@ class MergeFilesUtils(qscript: QScript, projectName: Option[String], uppmaxConfi
 
     def run() {
 
-      import scala.sys.process.Process
-
-      def linkProcess(inputFile: File, outputFile: File) =
-        Process("""ln """ + inputFile.getAbsolutePath() + """ """ + outputFile.getAbsolutePath())
-
       // Link index
-      val indexExitCode = linkProcess(index, outIndex).!
+      val indexExitCode = GeneralUtils.linkProcess(index, outIndex).!
       assert(indexExitCode == 0, "Couldn't create hard link from: " + index.getAbsolutePath() + " to: " + outIndex.getAbsolutePath())
 
       // Link bam
-      val bamExitCode = linkProcess(inBam, outBam).!
+      val bamExitCode = GeneralUtils.linkProcess(inBam, outBam).!
       assert(bamExitCode == 0, "Couldn't create hard link from: " + inBam.getAbsolutePath() + " to: " + outBam.getAbsolutePath())
 
     }

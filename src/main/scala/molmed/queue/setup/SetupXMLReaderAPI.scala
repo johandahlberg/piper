@@ -7,7 +7,7 @@ import java.io.File
  * reads if you want to use some other format.
  */
 trait SetupXMLReaderAPI {
-  
+    
   /**
    * @return a sequencing platform, e.g. "Illumina"
    */

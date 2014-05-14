@@ -22,6 +22,7 @@ import molmed.utils.VariantCallingUtils
 import org.broadinstitute.sting.queue.function.InProcessFunction
 import java.io.PrintWriter
 import org.broadinstitute.sting.commandline.Input
+import molmed.utils.DeliveryUtils
 
 /**
  *
@@ -307,37 +308,16 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
    * Create a folders structure ready for delivery
    */
   def runCreateDelivery(
-    fastqs: Seq[File],
+    samples: Seq[SampleAPI],
     processedBamFile: Seq[File],
-    qualityControlFiles: Seq[File],
+    qualityControlDir: File,
     variantCallFiles: Seq[File],
     deliveryDirectory: File): Unit = {
 
-    case class SetupDeliveryStructure(
-      @Input fastqs: Seq[File],
-      @Input processedBamFile: Seq[File],
-      @Input qualityControlFiles: Seq[File],
-      @Input variantCallFiles: Seq[File])
-        extends InProcessFunction {
-
-      def run() {
-        /**
-         * @TODO Once it's been established that this picks up all the files
-         * correctly, create hard links to delivery folder structure.
-         */
-        
-        val pw = new PrintWriter(deliveryDirectory + "/test")
-        
-        pw.println("fastqs=" + fastqs)
-        pw.println("processedBamFile=" + processedBamFile)
-        pw.println("qualityControlFiles=" + qualityControlFiles)
-        pw.println("variantCallFiles=" + variantCallFiles)
-        
-        pw.close()
-      }
-    }
-
-    add(SetupDeliveryStructure(fastqs, processedBamFile, qualityControlFiles, variantCallFiles))
+    add(DeliveryUtils.SetupDeliveryStructure(
+      samples, processedBamFile,
+      qualityControlDir, variantCallFiles,
+      deliveryDirectory))
   }
 
   /**
@@ -459,15 +439,13 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
         val fastqs =
           samples.
             flatMap(x => x._2).
-            map(x => x.getFastqs).
-            flatMap(x => x.getFiles).
             toSeq
 
         val aligments = alignments(samples)
         val qc = qualityControl(aligments.values.flatten.toSeq).map(x => x._1)
         val processedAlignments = dataProcessing(mergedAlignments(aligments))
         val variantCallFiles = variantCalling(processedAlignments)
-        runCreateDelivery(fastqs, processedAlignments, qc, variantCallFiles, deliveryDir)
+        runCreateDelivery(fastqs, processedAlignments, aligmentQCOutputDir, variantCallFiles, deliveryDir)
       }
 
     }
