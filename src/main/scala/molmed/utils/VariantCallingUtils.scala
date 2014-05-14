@@ -25,7 +25,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
      * Utility function for performing the variant calling workflow associated
      * with the UnifiedGenotyper
      */
-    def variantCallUsingUnifiedGenotyper(target: VariantCallingTarget) = {
+    def variantCallUsingUnifiedGenotyper(target: VariantCallingTarget): Seq[File] = {
       if (!config.noIndels) {
         // Indel calling, recalibration and evaulation
         config.qscript.add(new UnifiedGenotyperIndelCall(target, config.testMode, config.downsampleFraction))
@@ -45,39 +45,44 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
         config.qscript.add(new SnpCut(target))
         config.qscript.add(new SnpEvaluation(target))
       }
+
+      Seq(target.rawSnpVCF, target.rawIndelVCF)
     }
 
     /**
      * Utility function for performing the variant calling workflow associated
      * with the HaploTypeCaller
      */
-    def variantCallUsingHaplotypeCaller(target: VariantCallingTarget) = {
+    def variantCallUsingHaplotypeCaller(target: VariantCallingTarget): Seq[File] = {
 
       // Call variants separately and merge into one vcf file
       // if the pipeline is set to run a combined analysis.
-      if (target.nSamples > 1) {
-        val gVcfFiles =
-          target.bamList.map(bam => {
+      val variantCallFiles: Seq[File] =
+        if (target.nSamples > 1) {
+          val gVcfFiles =
+            target.bamList.map(bam => {
 
-            val modifiedTarget =
-              new VariantCallingTarget(config.outputDir,
-                bam.getName(),
-                gatkOptions.reference,
-                Seq(bam),
-                gatkOptions.intervalFile,
-                config.isLowPass, config.isExome, 1)
+              val modifiedTarget =
+                new VariantCallingTarget(config.outputDir,
+                  bam.getName(),
+                  gatkOptions.reference,
+                  Seq(bam),
+                  gatkOptions.intervalFile,
+                  config.isLowPass, config.isExome, 1)
 
-            config.qscript.add(new HaplotypeCallerBase(modifiedTarget, config.testMode, config.downsampleFraction, config.pcrFree))
-            modifiedTarget.gVCFFile
-          })
-        config.qscript.add(new GenotypeGVCF(gVcfFiles, target, config.testMode))
+              config.qscript.add(new HaplotypeCallerBase(modifiedTarget, config.testMode, config.downsampleFraction, config.pcrFree))
+              modifiedTarget.gVCFFile
+            })
+          config.qscript.add(new GenotypeGVCF(gVcfFiles, target, config.testMode))
+          Seq(target.rawCombinedVariants)
 
-      } else {
-        // If the pipeline is setup to run each sample individually, 
-        // output one final vcf file per sample.
-        config.qscript.add(new HaplotypeCallerBase(target, config.testMode, config.downsampleFraction, config.pcrFree))
-        config.qscript.add(new GenotypeGVCF(Seq(target.gVCFFile), target, config.testMode))
-      }
+        } else {
+          // If the pipeline is setup to run each sample individually, 
+          // output one final vcf file per sample.
+          config.qscript.add(new HaplotypeCallerBase(target, config.testMode, config.downsampleFraction, config.pcrFree))
+          config.qscript.add(new GenotypeGVCF(Seq(target.gVCFFile), target, config.testMode))
+          Seq(target.rawCombinedVariants)
+        }
 
       config.qscript.add(new SelectVariantType(target, SNPs, config.testMode))
       config.qscript.add(new SelectVariantType(target, INDELs, config.testMode))
@@ -94,6 +99,9 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
         config.qscript.add(new IndelCut(target))
         config.qscript.add(new IndelEvaluation(target))
       }
+      
+      variantCallFiles
+      
     }
 
     // Establish if all samples should be run separately of if they should be
@@ -148,15 +156,15 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
     }
 
-    for (target <- targets) {
-      config.variantCaller match {
-        case Some(GATKUnifiedGenotyper) => variantCallUsingUnifiedGenotyper(target)
-        case Some(GATKHaplotypeCaller)  => variantCallUsingHaplotypeCaller(target)
-      }
-    }
-
-    //@TODO 
-    Seq.empty
+    val variantFiles: Seq[File] =
+      (for (target <- targets) yield {
+        config.variantCaller match {
+          case Some(GATKUnifiedGenotyper) => variantCallUsingUnifiedGenotyper(target)
+          case Some(GATKHaplotypeCaller)  => variantCallUsingHaplotypeCaller(target)
+        }
+      }).flatten
+    
+      variantFiles
   }
 
   def bai(bam: File): File = new File(bam + ".bai")
