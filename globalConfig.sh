@@ -4,7 +4,7 @@ export LD_LIBRARY_PATH=/proj/b2010028/piper_resources/slurm-drmaa/lib/:$LD_LIBRA
 #---------------------------------------------
 # Check if we are running on uppmax or locally, and set the jobrunners and path accordingly
 #---------------------------------------------
-if [ -f "/proj/b2010028/piper_resources/slurm-drmaa/lib/" ];
+if [ -f "/proj/b2010028/piper_resources/slurm-drmaa/lib/libdrmaa.so" ];
 then
 	JOB_RUNNER=" Drmaa"
 	JOB_NATIVE_ARGS="-A ${PROJECT_ID} -p node -N 1 ${QOS}"
