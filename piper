@@ -1,3 +1,6 @@
 #!/bin/bash
 
-java ${JAVA_TMP} -cp target/scala-2.10/piper_2.10-0.1-SNAPSHOT.jar:lib/Queue.jar org.broadinstitute.sting.queue.QCommandLine "$@"
+PREFIX=$(dirname $0)
+
+java ${JAVA_TMP} -cp $PREFIX/target/scala-2.10/piper_2.10-0.1-SNAPSHOT.jar:$PREFIX/lib/Queue.jar org.broadinstitute.sting.queue.QCommandLine "$@"
+
