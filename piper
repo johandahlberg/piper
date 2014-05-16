@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PREFIX=$(dirname $0)
+PREFIX=$( dirname "${BASH_SOURCE[0]}" )
 
 java ${JAVA_TMP} -cp $PREFIX/target/scala-2.10/piper_2.10-0.1-SNAPSHOT.jar:$PREFIX/lib/Queue.jar org.broadinstitute.sting.queue.QCommandLine "$@"
 
