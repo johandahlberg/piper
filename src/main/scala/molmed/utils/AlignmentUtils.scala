@@ -4,8 +4,6 @@ import java.io.File
 
 import scala.collection.JavaConversions._
 
-import org.broadinstitute.sting.commandline.Input
-import org.broadinstitute.sting.commandline.Output
 import org.broadinstitute.sting.queue.QScript
 import org.broadinstitute.sting.queue.function.CommandLineFunction
 import org.broadinstitute.sting.queue.function.InProcessFunction

@@ -1,21 +1,17 @@
 package molmed.utils
 
 import java.io.File
-import org.broadinstitute.sting.commandline.Argument
-import org.broadinstitute.sting.commandline.Input
 import org.broadinstitute.sting.queue.function.InProcessFunction
 import molmed.queue.setup.SampleAPI
-import org.broadinstitute.sting.commandline.Output
 
 object DeliveryUtils {
-
   case class SetupDeliveryStructure(
-    @Input samples: Seq[SampleAPI],
-    @Input processedBamFiles: Seq[File],
-    @Input qualityControlDir: File,
-    @Input variantCallFiles: Seq[File],
-    @Output deliveryDirectory: File)
-      extends InProcessFunction {
+    @Argument var samples: Seq[SampleAPI],
+    @Input var processedBamFiles: Seq[File],
+    @Input var qualityControlDir: File,
+    @Input var variantCallFiles: Seq[File],
+    @Output var deliveryDirectory: File)
+      extends InProcessFunction {    
 
     def createHardLinksForSamples(samples: Seq[SampleAPI], outputDir: File) {
       for ((sampleName, samplesWithThatName) <- samples.groupBy(x => x.getSampleName)) {
@@ -45,7 +41,7 @@ object DeliveryUtils {
       }
     }
 
-    def createHardLinksForQualityControlFiles(qualityControlDirectory: File, outputDir: File) {      
+    def createHardLinksForQualityControlFiles(qualityControlDirectory: File, outputDir: File) {
       createHardLinksForFiles(Seq(qualityControlDirectory), outputDir)
     }
 
@@ -66,10 +62,10 @@ object DeliveryUtils {
       val variantCallsDir = new File(deliveryDirectory + "/variants_calls")
       variantCallsDir.mkdirs()
 
-      createHardLinksForSamples(samples, rawDir)
+      //createHardLinksForSamples(samples, rawDir)
       createHardLinksForFiles(processedBamFiles, alignedDir)
-      createHardLinksForQualityControlFiles(qualityControlDir, qualityControlOutputDir)
-      createHardLinksForFiles(variantCallFiles, variantCallsDir)
+      //createHardLinksForQualityControlFiles(qualityControlDir, qualityControlOutputDir)
+      //createHardLinksForFiles(variantCallFiles, variantCallsDir)
     }
   }
 

@@ -1,12 +1,14 @@
 package molmed.utils
 
-import org.broadinstitute.sting.queue.QScript
-import org.broadinstitute.sting.queue.extensions.gatk.CommandLineGATK
 import java.io.File
-import org.broadinstitute.sting.queue.extensions.gatk._
-import org.broadinstitute.sting.utils.baq.BAQ.CalculationMode
+
 import org.broadinstitute.sting.gatk.walkers.indels.IndelRealigner.ConsensusDeterminationModel
-import org.broadinstitute.sting.commandline.Argument
+import org.broadinstitute.sting.queue.extensions.gatk.BaseRecalibrator
+import org.broadinstitute.sting.queue.extensions.gatk.CommandLineGATK
+import org.broadinstitute.sting.queue.extensions.gatk.IndelRealigner
+import org.broadinstitute.sting.queue.extensions.gatk.PrintReads
+import org.broadinstitute.sting.queue.extensions.gatk.RealignerTargetCreator
+import org.broadinstitute.sting.utils.baq.BAQ.CalculationMode
 
 /**
  * Commandline wappers for GATK programs.

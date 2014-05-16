@@ -5,5 +5,4 @@ package molmed.queue
  * code relating to reading run reports to import potentially interesting information.
  */
 package object setup {
-
 }

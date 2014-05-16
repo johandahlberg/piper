@@ -1,16 +1,16 @@
 package molmed.utils
 
-import java.io.PrintWriter
-import org.broadinstitute.sting.queue.function.InProcessFunction
 import java.io.File
-import org.broadinstitute.sting.commandline.Input
+import java.io.PrintWriter
+
+import scala.collection.JavaConversions.seqAsJavaList
 import scala.io.Source
-import org.broadinstitute.sting.commandline.Output
+
+import org.broadinstitute.sting.queue.function.InProcessFunction
+
 import net.sf.samtools.SAMFileHeader
-import net.sf.samtools.SAMTextHeaderCodec
 import net.sf.samtools.SAMFileReader
-import scala.collection.JavaConversions._
-import org.broadinstitute.sting.commandline.Argument
+import net.sf.samtools.SAMTextHeaderCodec
 
 object BedToIntervalUtils {
 

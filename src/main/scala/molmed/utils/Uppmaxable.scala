@@ -1,8 +1,5 @@
 package molmed.utils
 
-import org.broadinstitute.sting.commandline.Hidden
-import org.broadinstitute.sting.commandline.Argument
-
 /**
  * Trait holding the parameters that are needed for a QScript to run on Uppmax.
  * Extend QScript with this to run add them to the commandline arguments.

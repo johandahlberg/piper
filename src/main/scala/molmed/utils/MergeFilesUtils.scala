@@ -1,12 +1,8 @@
 package molmed.utils
 
 import java.io.File
-
 import scala.annotation.elidable
 import scala.annotation.elidable.ASSERTION
-
-import org.broadinstitute.sting.commandline.Input
-import org.broadinstitute.sting.commandline.Output
 import org.broadinstitute.sting.queue.QScript
 import org.broadinstitute.sting.queue.function.InProcessFunction
 

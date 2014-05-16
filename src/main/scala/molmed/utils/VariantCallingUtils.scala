@@ -47,7 +47,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
         config.qscript.add(new SnpEvaluation(target))
       }
 
-      Seq(target.evalFile, target.evalIndelFile)
+      Seq(target.rawSnpVCF, target.rawIndelVCF, target.evalFile, target.evalIndelFile)
     }
 
     /**
@@ -101,7 +101,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
         config.qscript.add(new IndelEvaluation(target))
       }
 
-      Seq(target.evalFile, target.evalIndelFile)
+      Seq(target.rawCombinedVariants, target.evalFile, target.evalIndelFile)
 
     }
 

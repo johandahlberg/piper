@@ -3,7 +3,6 @@ package molmed.utils
 import molmed.queue.setup.SetupXMLReaderAPI
 import molmed.queue.setup.SetupXMLReader
 import java.io.File
-import org.broadinstitute.sting.commandline.Input
 
 /**
  * Trait used with QScripts to load a setup xml file.
@@ -19,7 +18,7 @@ trait UppmaxXMLConfiguration extends Uppmaxable {
 
   /**
    * Will set all the uppmax parameters in the Uppmaxable trait.
-   * 
+   *
    * @param setupXML	xml setup file
    * @param testMode	run in test mode
    * @return a container with the uppmax config.

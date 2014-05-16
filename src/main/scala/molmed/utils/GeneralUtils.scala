@@ -1,27 +1,30 @@
 package molmed.utils
 
 import java.io.File
-import org.broadinstitute.sting.queue.QScript
-import org.broadinstitute.sting.queue.extensions.picard.MergeSamFiles
-import org.broadinstitute.sting.queue.function.ListWriterFunction
-import org.broadinstitute.sting.queue.extensions.picard.SortSam
-import net.sf.samtools.SAMFileHeader.SortOrder
-import org.broadinstitute.sting.commandline.Input
-import org.broadinstitute.sting.commandline.Output
-import org.broadinstitute.sting.commandline.Argument
+import java.io.PrintWriter
+
+import scala.annotation.elidable
+import scala.annotation.elidable.ASSERTION
+import scala.collection.immutable.Stream.consWrapper
+import scala.io.Source
+import scala.sys.process.Process
+
+import org.broadinstitute.sting.queue.extensions.picard.CalculateHsMetrics
 import org.broadinstitute.sting.queue.extensions.picard.MarkDuplicates
-import org.broadinstitute.sting.queue.extensions.picard.ValidateSamFile
-import org.broadinstitute.sting.queue.extensions.picard.AddOrReplaceReadGroups
-import molmed.queue.extensions.picard.FixMateInformation
+import org.broadinstitute.sting.queue.extensions.picard.MergeSamFiles
 import org.broadinstitute.sting.queue.extensions.picard.RevertSam
 import org.broadinstitute.sting.queue.extensions.picard.SamToFastq
-import molmed.queue.extensions.picard.BuildBamIndex
-import molmed.queue.extensions.RNAQC.RNASeQC
+import org.broadinstitute.sting.queue.extensions.picard.SortSam
+import org.broadinstitute.sting.queue.extensions.picard.ValidateSamFile
 import org.broadinstitute.sting.queue.function.InProcessFunction
-import java.io.PrintWriter
-import scala.io.Source
+import org.broadinstitute.sting.queue.function.ListWriterFunction
+
+import molmed.queue.extensions.RNAQC.RNASeQC
+import molmed.queue.extensions.picard.BuildBamIndex
 import molmed.queue.extensions.picard.CollectTargetedPcrMetrics
-import org.broadinstitute.sting.queue.extensions.picard.CalculateHsMetrics
+import molmed.queue.extensions.picard.FixMateInformation
+import molmed.utils.ReadGroupUtils.getSampleNameFromReadGroups
+import net.sf.samtools.SAMFileHeader.SortOrder
 
 /**
  * Assorted commandline wappers, mostly for file doing small things link indexing files. See case classes to figure out
