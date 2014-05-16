@@ -25,8 +25,8 @@ else
 	PATH_TO_CUTADAPT="/usr/local/bin/cutadapt"
 	PATH_TO_CUFFLINKS="$HOME/Bin/cufflinks/cufflinks"
 	PATH_TO_CUFFDIFF=$PATH_TO_CUFFLINKS
-	GATK_BUNDLE_B37="/local/data/gatk_bundle/b37"
-	GATK_BUNDLE_HG19="/local/data/gatk_bundle/hg19"
+	GATK_BUNDLE_B37="/local/test_data/piper_references/gatk_bundle/2.8/b37"
+	GATK_BUNDLE_HG19="/local/test_data/piper_references/gatk_bundle/2.8/b37"
 fi
 
 #---------------------------------------------
