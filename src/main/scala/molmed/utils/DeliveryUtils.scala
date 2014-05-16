@@ -1,12 +1,11 @@
 package molmed.utils
 
 import java.io.File
-
 import org.broadinstitute.sting.commandline.Argument
 import org.broadinstitute.sting.commandline.Input
 import org.broadinstitute.sting.queue.function.InProcessFunction
-
 import molmed.queue.setup.SampleAPI
+import org.broadinstitute.sting.commandline.Output
 
 object DeliveryUtils {
 
@@ -15,7 +14,7 @@ object DeliveryUtils {
     @Input processedBamFiles: Seq[File],
     @Input qualityControlDir: File,
     @Input variantCallFiles: Seq[File],
-    @Argument deliveryDirectory: File)
+    @Output deliveryDirectory: File)
       extends InProcessFunction {
 
     def createHardLinksForSamples(samples: Seq[SampleAPI], outputDir: File) {
