@@ -232,10 +232,10 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
     aligmentQCOutputDir: File,
     miscOutputDir: File,
     gatkOptions: GATKConfig,
-    generalUtils: GeneralUtils): Seq[(File, Boolean)] = {
+    generalUtils: GeneralUtils): Seq[File] = {
 
     val qualityControlUtils = new AlignmentQCUtils(qscript, gatkOptions, projectName, uppmaxConfig)
-    val qualityControlPassed = qualityControlUtils.aligmentQC(bamFiles, aligmentQCOutputDir)
+    val baseQCOutputFiles = qualityControlUtils.aligmentQC(bamFiles, aligmentQCOutputDir)
 
     /**
      * For exomes, calculate hybrid selection metrics.
@@ -248,7 +248,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
       }
     }
 
-    qualityControlPassed
+    baseQCOutputFiles
 
   }
 
@@ -310,7 +310,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
   def runCreateDelivery(
     samples: Seq[SampleAPI],
     processedBamFile: Seq[File],
-    qualityControlDir: File,
+    qualityControlDir: Seq[File],
     variantCallFiles: Seq[File],
     deliveryDirectory: File): Unit = {
 
@@ -417,7 +417,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
     analysisStepsToRun match {
       case List(AnalysisSteps.Alignment, AnalysisSteps.QualityControl) => {
         qualityControl(
-          alignments(samples).values.flatten.toSeq).map(f => f._1)
+          alignments(samples).values.flatten.toSeq)
       }
       case e if e.contains(AnalysisSteps.MergePerSample) => {
         val aligments = alignments(samples)
@@ -442,10 +442,10 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
             toSeq
 
         val aligments = alignments(samples)
-        val qc = qualityControl(aligments.values.flatten.toSeq).map(x => x._1)
+        val qcFiles = qualityControl(aligments.values.flatten.toSeq)
         val processedAlignments = dataProcessing(mergedAlignments(aligments))
         val variantCallFiles = variantCalling(processedAlignments)
-        runCreateDelivery(fastqs, processedAlignments, aligmentQCOutputDir, variantCallFiles, deliveryDir)
+        runCreateDelivery(fastqs, processedAlignments, qcFiles, variantCallFiles, deliveryDir)
       }
 
     }

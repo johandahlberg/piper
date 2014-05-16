@@ -8,7 +8,7 @@ object DeliveryUtils {
   case class SetupDeliveryStructure(
     @Argument var samples: Seq[SampleAPI],
     @Input var processedBamFiles: Seq[File],
-    @Input var qualityControlDir: File,
+    @Input var qualityControlFiles: Seq[File],
     @Input var variantCallFiles: Seq[File],
     @Output var deliveryDirectory: File)
       extends InProcessFunction {    
@@ -33,17 +33,14 @@ object DeliveryUtils {
       }
     }
 
-    def createHardLinksForFiles(files: Seq[File], outputDir: File) {
+    def createHardLinksForFiles(files: Seq[File], outputDir: File, withWildCard: Boolean = false) {
       for (file <- files) {
         val outputFile = new File(outputDir + "/" + file.getName())
-        val exitCode = GeneralUtils.linkProcess(file, outputFile).!
+        val exitCode = GeneralUtils.linkProcess(file, outputFile, withWildCard).!
         assert(exitCode == 0, "Couldn't create hard link from: " + file.getAbsolutePath() + " to: " + outputFile.getAbsolutePath())
       }
     }
 
-    def createHardLinksForQualityControlFiles(qualityControlDirectory: File, outputDir: File) {
-      createHardLinksForFiles(Seq(qualityControlDirectory), outputDir)
-    }
 
     def run() {
 
@@ -64,7 +61,7 @@ object DeliveryUtils {
 
       createHardLinksForSamples(samples, rawDir)
       createHardLinksForFiles(processedBamFiles, alignedDir)
-      createHardLinksForQualityControlFiles(qualityControlDir, qualityControlOutputDir)
+      createHardLinksForFiles(qualityControlFiles, qualityControlOutputDir, withWildCard = true)
       createHardLinksForFiles(variantCallFiles, variantCallsDir)
     }
   }

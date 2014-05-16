@@ -312,10 +312,21 @@ object GeneralUtils {
    * Will overwrite destination file if it exists!
    * @param inputFile	file to link
    * @param	outputFile	path to hardlink
+   * @param	withWildcard	Should the path end with a * or not.
    */
-  def linkProcess(inputFile: File, outputFile: File) = {
+  def linkProcess(inputFile: File, outputFile: File, withWildcard: Boolean = false) = {
     import scala.sys.process.Process
-    Process("""cp --recursive --force --link """ + inputFile.getAbsolutePath() + """ """ + outputFile.getAbsolutePath())
+
+    def addWildCard: String = if (withWildcard) "*" else ""
+
+    val processString =
+      """cp --recursive --force --link """ +
+        inputFile.getAbsolutePath() +
+        addWildCard +
+        """ """ +
+        outputFile.getAbsolutePath()
+    
+        Process(processString)
   }
 
 }
