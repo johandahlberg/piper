@@ -47,14 +47,14 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
         config.qscript.add(new SnpEvaluation(target))
       }
 
-      Seq(target.rawSnpVCF, target.rawIndelVCF)
+      Seq(target.evalFile, target.evalIndelFile)
     }
 
     /**
      * Utility function for performing the variant calling workflow associated
      * with the HaploTypeCaller
      */
-    def variantCallUsingHaplotypeCaller(target: VariantCallingTarget): File = {
+    def variantCallUsingHaplotypeCaller(target: VariantCallingTarget): Seq[File] = {
 
       // Call variants separately and merge into one vcf file
       // if the pipeline is set to run a combined analysis.
@@ -101,7 +101,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
         config.qscript.add(new IndelEvaluation(target))
       }
 
-      variantCallFiles
+      Seq(target.evalFile, target.evalIndelFile)
 
     }
 
@@ -161,7 +161,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
       targets.flatMap(target => {
         config.variantCaller match {
           case Some(GATKUnifiedGenotyper) => variantCallUsingUnifiedGenotyper(target)
-          case Some(GATKHaplotypeCaller)  => Seq(variantCallUsingHaplotypeCaller(target))
+          case Some(GATKHaplotypeCaller)  => variantCallUsingHaplotypeCaller(target)
         }
       })
 
