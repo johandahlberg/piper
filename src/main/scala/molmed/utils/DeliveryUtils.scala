@@ -62,10 +62,10 @@ object DeliveryUtils {
       val variantCallsDir = new File(deliveryDirectory + "/variants_calls")
       variantCallsDir.mkdirs()
 
-      //createHardLinksForSamples(samples, rawDir)
+      createHardLinksForSamples(samples, rawDir)
       createHardLinksForFiles(processedBamFiles, alignedDir)
-      //createHardLinksForQualityControlFiles(qualityControlDir, qualityControlOutputDir)
-      //createHardLinksForFiles(variantCallFiles, variantCallsDir)
+      createHardLinksForQualityControlFiles(qualityControlDir, qualityControlOutputDir)
+      createHardLinksForFiles(variantCallFiles, variantCallsDir)
     }
   }
 
