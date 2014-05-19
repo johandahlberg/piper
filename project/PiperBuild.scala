@@ -18,7 +18,7 @@ object PiperBuild extends Build {
         Seq(
           packMain := Map(
             "piper" -> "org.broadinstitute.sting.queue.QCommandLine",
-            "setupFileCreator" -> "molmed.apps.SetupFileCreator"))
+            "setupFileCreator" -> "molmed.apps.setupcreator.SetupFileCreator"))
           ++ dependencies)
     .configs(PipelineTestRun)
     .settings(inConfig(PipelineTestRun)(Defaults.testTasks): _*)
