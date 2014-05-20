@@ -326,7 +326,7 @@ object GeneralUtils {
         outputFile.getAbsolutePath()
 
     val processString =
-      """cp --recursive --force --link """ +
+      """bash cp --recursive --force --link """ +
         inputFile.getAbsolutePath() +
         addWildCard +
         """ """ +
