@@ -319,13 +319,14 @@ object GeneralUtils {
     import scala.sys.process.Process
 
     def addWildCard: String = if (withWildcard) "*" else ""
-
+    def stripToParentFile: String = if(withWildcard) outputFile.getParent() else outputFile.getAbsolutePath()   
+      
     val processString =
       """cp --recursive --force --link """ +
         inputFile.getAbsolutePath() +
         addWildCard +
         """ """ +
-        outputFile.getAbsolutePath()
+        stripToParentFile
 
     val exitCode = Process(processString).!
 
