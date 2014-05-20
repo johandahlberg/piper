@@ -335,7 +335,7 @@ object GeneralUtils {
     val exitCode = Process(processString).!
 
     assert(exitCode == 0,
-      "Couldn't create hard link with command: " + processString)
+      "Exit status: " + exitCode + " Couldn't create hard link with command: " + processString)
 
     exitCode
   }
