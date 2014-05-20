@@ -316,8 +316,8 @@ object GeneralUtils {
    * @return the exit status of the process.
    */
   def linkProcess(inputFile: File, outputFile: File, withWildcard: Boolean = false): Int = {
-    import scala.sys.process.Process    
-    
+    import scala.sys.process.Process
+
     def addWildCard: String = if (withWildcard) "*" else ""
     def stripToParentFile: String =
       if (withWildcard)
@@ -325,19 +325,16 @@ object GeneralUtils {
       else
         outputFile.getAbsolutePath()
 
-    val processString =
-      "sh -c \"" +
-      """cp --recursive --force --link """ +
-        inputFile.getAbsolutePath() +
-        addWildCard +
-        """ """ +
-        stripToParentFile +
-        "\""
+    val processCommand =
+      Seq("sh", "-c",
+        "cp --recursive --force --link ",
+        inputFile.getAbsolutePath() + addWildCard,
+        stripToParentFile)
 
-    val exitCode = Process(processString).!
+    val exitCode = Process(processCommand).!
 
     assert(exitCode == 0,
-      "Exit status: " + exitCode + " Couldn't create hard link with command: " + processString)
+      "Exit status: " + exitCode + " Couldn't create hard link with command: " + processCommand)
 
     exitCode
   }
