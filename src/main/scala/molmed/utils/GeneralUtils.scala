@@ -316,8 +316,8 @@ object GeneralUtils {
    * @return the exit status of the process.
    */
   def linkProcess(inputFile: File, outputFile: File, withWildcard: Boolean = false): Int = {
-    import scala.sys.process.Process
-
+    import scala.sys.process.Process    
+    
     def addWildCard: String = if (withWildcard) "*" else ""
     def stripToParentFile: String =
       if (withWildcard)
@@ -326,7 +326,7 @@ object GeneralUtils {
         outputFile.getAbsolutePath()
 
     val processString =
-      """bash cp --recursive --force --link """ +
+      """sh -c cp --recursive --force --link """ +
         inputFile.getAbsolutePath() +
         addWildCard +
         """ """ +
