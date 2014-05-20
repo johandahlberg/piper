@@ -94,6 +94,8 @@ object SetupFileCreator extends App {
         config.reference.get)
 
     SetupUtils.writeToFile(projectWithSamples, config.outputFile.get)
+    
+    println("Successfully created: " + config.outputFile.get + ".")
   }
 
   def runInInteractiveMode(config: Config): Unit = {

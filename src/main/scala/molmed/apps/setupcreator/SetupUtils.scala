@@ -162,6 +162,11 @@ object SetupUtils {
     project
   }
 
+  /**
+   * Writes the project to a specified xml file.
+   * @param project		The project to write
+   * @param outputFile	The file to write to.
+   */
   def writeToFile(project: Project, outputFile: File) = {
     // The xml marshaller is used to create the xml instance
     val context = JAXBContext.newInstance(classOf[Project])
