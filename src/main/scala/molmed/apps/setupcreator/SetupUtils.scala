@@ -16,11 +16,24 @@ import molmed.xml.setup.Samplefolder
 
 object SetupUtils {
 
+  /**
+   * Create a XML-serializable project instance
+   */
   def createProject(): Project = {
     val project = new Project
     project
   }
 
+  /**
+   * Set the meta data for a project
+   * @param project	The project to a apply the meta data to.
+   * @param projectName
+   * @param	seqencingPlatform
+   * @param sequencingCenter
+   * @param uppmaxProjectId
+   * @param uppmaxQoSFlag
+   * @return The project modified with the meta data.
+   */
   def setMetaData(project: Project)(projectName: String,
                                     seqencingPlatform: String,
                                     sequencingCenter: String,
@@ -39,7 +52,48 @@ object SetupUtils {
     project
   }
 
-  def setReports(project: Project)(runFolderPaths: Seq[File]): (Project, Seq[Runfolder]) = {
+  /**
+   * From a Seq of sample paths, this will create a project structure including 
+   * all the samples referred to.
+   * @param project		the project to add the samples to
+   * @param samplePaths	paths to all sample directoris the you which to use.
+   * @param reference	the reference to add.
+   * @return
+   */
+  def setupRunfolderStructureFromSamplePaths(project: Project)(samplePaths: Seq[File], reference: File): Project = {
+
+    require(samplePaths.forall(p => p.isDirectory()), "You supplied file instead of a directory to the sample path")
+    require(reference.exists(), "Reference " + reference.getAbsolutePath() +  " supplied did not exist.")
+    
+    val modifiedProject = samplePaths.
+      foldLeft(project)((project, sampleDir) => {
+        val runFolderDir = sampleDir.getParentFile()
+        val projectWithRunfolder = setRunfolders(project)(Seq(runFolderDir))
+
+        val runFolderList = projectWithRunfolder.getInputs().getRunfolder()
+
+        // This is now done as a side effect - which is not pretty, but
+        // hopefully it will work.
+        for (runfolder <- runFolderList) {
+          val sampleFolder = runfolder.getSamplefolder()
+          addSampleFolder(sampleFolder, Seq(sampleDir), reference)
+        }
+
+        projectWithRunfolder
+      })
+
+    modifiedProject
+  }
+
+  /**
+   * Will look for a matching report file (with a tsv or xml) file ending in
+   * the directories provided by runFolderPaths.
+   *
+   * @param project			The project to add the runfolders to.
+   * @param runFolderPaths	Paths to the run folders to add
+   * @return the project with runfolders set.
+   */
+  def setRunfolders(project: Project)(runFolderPaths: Seq[File]): Project = {
 
     val runFolderList = project.getInputs().getRunfolder()
 
@@ -62,18 +116,39 @@ object SetupUtils {
 
     }))
 
-    (project, runFolderList)
+    project
   }
 
-  def setSamplesAndReference(project: Project)(reference: File): Project = {
+  private def addSampleFolder(sampleFolderList: Seq[Samplefolder], sampleFolders: Seq[File], reference: File) = {
+
+    val sampleFolderInstances = sampleFolders.map(sampleFolder => {
+      val sample = new Samplefolder
+      sample.setName(sampleFolder.getName().replace("Sample_", ""))
+      sample.setPath(sampleFolder.getAbsolutePath())
+      sample.setReference(reference.getAbsolutePath())
+      sample
+    })
+
+    sampleFolderList.addAll(sampleFolderInstances)
+  }
+
+  /**
+   * Setup the samples based on the runfolders already added to the project
+   * by the setReports. This will look in the directories generated which
+   * contain the report files and get all samples from those.
+   * @param	project		project to add the reference to
+   * @param reference	reference to add.
+   * @return the project with all samples set up.
+   */
+  def setReferenceForSamples(project: Project)(reference: File): Project = {
 
     val runFolderList = project.getInputs().getRunfolder()
 
     runFolderList.map(runFolder => {
-      
+
       val sampleFolderList = runFolder.getSamplefolder()
       val runFolderPath = (new File(runFolder.getReport)).getParentFile()
-      
+
       val sampleFolders =
         runFolderPath.
           listFiles().
@@ -81,15 +156,7 @@ object SetupUtils {
             startsWith("Sample_")).
           toList
 
-      val sampleFolderInstances = sampleFolders.map(sampleFolder => {
-        val sample = new Samplefolder
-        sample.setName(sampleFolder.getName().replace("Sample_", ""))
-        sample.setPath(sampleFolder.getAbsolutePath())
-        sample.setReference(reference.getAbsolutePath())
-        sample
-      })
-
-      sampleFolderList.addAll(sampleFolderInstances)
+      addSampleFolder(sampleFolderList, sampleFolders, reference)
     })
 
     project

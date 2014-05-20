@@ -13,35 +13,87 @@ import scopt.OptionParser
 object SetupFileCreator extends App {
 
   case class Config(
-    interactive: Boolean = false,
-    outputFile: Option[File] = None)
+    interactive: Option[Boolean] = Some(false),
+    outputFile: Option[File] = None,
+    projectName: Option[String] = None,
+    seqencingPlatform: Option[String] = None,
+    sequencingCenter: Option[String] = None,
+    uppmaxProjectId: Option[String] = None,
+    uppmaxQoSFlag: Option[String] = Some(""),
+    sampleFolders: Option[Seq[File]] = None,
+    reference: Option[File] = None)
 
   val parser = new OptionParser[Config]("java -cp <class path to piper.jar> molmed.apps.SetupFileCreator") {
     head("SetupFileCreator", " - A utility program to create pipeline setup xml files for Piper..")
 
-    opt[Unit]('i', "interactive") optional () valueName ("Start the SetupFileCreator in interactive mode") action { (x, c) =>
+    opt[Unit]('x', "interactive") optional () valueName ("Start the SetupFileCreator in interactive mode") action { (x, c) =>
       c.copy(interactive = true)
     } text ("This is a optional argument.")
 
     opt[File]('o', "output") required () valueName ("Output xml file.") action { (x, c) =>
       c.copy(outputFile = Some(x))
     } text ("This is a required argument.")
+
+    opt[String]('p', "project_name") optional () valueName ("The name of this project.") action { (x, c) =>
+      c.copy(projectName = Some(x))
+    } text ("This is a required argument if you are not using interactive mode.")
+
+    opt[String]('s', "sequencing_platform") optional () valueName ("The technology used for sequencing, e.g. Illumina") action { (x, c) =>
+      c.copy(seqencingPlatform = Some(x))
+    } text ("This is a required argument if you are not using interactive mode.")
+
+    opt[String]('c', "sequencing_center") optional () valueName ("Where the sequencing was carried out, e.g. NGI") action { (x, c) =>
+      c.copy(sequencingCenter = Some(x))
+    } text ("This is a required argument if you are not using interactive mode.")
+
+    opt[String]('a', "uppnex_project_id") optional () valueName ("The uppnex project id to charge the core hours to.") action { (x, c) =>
+      c.copy(uppmaxProjectId = Some(x))
+    } text ("This is a required argument if you are not using interactive mode.")
+
+    opt[File]('i', "input_sample") unbounded () optional () valueName ("Input path to sample directory.") action { (x, c) =>
+      c.copy(sampleFolders = c.sampleFolders.getOrElse(Seq()) :+ x)
+    } text ("his is a required argument if you are not using interactive mode. Can be specified multiple times.")
+
+    opt[File]('r', "reference") optional () valueName ("Reference fasta file to use.") action { (x, c) =>
+      c.copy(reference = Some(x))
+    } text ("This is a required argument if you are not using interactive mode.")
+
   }
 
   // Start up the app!
   parser.parse(args, new Config()) map { config =>
 
-    if (config.interactive)
-      runInInteractiveMode(config)
+    val allFieldsAreSet = config.getClass().getDeclaredFields.forall(p => p.isDefined)
+
+    if (allFieldsAreSet)
+      if (config.interactive.get)
+        runInInteractiveMode(config)
+      else
+        runNonInteractiveMode(config)
     else
-      runNonInteractiveMode(config)
+      parser.showUsage
 
   } getOrElse {
     // arguments are bad, usage message will have been displayed
   }
 
   def runNonInteractiveMode(config: Config): Unit = {
-    ???
+
+    val project = SetupUtils.createProject()
+
+    val projectWithMetaData = SetupUtils.setMetaData(project)(
+      config.projectName.get,
+      config.seqencingPlatform.get,
+      config.sequencingCenter.get,
+      config.uppmaxProjectId.get,
+      config.uppmaxQoSFlag.get)
+
+    val projectWithSamples =
+      SetupUtils.setupRunfolderStructureFromSamplePaths(projectWithMetaData)(
+        config.sampleFolders.get,
+        config.reference.get)
+
+    SetupUtils.writeToFile(projectWithSamples, config.outputFile.get)
   }
 
   def runInInteractiveMode(config: Config): Unit = {
@@ -97,15 +149,15 @@ object SetupFileCreator extends App {
       rootDir.listFiles().filter(_.isDirectory)
     }
 
-    SetupUtils.setReports(project)(getRunFoldersFromRootDir())
+    val projectWithRunfolders = SetupUtils.setRunfolders(projectWithMetaData)(getRunFoldersFromRootDir())
 
     // -------------------------------------------------
     // Setup sample folders
     // -------------------------------------------------
 
-    SetupUtils.setSamplesAndReference(project)(reference)
+    SetupUtils.setReferenceForSamples(projectWithRunfolders)(reference)
 
     println("Finished setting up project. Writing project xml to " + config.outputFile.get.getAbsolutePath() + " now.")
-    SetupUtils.writeToFile(project, config.outputFile.get)
+    SetupUtils.writeToFile(projectWithRunfolders, config.outputFile.get)
   }
 }
