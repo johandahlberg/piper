@@ -36,8 +36,7 @@ object DeliveryUtils {
     def createHardLinksForFiles(files: Seq[File], outputDir: File, withWildCard: Boolean = false) {
       for (file <- files) {
         val outputFile = new File(outputDir + "/" + file.getName())
-        val exitCode = GeneralUtils.linkProcess(file, outputFile, withWildCard).!
-        assert(exitCode == 0, "Couldn't create hard link from: " + file.getAbsolutePath() + " to: " + outputFile.getAbsolutePath())
+        val exitCode = GeneralUtils.linkProcess(file, outputFile, withWildCard)
       }
     }
 

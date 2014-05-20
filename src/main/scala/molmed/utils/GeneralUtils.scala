@@ -313,8 +313,9 @@ object GeneralUtils {
    * @param inputFile	file to link
    * @param	outputFile	path to hardlink
    * @param	withWildcard	Should the path end with a * or not.
+   * @return the exit status of the process.
    */
-  def linkProcess(inputFile: File, outputFile: File, withWildcard: Boolean = false) = {
+  def linkProcess(inputFile: File, outputFile: File, withWildcard: Boolean = false): Int = {
     import scala.sys.process.Process
 
     def addWildCard: String = if (withWildcard) "*" else ""
@@ -325,8 +326,13 @@ object GeneralUtils {
         addWildCard +
         """ """ +
         outputFile.getAbsolutePath()
-    
-        Process(processString)
+
+    val exitCode = Process(processString).!
+
+    assert(exitCode == 0,
+      "Couldn't create hard link with command: " + processString)
+
+    exitCode
   }
 
 }

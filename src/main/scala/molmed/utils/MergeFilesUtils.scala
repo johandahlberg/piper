@@ -63,12 +63,10 @@ class MergeFilesUtils(qscript: QScript, projectName: Option[String], uppmaxConfi
     def run() {
 
       // Link index
-      val indexExitCode = GeneralUtils.linkProcess(index, outIndex).!
-      assert(indexExitCode == 0, "Couldn't create hard link from: " + index.getAbsolutePath() + " to: " + outIndex.getAbsolutePath())
+      val indexExitCode = GeneralUtils.linkProcess(index, outIndex)
 
       // Link bam
-      val bamExitCode = GeneralUtils.linkProcess(inBam, outBam).!
-      assert(bamExitCode == 0, "Couldn't create hard link from: " + inBam.getAbsolutePath() + " to: " + outBam.getAbsolutePath())
+      val bamExitCode = GeneralUtils.linkProcess(inBam, outBam)
 
     }
 
