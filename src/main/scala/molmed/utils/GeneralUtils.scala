@@ -325,11 +325,14 @@ object GeneralUtils {
       else
         outputFile.getAbsolutePath()
 
+    val command =
+      "cp --recursive --force --link " +
+        inputFile.getAbsolutePath() + addWildCard + " " +
+        stripToParentFile
+
     val processCommand =
       Seq("sh", "-c",
-        "cp --recursive --force --link ",
-        inputFile.getAbsolutePath() + addWildCard,
-        stripToParentFile)
+        command)
 
     val exitCode = Process(processCommand).!
 
