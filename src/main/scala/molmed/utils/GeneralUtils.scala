@@ -326,11 +326,13 @@ object GeneralUtils {
         outputFile.getAbsolutePath()
 
     val processString =
-      """sh -c cp --recursive --force --link """ +
+      "sh -c \"" +
+      """cp --recursive --force --link """ +
         inputFile.getAbsolutePath() +
         addWildCard +
         """ """ +
-        stripToParentFile
+        stripToParentFile +
+        "\""
 
     val exitCode = Process(processString).!
 
