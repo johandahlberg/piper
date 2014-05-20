@@ -343,8 +343,10 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
     alignmentOutputDir.mkdirs()
     val mergedAligmentOutputDir: File = new File(outputDir + "/merged_aligments")
     mergedAligmentOutputDir.mkdirs()
-    val aligmentQCOutputDir: File = new File(outputDir + "/alignment_qc")
-    alignmentOutputDir.mkdirs()
+    val preliminaryAlignmentQCOutputDir: File = new File(outputDir + "/preliminary_alignment_qc")
+    preliminaryAlignmentQCOutputDir.mkdirs()
+    val finalAlignmentQCOutputDir: File = new File(outputDir + "/final_alignment_qc")
+    finalAlignmentQCOutputDir.mkdirs()
     val processedAligmentsOutputDir: File = new File(outputDir + "/processed_alignments")
     processedAligmentsOutputDir.mkdirs()
     val variantCallsOutputDir: File = new File(outputDir + "/variant_calls")
@@ -385,7 +387,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
 
     val qualityControl = runQualityControl(
       _: Seq[File], intervals, reference, uppmaxConfig,
-      aligmentQCOutputDir, miscOutputDir, gatkOptions, generalUtils)
+      _: File, miscOutputDir, gatkOptions, generalUtils)
 
     val dataProcessing = runDataProcessing(
       _: Seq[File], processedAligmentsOutputDir,
@@ -417,22 +419,27 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
     analysisStepsToRun match {
       case List(AnalysisSteps.Alignment, AnalysisSteps.QualityControl) => {
         qualityControl(
-          alignments(samples).values.flatten.toSeq)
+          alignments(samples).values.flatten.toSeq, preliminaryAlignmentQCOutputDir)
       }
       case e if e.contains(AnalysisSteps.MergePerSample) => {
         val aligments = alignments(samples)
-        val qc = qualityControl(aligments.values.flatten.toSeq)
-        mergedAlignments(aligments)
+        val qc = qualityControl(aligments.values.flatten.toSeq, preliminaryAlignmentQCOutputDir)
+        val mergedBams = mergedAlignments(aligments)
       }
       case e if e.contains(AnalysisSteps.DataProcessing) => {
         val aligments = alignments(samples)
-        val qc = qualityControl(aligments.values.flatten.toSeq)
-        dataProcessing(mergedAlignments(aligments))
+        val qc = qualityControl(aligments.values.flatten.toSeq, preliminaryAlignmentQCOutputDir)
+        val mergedBams = mergedAlignments(aligments)
+        val processedBams = dataProcessing(mergedBams)
+        qualityControl(processedBams, finalAlignmentQCOutputDir)
       }
       case e if e.contains(AnalysisSteps.VariantCalling) => {
         val aligments = alignments(samples)
-        val qc = qualityControl(aligments.values.flatten.toSeq)
-        variantCalling(dataProcessing(mergedAlignments(aligments)))
+        val qc = qualityControl(aligments.values.flatten.toSeq, preliminaryAlignmentQCOutputDir)
+        val mergedBams = mergedAlignments(aligments)
+        val processedBams = dataProcessing(mergedBams)
+        qualityControl(processedBams, finalAlignmentQCOutputDir)
+        variantCalling(processedBams)
       }
       case e if e.contains(AnalysisSteps.GenerateDelivery) => {
 
@@ -442,10 +449,13 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
             toSeq
 
         val aligments = alignments(samples)
-        val qcFiles = qualityControl(aligments.values.flatten.toSeq)
-        val processedAlignments = dataProcessing(mergedAlignments(aligments))
-        val variantCallFiles = variantCalling(processedAlignments)
-        runCreateDelivery(fastqs, processedAlignments, qcFiles, variantCallFiles, deliveryDir)
+        val preliminaryQC = qualityControl(aligments.values.flatten.toSeq, preliminaryAlignmentQCOutputDir)
+        val mergedBams = mergedAlignments(aligments)
+        val processedBams = dataProcessing(mergedBams)
+        val finalQC = qualityControl(processedBams, finalAlignmentQCOutputDir)
+        val variantCallFiles = variantCalling(processedBams)
+        
+        runCreateDelivery(fastqs, processedBams, finalQC, variantCallFiles, deliveryDir)
       }
 
     }
