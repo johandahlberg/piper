@@ -82,7 +82,7 @@ object Sthlm2UUSNP extends App {
       for (runfolder <- listSubDirectories(sampleDir)) {
 
         // Create the ua style runfolder
-        val uppsalaStyleRunfolder = new File(config.newUppsalaStyleRoot.get + runfolder.getName())
+        val uppsalaStyleRunfolder = new File(config.newUppsalaStyleRoot.get + "/" + runfolder.getName())
         uppsalaStyleRunfolder.mkdirs()
 
         // Create the sample folders
@@ -91,20 +91,21 @@ object Sthlm2UUSNP extends App {
           sortBy(f => f.getName())
 
         val (sampleName, lane, flowCellId, index) = parseSampleInfoFromFileName(fastqFiles.head)
-        
+
         createHardLink(sampleName, index, lane, 1, fastqFiles(0), uppsalaStyleRunfolder)
         createHardLink(sampleName, index, lane, 2, fastqFiles(1), uppsalaStyleRunfolder)
 
         // Write/append to the report file.
-        val reportFile = new File(config.newUppsalaStyleRoot.get + "/report.tsv")
+        val reportFile = new File(uppsalaStyleRunfolder + "/report.tsv")
         val reportWasThere = reportFile.exists()
         val reportWriter = new PrintWriter(new FileWriter(reportFile, true))
-
-        reportWriter.println(List(sampleName, lane, sampleName, flowCellId).mkString("\t"))
 
         // Only write the header if the file was just created.
         if (!reportWasThere)
           reportWriter.println(List("#SampleName", "Lane", "ReadLibrary", "FlowcellId").mkString("\t"))
+
+        // Use the sample name as a proxy for the library
+        reportWriter.println(List(sampleName, lane, sampleName, flowCellId).mkString("\t"))
 
         reportWriter.close()
       }
