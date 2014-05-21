@@ -17,9 +17,14 @@ object Sthlm2UUSNP extends App {
   case class Config(sthlmRoot: Option[File] = None, newUppsalaStyleRoot: Option[File] = None)
 
   val parser = new OptionParser[Config]("java -cp <class path to piper.jar> molmed.apps.Sthlm2UUSNP") {
-    head("SetupFileCreator", " - A utility program to create pipeline setup xml files for Piper..")
+    head("SetupFileCreator", " - A utility program to create pipeline setup xml files for Piper. \n" + 
+        "Run example: " +
+        "./sthlm2UUSNP " +
+        " --input_root data_from_sthlm/<some sample>/<some runfolder>/ " +
+        " --out_root <root of uppsala style project>/<same runfolder name as above>"
+        )
 
-    opt[File]('i', "input_root") required () valueName ("Root dir of a sthlm style directory.") action { (x, c) =>
+    opt[File]('i', "input_root") required () valueName ("A sthlm style directory on the runfolder level.") action { (x, c) =>
       c.copy(sthlmRoot = Some(x))
     } text ("This is a required argument.")
 
