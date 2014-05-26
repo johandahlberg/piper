@@ -2,13 +2,11 @@ package molmed.utils
 
 import java.io.File
 import java.io.PrintWriter
-
 import scala.annotation.elidable
 import scala.annotation.elidable.ASSERTION
 import scala.collection.immutable.Stream.consWrapper
 import scala.io.Source
 import scala.sys.process.Process
-
 import org.broadinstitute.sting.queue.extensions.picard.CalculateHsMetrics
 import org.broadinstitute.sting.queue.extensions.picard.MarkDuplicates
 import org.broadinstitute.sting.queue.extensions.picard.MergeSamFiles
@@ -18,7 +16,6 @@ import org.broadinstitute.sting.queue.extensions.picard.SortSam
 import org.broadinstitute.sting.queue.extensions.picard.ValidateSamFile
 import org.broadinstitute.sting.queue.function.InProcessFunction
 import org.broadinstitute.sting.queue.function.ListWriterFunction
-
 import molmed.queue.extensions.RNAQC.RNASeQC
 import molmed.queue.extensions.picard.BuildBamIndex
 import molmed.queue.extensions.picard.CollectTargetedPcrMetrics
@@ -175,6 +172,23 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
 
     this.isIntermediate = false
     override def jobRunnerJobName = projectName.get + "_RNA_QC"
+  }
+
+  case class qualimapQC(@Input bam: File, @Output outputBase: File, @Output logFile: File, @Argument pathToQualimap: File)
+      extends EightCoreJob {
+
+    this.isIntermediate = false
+    override def jobRunnerJobName = projectName.get + "_qualimap"
+
+    // ./qualimap bamqc -bam ~/workspace/piper/src/test/resources/testdata/exampleBAM.bam -outdir ~/Desktop/testing_qm/
+    
+    override def commandLine = 
+      "java -jar " + pathToQualimap.getAbsolutePath() + " " +
+      " bamqc " + 
+      " -bam " + bam.getAbsolutePath() + 
+      " -outDir " + outputBase.getAbsolutePath() + "/" +
+      " >> " + logFile.getAbsolutePath() + " 2>&1 > "
+      
   }
 
   /**

@@ -6,8 +6,11 @@ import org.broadinstitute.sting.queue.QScript
 /**
  * Contains functions for running quality control (right now a very simple one which uses the GATK DepthOfCoverage walker).
  */
-class AlignmentQCUtils(qscript: QScript, gatkOptions: GATKConfig, projectName: Option[String], uppmaxConfig: UppmaxConfig)
-  extends GATKUtils(gatkOptions, projectName, uppmaxConfig) {
+class AlignmentQCUtils(
+    qscript: QScript,
+    projectName: Option[String],
+    generalUtils: GeneralUtils,
+    pathToQualimap: File) {
 
   /**
    * @param bams		bam files to run qc on
@@ -22,11 +25,11 @@ class AlignmentQCUtils(qscript: QScript, gatkOptions: GATKConfig, projectName: O
     val outputFiles =
       for (bam <- bams) yield {
         val baseName = GeneralUtils.swapExt(outputBase, bam, ".bam", ".qc")
-        qscript.add(DepthOfCoverage(bam, baseName))
-        baseName
+        val logFile = GeneralUtils.swapExt(outputBase, bam, ".bam", ".qc.log")
+        qscript.add(generalUtils.qualimapQC(bam, baseName, logFile, pathToQualimap))
+        logFile
       }
 
     outputFiles
-  }
-
+  }      
 }

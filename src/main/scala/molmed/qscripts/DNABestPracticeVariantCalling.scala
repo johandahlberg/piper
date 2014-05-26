@@ -76,6 +76,9 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
 
   @Input(doc = "The path to the binary of samtools", fullName = "path_to_samtools", shortName = "samtools", required = false)
   var samtoolsPath: File = "samtools"
+    
+  @Input(doc = "The path to the binary of qualimap", fullName = "path_to_qualimap", shortName = "qualimap", required = false)
+  var qualimapPath: File = "qualimap"
 
   @Argument(doc = "Base path for all output working files.", fullName = "output_directory", shortName = "outputDir", required = false)
   var outputDir: String = "pipeline_output"
@@ -228,15 +231,12 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
     bamFiles: Seq[File],
     intervalsToUse: Option[File],
     reference: File,
-    uppmaxConfig: UppmaxConfig,
     aligmentQCOutputDir: File,
-    miscOutputDir: File,
-    gatkOptions: GATKConfig,
     generalUtils: GeneralUtils): Seq[File] = {
 
-    val qualityControlUtils = new AlignmentQCUtils(qscript, gatkOptions, projectName, uppmaxConfig)
+    val qualityControlUtils = new AlignmentQCUtils(qscript, projectName, generalUtils, qualimapPath)
     val baseQCOutputFiles = qualityControlUtils.aligmentQC(bamFiles, aligmentQCOutputDir)
-
+        
     /**
      * For exomes, calculate hybrid selection metrics.
      */
@@ -386,8 +386,8 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
         mergedAligmentOutputDir)
 
     val qualityControl = runQualityControl(
-      _: Seq[File], intervals, reference, uppmaxConfig,
-      _: File, miscOutputDir, gatkOptions, generalUtils)
+      _: Seq[File], intervals, reference,
+      _: File, generalUtils)
 
     val dataProcessing = runDataProcessing(
       _: Seq[File], processedAligmentsOutputDir,

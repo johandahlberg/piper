@@ -11,7 +11,7 @@ object DeliveryUtils {
     @Input var qualityControlFiles: Seq[File],
     @Input var variantCallFiles: Seq[File],
     @Output var deliveryDirectory: File)
-      extends InProcessFunction {    
+      extends InProcessFunction {
 
     def createHardLinksForSamples(samples: Seq[SampleAPI], outputDir: File) {
       for ((sampleName, samplesWithThatName) <- samples.groupBy(x => x.getSampleName)) {
@@ -40,7 +40,6 @@ object DeliveryUtils {
       }
     }
 
-
     def run() {
 
       if (!deliveryDirectory.exists())
@@ -58,9 +57,14 @@ object DeliveryUtils {
       val variantCallsDir = new File(deliveryDirectory + "/variants_calls")
       variantCallsDir.mkdirs()
 
+      // Since the quality control files are really log files we need
+      // to remove the log ending to get the correct file names.
+      val realQualityControlDirs = qualityControlFiles.map(
+        file => new File(file.getPath().replace(".log", "")))
+
       createHardLinksForSamples(samples, rawDir)
       createHardLinksForFiles(processedBamFiles, alignedDir)
-      createHardLinksForFiles(qualityControlFiles, qualityControlOutputDir, withWildCard = true)
+      createHardLinksForFiles(realQualityControlDirs, qualityControlOutputDir, withWildCard = true)
       createHardLinksForFiles(variantCallFiles, variantCallsDir)
     }
   }
