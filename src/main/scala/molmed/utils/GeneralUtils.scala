@@ -187,7 +187,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
       " bamqc " + 
       " -bam " + bam.getAbsolutePath() + 
       " -outDir " + outputBase.getAbsolutePath() + "/" +
-      " >> " + logFile.getAbsolutePath() + " 2>&1 > "
+      " >> " + logFile.getAbsolutePath() + " 2>&1"
       
   }
 
