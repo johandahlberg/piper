@@ -185,6 +185,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
         " --java-mem-size=64G " +
         " bamqc " +
         " -bam " + bam.getAbsolutePath() +
+        " --paint-chromosome-limits " + 
         " -outdir " + outputBase.getAbsolutePath() + "/" +
         " -nt 8" +
         " &> " + logFile.getAbsolutePath()
