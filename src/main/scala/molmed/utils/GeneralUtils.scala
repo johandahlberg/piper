@@ -180,15 +180,13 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     this.isIntermediate = false
     override def jobRunnerJobName = projectName.get + "_qualimap"
 
-    // ./qualimap bamqc -bam ~/workspace/piper/src/test/resources/testdata/exampleBAM.bam -outdir ~/Desktop/testing_qm/
-    
-    override def commandLine = 
-      "java -jar " + pathToQualimap + " " +
-      " bamqc " + 
-      " -bam " + bam.getAbsolutePath() + 
-      " -outDir " + outputBase.getAbsolutePath() + "/" +
-      " >> " + logFile.getAbsolutePath() + " 2>&1"
-      
+    override def commandLine =
+      pathToQualimap + " " +
+        " bamqc " +
+        " -bam " + bam.getAbsolutePath() +
+        " -outdir " + outputBase.getAbsolutePath() + "/" +
+        " > " + logFile.getAbsolutePath() + " 2>&1"
+
   }
 
   /**
