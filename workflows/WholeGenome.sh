@@ -86,6 +86,7 @@ source piper -S ${SCRIPTS_DIR}/DNABestPracticeVariantCalling.scala \
 	     -jobRunner ${JOB_RUNNER} \
              -jobNative "${JOB_NATIVE_ARGS}" \
 	     --job_walltime 345600 \
+	     --create_delivery \
 	     ${RUN} ${ONLY_ALIGMENTS} ${DEBUG} 2>&1 | tee -a ${LOGS}/wholeGenome.log
 
 # Perform final clean up
