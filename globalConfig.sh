@@ -14,6 +14,7 @@ then
 	PATH_TO_CUTADAPT="/sw/apps/bioinfo/cutadapt/1.2.1/kalkyl/bin/cutadapt"
 	PATH_TO_CUFFLINKS="/sw/apps/bioinfo/cufflinks/2.1.1/kalkyl/"
 	PATH_TO_CUFFDIFF=$PATH_TO_CUFFLINKS
+	PATH_TO_QUALIMAP="/proj/b2010028/piper_resources/qualimap_v0.8.1/qualimap"
 	GATK_BUNDLE_B37="/proj/b2010028/references/piper_references/gatk_bundle/2.8/b37"
 	GATK_BUNDLE_HG19="/proj/b2010028/references/piper_references/gatk_bundle/2.8/hg19"
 else
@@ -25,6 +26,7 @@ else
 	PATH_TO_CUTADAPT="/usr/local/bin/cutadapt"
 	PATH_TO_CUFFLINKS="$HOME/Bin/cufflinks/cufflinks"
 	PATH_TO_CUFFDIFF=$PATH_TO_CUFFLINKS
+	PATH_TO_QUALIMAP="~/Bin/qualimap_v0.8.1/qualimap"
 	GATK_BUNDLE_B37="/local/test_data/piper_references/gatk_bundle/2.8/b37"
 	GATK_BUNDLE_HG19="/local/test_data/piper_references/gatk_bundle/2.8/b37"
 fi

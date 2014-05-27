@@ -80,6 +80,7 @@ source piper -S ${SCRIPTS_DIR}/DNABestPracticeVariantCalling.scala \
              --thousandGenomes ${THOUSAND_GENOMES_B37} \
 	     -bwa ${PATH_TO_BWA} \
 	     -samtools ${PATH_TO_SAMTOOLS} \
+             -qualimap ${PATH_TO_QUALIMAP} \
 	     --number_of_threads 8 \
              --scatter_gather 23 \
 	     -jobRunner ${JOB_RUNNER} \

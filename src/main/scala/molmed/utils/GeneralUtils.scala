@@ -183,7 +183,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     // ./qualimap bamqc -bam ~/workspace/piper/src/test/resources/testdata/exampleBAM.bam -outdir ~/Desktop/testing_qm/
     
     override def commandLine = 
-      "java -jar " + pathToQualimap.getAbsolutePath() + " " +
+      "java -jar " + pathToQualimap + " " +
       " bamqc " + 
       " -bam " + bam.getAbsolutePath() + 
       " -outDir " + outputBase.getAbsolutePath() + "/" +
