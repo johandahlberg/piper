@@ -21,86 +21,6 @@
 # Align fastq files using tophat.
 #------------------------------------------------------------------------------------------
 
-function alignWithTophat {
-    source piper -S ${SCRIPTS_DIR}/AlignWithTophat.scala \
-	    --xml_input $PIPELINE_SETUP \
-	    --annotations ${ANNOTATIONS} \
-	    --library_type ${LIBRARY_TYPE} \
-	    -tophat ${PATH_TO_TOPHAT} \
-	    -outputDir ${RAW_BAM_OUTPUT}/ \
-	    -samtools ${PATH_TO_SAMTOOLS} \
-	    --tophat_threads ${NBR_OF_THREADS} \
-	    -jobRunner ${JOB_RUNNER} \
-	    -jobNative "${JOB_NATIVE_ARGS}" \
-	    --job_walltime 518400 \
-	    ${RUN} ${DEBUG} &>> ${LOGS}/alignWithTophat.log
-
-    # Check the script exit status, and if it did not finish, clean up and exit
-    if [ $? -ne 0 ]; then 
-	    echo "Caught non-zero exit status from AlignWithBwa. Cleaning up and exiting..."
-	    clean_up
-	    exit 1
-    fi
-    
-    echo "${RAW_BAM_OUTPUT}/cohort.list"
-}
-
-function cufflinks {
-    source piper -S ${SCRIPTS_DIR}/Cufflinks.scala \
-		 --xml_input $PIPELINE_SETUP \
-          	     -i $1 \
-          	     --annotations ${ANNOTATIONS} \
-	             --library_type ${LIBRARY_TYPE} \
-	             --mask ${RRNA_TARGETS} \
-	             --path_to_cufflinks ${PATH_TO_CUFFLINKS} \
-	             -outputDir ${CUFFLINKS_OUTPUT}/ \
-         	     -jobRunner ${JOB_RUNNER} \
-	             -jobNative "${JOB_NATIVE_ARGS}" \
-	             --job_walltime 172800 \
-	             ${RUN} ${DEBUG} &>> ${LOGS}/cufflinks.log
-
-
-    # Check the script exit status, and if it did not finish, clean up and exit
-    if [ $? -ne 0 ]; then 
-	    echo "Caught non-zero exit status from cufflinks. Cleaning up and exiting..."
-	    clean_up
-	    exit 1
-    fi
-    
-    echo "1"
-}
-
-#------------------------------------------------------------------------------------------
-# Run QC with RNA_QC
-#------------------------------------------------------------------------------------------
-
-function RNA_QC {
-    source piper -S ${SCRIPTS_DIR}/RNAQC.scala \
-	    -i $1 \
-	    --xml_input $PIPELINE_SETUP \
-	    --downsample 1000 \
-		-R ${GENOME_REFERENCE} \
-	    --transcripts ${ANNOTATIONS} \
-	    --rRNA_targets ${RRNA_TARGETS} \
-	    -outputDir ${RNA_QC_OUTPUT}/ \
-	    --path_to_samtools ${PATH_TO_SAMTOOLS} \
-	    -jobRunner ${JOB_RUNNER} \
-	    -jobNative "${JOB_NATIVE_ARGS}" \
-	    --job_walltime 172800 \
-	    ${RUN} ${DEBUG} &>> ${LOGS}/rnaQC.log
-
-
-    # Check the script exit status, and if it did not finish, clean up and exit
-    if [ $? -ne 0 ]; then 
-	    echo "Caught non-zero exit status from RNAQC. Cleaning up and exiting..."
-	    clean_up
-	    exit 1
-    fi
-    
-    echo "RNA_QC does not have a output!"
-}
-
-
 function usage {
    echo "Usage: ./workflows/RNACounts.sh --xml_input <setup.xml> --library_type <fr-secondstrand/fr-firststrand/unstranded> [--alignments_only] [--run]"
 }
@@ -165,7 +85,9 @@ source globalConfig.sh
 
 GENOME_REFERENCE=${GATK_BUNDLE_B37}"/human_g1k_v37.fasta"
 ANNOTATIONS="/proj/b2010028/references/piper_references/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf"
+#ANNOTATIONS="/data/test_data/piper_references/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf"
 RRNA_TARGETS="/proj/b2010028/references/piper_references/rRNA_targets/rRNA.sorted.1-based.intervals.list"
+#RRNA_TARGETS="/local/test_data/piper_references/rRNA_targets/rRNA.sorted.1-based.intervals.list"
 
 # We also need the correct java engine and R version
 module load java/sun_jdk1.7.0_25
@@ -199,13 +121,29 @@ fi
 # in a different way.
 #---------------------------------------------
 
-if [ ! -z "$ONLY_ALIGNMENTS" ]; then
-    ALIGN_OUTPUT=$(alignWithTophat ${PIPELINE_SETUP_XML})
-else
-    ALIGN_OUTPUT=$(alignWithTophat ${PIPELINE_SETUP_XML})
-    RNA_QC_OUTPUT=$(RNA_QC ${RAW_BAM_OUTPUT}/cohort.list)
-    CUFFLINKS_OUT=$(cufflinks ${RAW_BAM_OUTPUT}/cohort.list)
-fi
+source piper -S ${SCRIPTS_DIR}/RNACounts.scala \
+	    --xml_input $PIPELINE_SETUP \
+	    --transcripts ${ANNOTATIONS} \
+	    --annotations ${ANNOTATIONS} \
+	    --mask ${RRNA_TARGETS} \
+	    --library_type ${LIBRARY_TYPE} \
+	    --rRNA_targets ${RRNA_TARGETS} \
+	    --downsample 1000 \
+	    --path_to_tophat ${PATH_TO_TOPHAT} \
+	    --path_to_cufflinks ${PATH_TO_CUFFLINKS} \
+	    --bam_output_directory ${RAW_BAM_OUTPUT} \
+	    --qc_output_directory ${RNA_QC_OUTPUT} \
+	    --cufflink_output_directory ${CUFFLINKS_OUTPUT} \
+	    --tophat_threads ${NBR_OF_THREADS} \
+	    --path_to_cutadapt ${PATH_TO_CUTADAPT} \
+	    --path_sync_script ${PATH_TO_SYNC_CUTADAPT} \
+	    --rna_seqc ${PATH_TO_RNA_SEQ_QC} \
+	    -jobRunner ${JOB_RUNNER} \
+	    -jobNative ${JOB_NATIVE_ARGS} \
+	     ${ONLY_ALIGNMENTS} \
+	    -ca \
+	    --job_walltime 518400 \
+	    ${RUN} ${DEBUG} 2>&1>> ${LOGS}/RNACount.log    
 
 # Perform final clean up
 final_clean_up

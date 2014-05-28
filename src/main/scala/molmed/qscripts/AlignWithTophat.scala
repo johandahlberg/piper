@@ -27,172 +27,120 @@ import molmed.utils.UppmaxXMLConfiguration
 class AlignWithTophat extends QScript with UppmaxXMLConfiguration {
 
   qscript =>
-
-  /**
-   * **************************************************************************
+  
+  /****************************************************************************
    * Optional Parameters
    * **************************************************************************
    */
-
-  @Input(doc = "The path to the binary of tophat", fullName = "path_to_tophat", shortName = "tophat", required = false)
-  var tophatPath: File = _
-
-  @Input(doc = "The path to the binary of samtools", fullName = "path_to_samtools", shortName = "samtools", required = false)
-  var samtoolsPath: File = "samtools"
-
-  @Input(doc = "The path to the binary of butadapt", fullName = "path_to_cutadapt", shortName = "cutadapt", required = false)
-  var cutadaptPath: File = _
-
-  @Argument(doc = "Output path for the processed BAM files.", fullName = "output_directory", shortName = "outputDir", required = false)
-  var outputDir: String = ""
-
-  @Argument(doc = "Perform validation on the BAM files", fullName = "validation", shortName = "vs", required = false)
-  var validation: Boolean = false
-
-  @Argument(doc = "Number of threads tophat should use", fullName = "tophat_threads", shortName = "tt", required = false)
-  var tophatThreads: Int = 1
-
-  @Argument(doc = "library type. Options: fr-unstranded (default), fr-firststrand, fr-secondstrand", fullName = "library_type", shortName = "lib", required = false)
-  var libraryType: String = "fr-unstranded"
-
-  @Argument(doc = "Annotations of known transcripts in GTF 2.2 or GFF 3 format.", fullName = "annotations", shortName = "a", required = false)
-  var annotations: Option[File] = None
+	
+  /****************************************************************************
+   * --------------------------------------------------------------------------
+   * 		Arguments and Flags
+   * --------------------------------------------------------------------------
+   * **************************************************************************
+   */
 
   @Argument(doc = "Do fussion search using tophat", fullName = "fusionSearch", shortName = "fs", required = false)
   var fusionSearch: Boolean = false
+  
+  @Argument(doc = "library type. Options: fr-unstranded (default), fr-firststrand, fr-secondstrand", fullName = "library_type", shortName = "lib", required = false)
+  var libraryType: String = "fr-unstranded"
 
   @Argument(doc = "Run cutadapt", fullName = "cutadapt", shortName = "ca", required = false)
   var runCutadapt: Boolean = false
-
-  /**
-   * Help methods
+  
+  @Argument(doc = "Number of threads tophat should use", fullName = "tophat_threads", shortName = "tt", required = false)
+  var tophatThreads: Int = 1
+  
+  @Argument(doc = "Perform validation on the BAM files", fullName = "validation", shortName = "vs", required = false)
+  var validation: Boolean = false
+  
+  /****************************************************************************
+   * --------------------------------------------------------------------------
+   * 		Input and output files/paths
+   * --------------------------------------------------------------------------
+   * **************************************************************************
    */
-
-  def performAlignment(tophatAligmentUtils: TophatAligmentUtils, sampleName: String, fastqs: ReadPairContainer, reference: File, readGroupInfo: String): (File, File) = {
-
-    // All fastqs input to this function should be from the same sample
-    // and should all be aligned to the same reference.
-    val sampleDir = new File(outputDir + sampleName)
-    sampleDir.mkdirs()
-    var alignedBamFile: File = new File(sampleDir + "/" + "accepted_hits.bam")
-
-    val placeHolderFile = new File(sampleDir + "/qscript_tophap.stdout.log")
-
-    if(fastqs.isMatePaired)    	
-    	add(tophatAligmentUtils.tophat(fastqs.mate1, fastqs.mate2, sampleDir, reference, annotations, libraryType, placeHolderFile, readGroupInfo, fusionSearch))
-    else
-      add(tophatAligmentUtils.singleReadTophat(fastqs.mate1, sampleDir, reference, annotations, libraryType, placeHolderFile, readGroupInfo, fusionSearch))
-
-    return (alignedBamFile, placeHolderFile)
-  }
-
-  private def alignSamples(sampleMap: Map[String, Seq[SampleAPI]], tophatUtils: TophatAligmentUtils): (Seq[File], Seq[File]) = {
-
-    var cohortSeq: Seq[File] = Seq()
-    var placeHolderSeq: Seq[File] = Seq()
-
-    /**
-     * Make sure that if there are several instances of a sample
-     * they are aligned separately with folder names:
-     * <original sample name>_<int>
-     */
-    for ((sampleName, samples) <- sampleMap) {
-      if (samples.size == 1) {
-        val (file, placeholder) = performAlignment(tophatUtils, sampleName, samples(0).getFastqs, samples(0).getReference, samples(0).getTophatStyleReadGroupInformationString)
-        cohortSeq :+= file
-        placeHolderSeq :+= placeholder
-      } else {
-        var counter = 1
-        for (sample <- samples) {
-          val (file, placeholder) = performAlignment(tophatUtils, sampleName + "_" + counter, sample.getFastqs, sample.getReference, sample.getTophatStyleReadGroupInformationString)
-          counter += 1
-          cohortSeq :+= file
-          placeHolderSeq :+= placeholder
-        }
-      }
-    }
-    return (cohortSeq, placeHolderSeq)
-  }
-
-  def cutSamples(generalUtils: GeneralUtils, sampleMap: Map[String, Seq[SampleAPI]]): Map[String, Seq[SampleAPI]] = {
-
-    // Standard Illumina adaptors
-    val adaptor1 = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC"
-    val adaptor2 = "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT"
-
-    val cutadaptOutputDir = new File(outputDir + "/cutadapt")
-    cutadaptOutputDir.mkdirs()
-
-    // Run cutadapt & sync    
-
-    def cutAndSyncSamples(samples: Seq[SampleAPI]): Seq[SampleAPI] = {
-
-      def addSamples(sample: SampleAPI): SampleAPI = {
-
-        def constructTrimmedName(name: String): String = {
-          if (name.matches("fastq.gz"))
-            name.replace("fastq.gz", "trimmed.fastq.gz")
-          else
-            name.replace("fastq", "trimmed.fastq.gz")
-        }
-
-        val readpairContainer = sample.getFastqs
-
-        val mate1SyncedFastq = new File(cutadaptOutputDir + "/" + sample.getReadGroupInformation.platformUnitId + "/" + constructTrimmedName(sample.getFastqs.mate1.getName()))
-        add(generalUtils.cutadapt(readpairContainer.mate1, mate1SyncedFastq, adaptor1, this.cutadaptPath))
-
-        val mate2SyncedFastq =
-          if (readpairContainer.isMatePaired) {
-            val mate2SyncedFastq = new File(cutadaptOutputDir + "/" + sample.getReadGroupInformation.platformUnitId + "/" + constructTrimmedName(sample.getFastqs.mate2.getName()))
-            add(generalUtils.cutadapt(readpairContainer.mate2, mate2SyncedFastq, adaptor2, this.cutadaptPath))
-            mate2SyncedFastq
-          } else null
-
-        val readGroupContainer = new ReadPairContainer(mate1SyncedFastq, mate2SyncedFastq, sample.getSampleName)
-        new Sample(sample.getSampleName, sample.getReference, sample.getReadGroupInformation, readGroupContainer)
-      }
-
-      val cutAndSyncedSamples = for (sample <- samples) yield { addSamples(sample) }
-      cutAndSyncedSamples
-
-    }
-
-    val cutSamples = for { (sampleName, samples) <- sampleMap }
-      yield (sampleName, cutAndSyncSamples(samples))
-
-    cutSamples
-  }
-
+  
+  @Argument(doc = "Output path for the processed BAM files.", fullName = "output_directory", shortName = "outputDir", required = false)
+  var outputDirProcessedBAM: String = ""
+  def getOutputDirBAM: String = if (outputDirProcessedBAM.isEmpty())  "raw_alignments/" else outputDirProcessedBAM + "/"
+  
+  @Argument(doc = "Annotations of known transcripts in GTF 2.2 or GFF 3 format.", fullName = "annotations", shortName = "a", required = false)
+  var annotations: Option[File] = None
+  
+  /****************************************************************************
+	 * --------------------------------------------------------------------------
+	 *  	Path to applications
+	 * --------------------------------------------------------------------------
+	 ****************************************************************************
+	 */
+  @Input(doc = "The path to the binary of cutadapt", fullName = "path_to_cutadapt", shortName = "cutadapt", required = false)
+  var cutadaptPath: File = new File("/local/programs/bin")  
+ 
+  @Input(doc = "The path to the binary of samtools", fullName = "path_to_samtools", shortName = "samtools", required = false)
+  var samtoolsPath: File = "samtools"
+  
+  @Input(doc = "The path to the perl script used correct for empty reads ", fullName = "path_sync_script", shortName = "sync", required = false)
+  var syncPath: File = new File("resources/FixEmptyReads.pl")
+    
+  @Input(doc = "The path to the binary of tophat", fullName = "path_to_tophat", shortName = "tophat", required = false)
+  var tophatPath: File = new File("tophat2")
   /**
    * The actual script
    */
   def script {
-
+  	//-------------------------------------------------------------------------
+    //                      Create output folders
+    //-------------------------------------------------------------------------
+    
+    //Check for or create output dir for process BAM files
+    val aligmentOutputDir: File = new File(getOutputDirBAM)    
+    if(!aligmentOutputDir.exists()){
+      aligmentOutputDir.mkdir()
+    }
+    
+    //Import uppmxax-settings,samples and project info
     val uppmaxConfig = loadUppmaxConfigFromXML()    
-    val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()    
+    val sampleMap: Map[String, Seq[SampleAPI]] = setupReader.getSamples()    
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
     val tophatUtils = new TophatAligmentUtils(tophatPath, tophatThreads, projectName, uppmaxConfig)
     
-    val (cohortList, placeHolderList) =
-      if (runCutadapt)
-        alignSamples(cutSamples(generalUtils, samples), tophatUtils)
-      else
-        alignSamples(samples, tophatUtils)
-
+    var cohortList: Seq[File] = Seq()
+    var placeHolderList: Seq[File] = Seq()
+     
+    for ((sampleName, samples) <- sampleMap) {
+      var counter = 1
+      for (sample <- samples) {
+        /**
+		     * Make sure that if there are several instances of a sample
+		     * they are processed separately with folder names:
+		     * <original sample name>_<int>
+		     */
+        val sampleNameCounter = if(samples.size == 1) sampleName else sampleName + "_" + counter
+        counter+=1
+        
+        //Align fastq file(s)
+        val bamFile: File =
+        if (runCutadapt)
+        	tophatUtils.align(this,this.libraryType,this.annotations,aligmentOutputDir,sampleNameCounter,generalUtils.cutSamplesUsingCuteAdapt(this,this.cutadaptPath,sample,aligmentOutputDir,syncPath),this.fusionSearch)
+        else
+        	tophatUtils.align(this,this.libraryType,this.annotations,aligmentOutputDir,sampleNameCounter,sample,this.fusionSearch)
+        
+        cohortList :+= bamFile
+      }
+    }
+    
     // output a BAM list with all the processed files
-    val cohortFile = new File(qscript.outputDir + "cohort.list")
-    add(writeList(cohortList, cohortFile, placeHolderList))
+    val cohortFile = new File(aligmentOutputDir + "cohort.list")
+    add(writeList(cohortList, cohortFile))
 
   }
 
   /**
-   * Case classes for running command lines
-   */
-
-  /**
    * Special list writer class which uses a place holder to make sure it waits for input.
    */
-  case class writeList(inBams: Seq[File], outBamList: File, @Input placeHolder: Seq[File]) extends ListWriterFunction {
+  case class writeList(@Input inBams: Seq[File], outBamList: File) extends ListWriterFunction {
     this.inputFiles = inBams
     this.listFile = outBamList
     override def jobRunnerJobName = projectName.get + "_bamList"

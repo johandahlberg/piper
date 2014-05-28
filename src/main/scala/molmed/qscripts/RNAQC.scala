@@ -87,7 +87,7 @@ class RNAQC extends QScript with UppmaxXMLConfiguration {
       add(generalUtils.createIndex(bam, index))
 
       val placeHolderFile = new File(sampleOutputDir + "/qscript_RNASeQC.stdout.log")
-      add(generalUtils.RNA_QC(bam, index, rRNATargetsFile, downsampling, reference, sampleOutputDir, transcripts, placeHolderFile, pathToRNASeQC))
+      add(generalUtils.RNA_QC(bam, index,sampleName, rRNATargetsFile, downsampling, reference, sampleOutputDir, transcripts, placeHolderFile, pathToRNASeQC))
       placeHolderFile
     }
 

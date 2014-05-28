@@ -8,10 +8,10 @@ object SnpSeqBaseTest {
   // on molmed is network mounted (which makes for some slowwwww tests).  
   val localTestScratch = new File("/local/scratch/pipeline_test_scratch")
 
-  val pathToBundle: String = "/local/data/gatk_bundle/b37"
-  val chromosome20Bam = "/local/data/gatk_bundle/b37/NA12878.HiSeq.WGS.bwa.cleaned.recal.hg19.20.bam"
-  val fullHumanGenome = "/local/data/gatk_bundle/b37/human_g1k_v37.fasta"
-  val hg19 = "/local/data/gatk_bundle/hg19/ucsc.hg19.fasta"
+  val pathToBundle: String = "/local/test_data/piper_references/gatk_bundle/2.8/b37"
+  val chromosome20Bam = "/local/test_data/piper_references/gatk_bundle/2.8/b37//NA12878.HiSeq.WGS.bwa.cleaned.recal.hg19.20.bam"
+  val fullHumanGenome = "/local/test_data/piper_references/gatk_bundle/2.8/b37//human_g1k_v37.fasta"
+  val hg19 = "/local/test_data/piper_references/gatk_bundle/hg19/ucsc.hg19.fasta"
 
   val pathToBaseDir: String = "src/test/resources/testdata/"
   val publicTestDir: String = new File("src/test/resources/testdata").getAbsolutePath() + "/"
@@ -46,9 +46,9 @@ object SnpSeqBaseTest {
   val pathToReplicatesFile = "" // @TODO
   val hg19annotations = rnaSeqBaseDir + "Homo_sapiens/UCSC/hg19/Annotation/Archives/archive-2013-03-06-11-23-03/Genes/genes.gtf"
 
-  val pathToCuffdiff = "/home/MOLMED/dahljo/Bin/cufflinks"
-  val pathToCufflinks = "/home/MOLMED/dahljo/Bin/cufflinks"
+  val pathToCuffdiff = "/local/programs/cufflinks-2.1.1.Linux_x86_64/"
+  val pathToCufflinks = "/local/programs/cufflinks-2.1.1.Linux_x86_64/"
 
-  val pathToRNASeQC = "/home/MOLMED/dahljo/workspace/piper/resources/RNA-SeQC_v1.1.7.jar"
+  val pathToRNASeQC = "/home/MOLMED/patsm159/workspace/piper/resources/RNA-SeQC_v1.1.7.jar"
 
 }
