@@ -10,14 +10,14 @@
 	</test>
 
 	<test name="PipelineTests">
-		<parameter name="runpipeline" value="true" />
+		<parameter name="runpipeline" value="false" />
 
 		<classes>
 											
 
 			<!--<class name="molmed.qscripts.AlignWithTophatSnpSeqPipelineTest" />
 			<class name="molmed.qscripts.AlignmentQCSnpSeqPipelineTest" />-->
-			<class name="molmed.qscripts.RNACountsPipelineTest" />
+			<!--<class name="molmed.qscripts.RNACountsPipelineTest" />-->
 			
 			<!-- The following test will fail without their resource files. Uncommented 
 				them to run these tests. -->
