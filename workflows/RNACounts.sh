@@ -143,7 +143,7 @@ source piper -S ${SCRIPTS_DIR}/RNACounts.scala \
 	     ${ONLY_ALIGNMENTS} \
 	    -ca \
 	    --job_walltime 518400 \
-	    ${RUN} ${DEBUG} 2>&1>> ${LOGS}/RNACount.log    
+	    ${RUN} ${DEBUG} 2>&1 | tee -a ${LOGS}/RNACount.log    
 
 # Perform final clean up
 final_clean_up
