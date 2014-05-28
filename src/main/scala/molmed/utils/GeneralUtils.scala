@@ -2,13 +2,11 @@ package molmed.utils
 
 import java.io.File
 import java.io.PrintWriter
-
 import scala.annotation.elidable
 import scala.annotation.elidable.ASSERTION
 import scala.collection.immutable.Stream.consWrapper
 import scala.io.Source
 import scala.sys.process.Process
-
 import org.broadinstitute.sting.queue.extensions.picard.CalculateHsMetrics
 import org.broadinstitute.sting.queue.extensions.picard.MarkDuplicates
 import org.broadinstitute.sting.queue.extensions.picard.MergeSamFiles
@@ -18,19 +16,24 @@ import org.broadinstitute.sting.queue.extensions.picard.SortSam
 import org.broadinstitute.sting.queue.extensions.picard.ValidateSamFile
 import org.broadinstitute.sting.queue.function.InProcessFunction
 import org.broadinstitute.sting.queue.function.ListWriterFunction
-
 import molmed.queue.extensions.RNAQC.RNASeQC
 import molmed.queue.extensions.picard.BuildBamIndex
 import molmed.queue.extensions.picard.CollectTargetedPcrMetrics
 import molmed.queue.extensions.picard.FixMateInformation
 import molmed.utils.ReadGroupUtils.getSampleNameFromReadGroups
 import net.sf.samtools.SAMFileHeader.SortOrder
+import org.broadinstitute.sting.queue.extensions.picard.CalculateHsMetrics
+import molmed.queue.setup.SampleAPI
+import molmed.queue.setup.ReadPairContainer
+import molmed.queue.setup.Sample
+import org.broadinstitute.sting.queue.util.StringFileConversions
+import org.broadinstitute.sting.queue.QScript
 
 /**
  * Assorted commandline wappers, mostly for file doing small things link indexing files. See case classes to figure out
  * what's what.
  */
-class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) extends UppmaxJob(uppmaxConfig) {
+class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) extends UppmaxJob(uppmaxConfig) with StringFileConversions {
 
   /**
    * Creates a bam index for a bam file.
@@ -38,6 +41,15 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
   case class createIndex(@Input bam: File, @Output index: File) extends BuildBamIndex with OneCoreJob {
     this.input = bam
     this.output = index
+  }
+  
+  /**
+   * Creates a bam index for a bam file.
+   */
+  case class samtoolCreateIndex(@Input bam: File, @Output index: File) extends OneCoreJob {
+    def commandLine = "samtools index " + bam + " " + index +"; echo \"ExitCode: \"$?";
+    analysisName = "samtools_bam_index"
+    override def jobRunnerJobName = projectName.get + "_samtools_bam_index"
   }
 
   /**
@@ -75,14 +87,56 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
   }
 
   /**
+   * 
+   * Read trimmer
+   * 
+   */
+  def cutSamplesUsingCuteAdapt(qscript: QScript, cutadaptPath: String, sample: SampleAPI, outputDir: String, @Argument syncPath: String = "resources/FixEmptyReads.pl"): SampleAPI = {
+		// Standard Illumina adaptors
+	  val adaptor1 = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC"
+	  val adaptor2 = "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT"
+	   
+	  val cutadaptOutputDir = new File(outputDir + "/cutadapt")
+	  cutadaptOutputDir.mkdirs()
+	  
+	  // Run cutadapt & sync    
+	  def cutAndSyncSample(sample: SampleAPI): SampleAPI = {
+	    //def addSamples(sample: SampleAPI): SampleAPI = {
+  	  def constructTrimmedName(name: String): String = {
+  		  if (name.endsWith("fastq.gz"))
+  			  name.replace("fastq.gz", "trimmed.fastq.gz")
+  			else
+  			  name.replace("fastq", "trimmed.fastq.gz")
+  		}
+
+  		val readpairContainer = sample.getFastqs
+  			
+  		val mate1SyncedFastq = new File(cutadaptOutputDir + "/" + sample.getReadGroupInformation.platformUnitId + "/" + constructTrimmedName(sample.getFastqs.mate1.getName()))
+  		qscript.add(this.cutadapt(readpairContainer.mate1, mate1SyncedFastq, adaptor1, cutadaptPath,syncPath))
+  			
+  		val mate2SyncedFastq = if (readpairContainer.isMatePaired) {
+  			val mate2SyncedFastq = new File(cutadaptOutputDir + "/" + sample.getReadGroupInformation.platformUnitId + "/" + constructTrimmedName(sample.getFastqs.mate2.getName()))
+  			qscript.add(this.cutadapt(readpairContainer.mate2, mate2SyncedFastq, adaptor2, cutadaptPath,syncPath))
+			mate2SyncedFastq
+  		} else null
+
+  		val readGroupContainer = new ReadPairContainer(mate1SyncedFastq, mate2SyncedFastq, sample.getSampleName)
+  		
+  		new Sample(sample.getSampleName, sample.getReference, sample.getReadGroupInformation, readGroupContainer)
+	  }
+	  
+    cutAndSyncSample(sample)
+  }
+    
+  /**mdki
    * Runs cutadapt on a fastqfile and syncs it (adds a N to any reads which are empty after adaptor trimming).
    */
   case class cutadapt(@Input fastq: File, cutFastq: File, @Argument adaptor: String, @Argument cutadaptPath: String, @Argument syncPath: String = "resources/FixEmptyReads.pl") extends OneCoreJob {
-
+  	analysisName = "cutadapt"
     @Output val fastqCut: File = cutFastq
     this.isIntermediate = true
     // Run cutadapt and sync via perl script by adding N's in all empty reads.  
-    def commandLine = cutadaptPath + " -a " + adaptor + " " + fastq + " | perl " + syncPath + " -o " + fastqCut
+    def commandLine = cutadaptPath +" -a " + adaptor + " " + fastq + " | perl " + syncPath + " -o " + fastqCut
     override def jobRunnerJobName = projectName.get + "_cutadapt"
   }
 
@@ -150,15 +204,11 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
   /**
    * Wrapper for RNA-SeQC.
    */
-  case class RNA_QC(@Input bamfile: File, @Input bamIndex: File, rRNATargetsFile: File, downsampling: Int, referenceFile: File, outDir: File, transcriptFile: File, ph: File, pathRNASeQC: File) extends RNASeQC with ThreeCoreJob {
-
-    @Output
-    val placeHolder: File = ph
-
-    import molmed.utils.ReadGroupUtils._
+  case class RNA_QC(bamfile: File, @Input bamIndex: File, bamSampleName: String, rRNATargetsFile: File, downsampling: Int, referenceFile: File, outDir: File, transcriptFile: File, @Output placeHolder: File, pathRNASeQC: File) extends RNASeQC with ThreeCoreJob {
+  	//Perform QC on bam files
 
     def createRNASeQCInputString(file: File): String = {
-      val sampleName = getSampleNameFromReadGroups(file)
+      val sampleName = bamSampleName 
       "\"" + sampleName + "|" + file.getAbsolutePath() + "|" + sampleName + "\""
     }
 
