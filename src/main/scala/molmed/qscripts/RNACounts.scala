@@ -90,19 +90,19 @@ class RNACounts extends QScript with UppmaxXMLConfiguration {
 
   @Argument(doc = "Output path for the cufflink processed files.", fullName = "cufflink_output_directory", shortName = "cufflink_outputDir", required = false)
   var outputDirCufflink: String = ""
-  def getOutputDirCufflink: String = if (outputDirCufflink.isEmpty()) "cufflink/" else outputDirCufflink + "/"
+  def getOutputDirCufflink: File = if (outputDirCufflink.isEmpty()) new File("cufflink/") else new File(outputDirCufflink + "/")
 
   @Argument(doc = "Output path for the cuffmerged files.", fullName = "cuffmerge_output_directory", shortName = "cuffmerge_outputDir", required = false)
   var outputDirCuffmerge: String = ""
-  def getOutputDirCuffmerge: String = if (outputDirCuffmerge.isEmpty()) "cuffmerge/" else outputDirCuffmerge + "/"
+  def getOutputDirCuffmerge: File = if (outputDirCuffmerge.isEmpty()) new File("cuffmerge/") else new File(outputDirCuffmerge + "/")
 
   @Argument(doc = "Output path for the processed BAM files.", fullName = "bam_output_directory", shortName = "bamOutputDir", required = false)
   var outputDirProcessedBAM: String = ""
-  def getOutputDirBAM: String = if (outputDirProcessedBAM.isEmpty()) "raw_alignments/" else outputDirProcessedBAM + "/"
+  def getOutputDirBAM: File = if (outputDirProcessedBAM.isEmpty()) new File("raw_alignments/") else new File(outputDirProcessedBAM + "/")
 
   @Argument(doc = "Output path for the QC results", fullName = "qc_output_directory", shortName = "qcOutputDir", required = false)
   var outputDirQCResult: String = ""
-  def getOutputDirQCResult: String = if (outputDirQCResult.isEmpty()) "RNA_QC/" else outputDirQCResult + "/"
+  def getOutputDirQCResult: File = if (outputDirQCResult.isEmpty()) new File("RNA_QC/") else new File(outputDirQCResult + "/")
 
   @Argument(doc = "intervalFile for rRNA loci (must end in .list). This is an alternative flag to the -BWArRNA flag.", shortName = "rRNA", fullName = "rRNA_targets", required = false)
   var rRNATargetsFile: File = _
@@ -139,7 +139,7 @@ class RNACounts extends QScript with UppmaxXMLConfiguration {
    * Create folders for sample and perform cufflink operation
    * 
    */
-  private def createCuffLinks(cufflinksUtils: CufflinksUtils, bamFile: File, sampleName: String, outDir: File): File = {
+  private def runCuffLinks(cufflinksUtils: CufflinksUtils, bamFile: File, sampleName: String, outDir: File): File = {
     var cufflinkOutputDir: File = new File(outDir + "/" + sampleName)
     if (!cufflinkOutputDir.exists()) {
       cufflinkOutputDir.mkdirs()
@@ -156,7 +156,7 @@ class RNACounts extends QScript with UppmaxXMLConfiguration {
    * Create folders for sample and perform QC
    * 
    */
-  private def performQC(bamFile: File, index: File, sampleName: String, sample: SampleAPI, outDir: File, generalUtils: GeneralUtils) : File = {
+  private def runQC(bamFile: File, index: File, sampleName: String, sample: SampleAPI, outDir: File, generalUtils: GeneralUtils) : File = {
     val sampleOutputDirQC = new File(outDir + "/" + sampleName)
     if(!sampleOutputDirQC.exists())
     	sampleOutputDirQC.mkdir()
@@ -178,23 +178,19 @@ class RNACounts extends QScript with UppmaxXMLConfiguration {
     //-------------------------------------------------------------------------
 
     //Check for or create output dir for process BAM files
-    val aligmentOutputDir: File = new File(getOutputDirBAM)
-    if (!aligmentOutputDir.exists()) {
-      aligmentOutputDir.mkdir()
+    if (!getOutputDirBAM.exists()) {
+      getOutputDirBAM.mkdir()
     }
-
-    val outDirQC: File = new File(getOutputDirQCResult)
-    val cufflinkOutputDir: File = new File(getOutputDirCufflink)
 
     if (!onlyAlignment) {
       //Check for or create output dir for QC result
-      if (!outDirQC.exists()) {
-        outDirQC.mkdirs()
+      if (!getOutputDirQCResult.exists()) {
+        getOutputDirQCResult.mkdirs()
       }
 
       //Check for or create output dir for cufflink
-      if (!cufflinkOutputDir.exists()) {
-        cufflinkOutputDir.mkdirs()
+      if (!getOutputDirCufflink.exists()) {
+        getOutputDirCufflink.mkdirs()
       }
     }
 
@@ -225,33 +221,33 @@ class RNACounts extends QScript with UppmaxXMLConfiguration {
         //Align fastq file(s)
         val bamFile: File =
           if (runCutadapt)
-            tophatUtils.align(this, this.libraryType, this.annotations, aligmentOutputDir, sampleNameCounter, generalUtils.cutSamplesUsingCuteAdapt(this, this.cutadaptPath, sample, aligmentOutputDir, syncPath), this.fusionSearch)
+            tophatUtils.align(this, this.libraryType, this.annotations, getOutputDirBAM, sampleNameCounter, generalUtils.cutSamplesUsingCuteAdapt(this, this.cutadaptPath, sample, getOutputDirBAM, syncPath), this.fusionSearch)
           else
-            tophatUtils.align(this, this.libraryType, this.annotations, aligmentOutputDir, sampleNameCounter, sample, this.fusionSearch)
+            tophatUtils.align(this, this.libraryType, this.annotations, getOutputDirBAM, sampleNameCounter, sample, this.fusionSearch)
 
         cohortList :+= bamFile
 
         if (!onlyAlignment) {
           //Assemble transcripts
-          createCuffLinks(cufflinksUtils, bamFile, sampleName, cufflinkOutputDir)
+          runCuffLinks(cufflinksUtils, bamFile, sampleName, getOutputDirCufflink)
           
           //Create index for BAM file
           val index = new File(bamFile.replace(".bam", ".bai"))
           add(generalUtils.createIndex(bamFile, index))
           
           // Perform QC on processed BAM file
-          qcPlacehodlerList :+= performQC(bamFile, index, sampleName, sample, outDirQC, generalUtils)
+          qcPlacehodlerList :+= runQC(bamFile, index, sampleName, sample, getOutputDirQCResult, generalUtils)
         }
       }
     }
     //Gather QC result into one file
     if (!onlyAlignment) {
-      val aggregatedMetrics = new File(outDirQC + "/aggregated_metrics.tsv")
-      add(generalUtils.createAggregatedMetrics(qcPlacehodlerList, outDirQC, aggregatedMetrics))
+      val aggregatedMetrics = new File(getOutputDirQCResult + "/aggregated_metrics.tsv")
+      add(generalUtils.createAggregatedMetrics(qcPlacehodlerList, getOutputDirQCResult, aggregatedMetrics))
     }
 
     // output a BAM list with all the processed files
-    val cohortFile = new File(aligmentOutputDir + "/cohort.list")
+    val cohortFile = new File(getOutputDirBAM + "/cohort.list")
     add(writeList(cohortList, cohortFile))
   }
 

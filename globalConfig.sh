@@ -11,7 +11,7 @@ then
 	PATH_TO_BWA="/sw/apps/bioinfo/bwa/0.7.5a/milou/bin/bwa"
 	PATH_TO_SAMTOOLS="/sw/apps/bioinfo/samtools/0.1.19/milou/bin/samtools"
 	PATH_TO_RNA_SEQ_QC="/proj/b2010028/piper_resources/programs/RNA-SeQC_v1.1.7.jar"
-	PATH_TO_TOPHAT="/sw/apps/bioinfo/tophat/2.0.4/kalkyl/bin/tophat2"
+	PATH_TO_TOPHAT="/sw/apps/bioinfo/tophat/2.0.10/kalkyl/bin/tophat2"
 	PATH_TO_CUTADAPT="/sw/apps/bioinfo/cutadapt/1.2.1/kalkyl/bin/cutadapt"
 	PATH_TO_CUFFLINKS="/sw/apps/bioinfo/cufflinks/2.1.1/kalkyl/cufflinks"
 	PATH_TO_CUFFDIFF="/sw/apps/bioinfo/cufflinks/2.1.1/kalkyl/cuffdiff"

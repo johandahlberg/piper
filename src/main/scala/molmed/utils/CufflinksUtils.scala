@@ -10,13 +10,9 @@ class CufflinksUtils (projectName: Option[String], annotations: Option[File], li
       @Input bamFile: File, sampleOutputDir: File, @Output outputFile: File, 
       findNovelTranscripts: Boolean) 
       extends CufflinksUtils(projectName,annotations,libraryType, uppmaxConfig) with TwoCoreJob {
-    analysisName = "cufflinks"
+    
     // Sometime this should be kept, sometimes it shouldn't
     this.isIntermediate = false
-
-    /*@Input var bamFile = inputBamFile
-    @Input var dir = sampleOutputDir
-    @Output var stdOut = outputFile*/
 
     var threads: Int = 2
     
@@ -39,7 +35,7 @@ class CufflinksUtils (projectName: Option[String], annotations: Option[File], li
   
   case class cuffmerge(cufflinksPath: File, assemblies: File, outputDir: File, reference: File, outputFile: File) extends CufflinksUtils(projectName,annotations,libraryType, uppmaxConfig) with EightCoreJob{
     // Sometime this should be kept, sometimes it shouldn't
-    analysisName = "cuffmerge"
+    
     this.isIntermediate = false
 
     var threads: Int = 8
@@ -61,12 +57,12 @@ class CufflinksUtils (projectName: Option[String], annotations: Option[File], li
       assemblies +
       " 1> " + stdOut
 
-    //override def jobRunnerJobName = projectName.get + "_cuffmerge"
+    override def jobRunnerJobName = projectName.get + "_cuffmerge"
   }
   
   case class cuffdiff(threads: Int, cuffdiffPath: File, samplesAndLables: Map[File, String], replicates: Map[String, List[String]], outputFile: File, outputDir: String) extends CufflinksUtils(projectName,annotations,libraryType, uppmaxConfig) with EightCoreJob {
     def getOutputDir: String = if (outputDir.isEmpty()) "" else outputDir + "/"
-    analysisName = "cuffdiff"
+    
     this.isIntermediate = false 
     
     @Input var bamFiles: Seq[File] = samplesAndLables.keys.toSeq
@@ -122,13 +118,13 @@ class CufflinksUtils (projectName: Option[String], annotations: Option[File], li
       inputFilesString +
       " 1> " + stdOut
 
-    //override def jobRunnerJobName = projectName.get + "_cuffdiff"
+    override def jobRunnerJobName = projectName.get + "_cuffdiff"
   }
   
   case class writeTranscriptList(transcriptList: File, outputDirList: Seq[File], placeHolder: Seq[File]) extends ListWriterFunction {
     @Input val ph = placeHolder
     this.listFile = transcriptList
     this.inputFiles = outputDirList.map(file => {new File(file.getAbsolutePath() + "/transcripts.gtf")})
-    //override def jobRunnerJobName = "writeTranscriptList"
+    override def jobRunnerJobName = "writeTranscriptList"
   }
 }

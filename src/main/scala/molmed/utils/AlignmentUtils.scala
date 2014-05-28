@@ -20,10 +20,11 @@ import org.broadinstitute.sting.queue.util.StringFileConversions
  */
 abstract class AligmentUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) extends UppmaxJob(uppmaxConfig)
 
-/**
- * Holds classes and functions used for aligning with tophat
- */
+	/**
+	 * Holds classes and functions used for aligning with tophat
+	 */
 class TophatAligmentUtils(tophatPath: String, tophatThreads: Int, projectName: Option[String], uppmaxConfig: UppmaxConfig) extends AligmentUtils(projectName, uppmaxConfig) {
+
   /**
    * @param qscript						the qscript to in which the alignments should be used (usually "this")
    * @param libraryType				type of library that have been sequenced, fr-unstranded (default), fr-firststrand or fr-secondstrand

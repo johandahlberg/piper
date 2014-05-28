@@ -48,7 +48,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
    */
   case class samtoolCreateIndex(@Input bam: File, @Output index: File) extends OneCoreJob {
     def commandLine = "samtools index " + bam + " " + index +"; echo \"ExitCode: \"$?";
-    analysisName = "samtools_bam_index"
+    
     override def jobRunnerJobName = projectName.get + "_samtools_bam_index"
   }
 
@@ -101,8 +101,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
 	  
 	  // Run cutadapt & sync    
 	  def cutAndSyncSample(sample: SampleAPI): SampleAPI = {
-	    //def addSamples(sample: SampleAPI): SampleAPI = {
-  	  def constructTrimmedName(name: String): String = {
+	   def constructTrimmedName(name: String): String = {
   		  if (name.endsWith("fastq.gz"))
   			  name.replace("fastq.gz", "trimmed.fastq.gz")
   			else
@@ -132,8 +131,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
    * Runs cutadapt on a fastqfile and syncs it (adds a N to any reads which are empty after adaptor trimming).
    */
   case class cutadapt(@Input fastq: File, cutFastq: File, @Argument adaptor: String, @Argument cutadaptPath: String, @Argument syncPath: String = "resources/FixEmptyReads.pl") extends OneCoreJob {
-  	analysisName = "cutadapt"
-    @Output val fastqCut: File = cutFastq
+  	@Output val fastqCut: File = cutFastq
     this.isIntermediate = true
     // Run cutadapt and sync via perl script by adding N's in all empty reads.  
     def commandLine = cutadaptPath +" -a " + adaptor + " " + fastq + " | perl " + syncPath + " -o " + fastqCut
