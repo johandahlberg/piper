@@ -15,6 +15,7 @@ then
 	PATH_TO_CUTADAPT="/sw/apps/bioinfo/cutadapt/1.2.1/kalkyl/bin/cutadapt"
 	PATH_TO_CUFFLINKS="/sw/apps/bioinfo/cufflinks/2.1.1/kalkyl/cufflinks"
 	PATH_TO_CUFFDIFF="/sw/apps/bioinfo/cufflinks/2.1.1/kalkyl/cuffdiff"
+	PATH_TO_QUALIMAP="/proj/b2010028/piper_resources/programs/qualimap_v0.8.1/qualimap"
 	PATH_TO_SYNC_CUTADAPT="/proj/b2010028/piper_resources/programs/FixEmptyReads.pl"
 	GATK_BUNDLE_B37="/proj/b2010028/references/piper_references/gatk_bundle/2.8/b37"
 	GATK_BUNDLE_HG19="/proj/b2010028/references/piper_references/gatk_bundle/2.8/hg19"
@@ -29,6 +30,7 @@ then
 	PATH_TO_CUTADAPT="/data/programs/cutadapt/cutadapt-1.4.1/bin/cutadapt"
 	PATH_TO_CUFFLINKS="/data/programs/cufflinks-2.1.1.Linux_x86_64/cufflinks"
 	PATH_TO_CUFFDIFF="/data/programs/cufflinks-2.1.1.Linux_x86_64/cuffdiff"
+	PATH_TO_QUALIMAP="/data/programs/qualimap_v0.8.1/qualimap"
 	PATH_TO_SYNC_CUTADAPT="/data/programs/FixEmptyReads.pl"
 	GATK_BUNDLE_B37="/data/test_data/piper_references/gatk_bundle/2.8/b37"
 	GATK_BUNDLE_HG19="/data/test_data/piper_references/gatk_bundle/2.8/b37/hg19"
@@ -43,6 +45,7 @@ else
 	PATH_TO_CUFFLINKS="/data/programs/cufflinks-2.1.1.Linux_x86_64/cufflinks"
         PATH_TO_CUFFDIFF="/data/programs/cufflinks-2.1.1.Linux_x86_64/cuffdiff"
 	PATH_TO_SYNC_CUTADAPT="/data/programs/FixEmptyReads.pl"
+	PATH_TO_QUALIMAP="/data/programs/qualimap_v0.8.1/qualimap"
 	GATK_BUNDLE_B37="/local/test_data/piper_references/gatk_bundle/2.8/b37"
 	GATK_BUNDLE_HG19="/local/test_data/piper_references/gatk_bundle/2.8/b37"
 fi
