@@ -2,7 +2,6 @@
 
 #Load needed module for build on uppmax
 module load java/sun_jdk1.7.0_25
-module load ant
 
 check_errs()
 {
@@ -42,4 +41,4 @@ check_errs $? "wget RNA-SeQC FAILED"
 
 # Uncomment this to run tests after setup
 # sbt test
-sbt/bin/sbt package
+sbt/bin/sbt pack
