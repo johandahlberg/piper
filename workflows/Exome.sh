@@ -19,7 +19,7 @@ source globalConfig.sh
 #---------------------------------------------
 PIPELINE_SETUP=""
 RUN=""
-ONLY_ALIGMENTS=""
+ONLY_ALIGMENTS="--create_delivery"
 INTERVALS=""
 
 while :
@@ -38,7 +38,7 @@ while :
                shift
                ;;
            -a | --alignments_only)
-               ONLY_ALIGMENTS="--onlyAlignments"
+               ONLY_ALIGMENTS="--alignment_and_qc"
                shift
                ;; 
            -e | --sureselect)
@@ -101,7 +101,6 @@ piper -S ${SCRIPTS_DIR}/DNABestPracticeVariantCalling.scala \
 	      -jobRunner ${JOB_RUNNER} \
 	      -jobNative "${JOB_NATIVE_ARGS}" \
 	      --job_walltime 345600 \
-	      --create_delivery \
 	      ${RUN} ${ONLY_ALIGMENTS} ${DEBUG} 2>&1 | tee -a ${LOGS}/exome.log
 
 # Perform final clean up
