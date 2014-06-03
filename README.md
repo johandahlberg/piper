@@ -14,7 +14,7 @@ A pipeline project started at the [SNP&SEQ Technology platform](http://www.molme
 Piper builds on the concept of standardized workflows for different next-generation sequencing applications. At the moment Piper supports the following workflows:
 
 * WholeGenome: For human whole genome sequencing data. This goes through alignment, alignment quality control, data processing, variant calling, and variant filtration according to the [best practice recommended by the Broad Institute](http://www.broadinstitute.org/gatk/guide/topic?name=best-practices), using primarily the GATK.
-* TruSeq and SureSelect human exome sequencing: These use basically the same pipeline as the whole genome pipeline, but with the modifications suggested in the [best practice document](http://www.broadinstitute.org/gatk/guide/topic?name=best-practices) for exome studies.
+* Exome: TruSeq and SureSelect human exome sequencing: These use basically the same pipeline as the whole genome pipeline, but with the modifications suggested in the [best practice document](http://www.broadinstitute.org/gatk/guide/topic?name=best-practices) for exome studies.
 * Haloplex: Haloplex targeted sequencing analysis. Including alignment, data processing, and variant calling.
 * RNACounts: Which produces [FPKMs](http://cufflinks.cbcb.umd.edu/faq.html#fpkm) for transcripts of an existing reference annotation using Tophat for mapping and Cufflinks to produce the FPKMs.
 
@@ -23,13 +23,13 @@ All supported workflows are available in the `workflows` directory in the projec
 Prerequisites and installation
 ==============================
 
-Piper has been tested on the Java(TM) SE Runtime Environment (build 1.7.0_25) on the [UPPMAX](http://www.uppmax.uu.se) cluster Milou. It might run in other environments, but this is untested. Besides the JVM, Piper depends on [Maven (version 3+)](http://maven.apache.org/) for building (the GATK), [Make](http://www.gnu.org/software/make/) to install and [git](http://git-scm.com/) to checkout the source. To install piper, make sure that these programs are in you path, and then clone this repository and run the setup script:
+Piper has been tested on the Java(TM) SE Runtime Environment (build 1.7.0_25) on the [UPPMAX](http://www.uppmax.uu.se) cluster Milou. It might run in other environments, but this is untested. Besides the JVM, Piper depends on [Maven (version 3+)](http://maven.apache.org/) for building (the GATK), [Make](http://www.gnu.org/software/make/) to install and [git](http://git-scm.com/) to checkout the source. To install piper, make sure that these programs are in you path and then clone this repository and run the setup script:
 
     git clone https://github.com/Molmed/piper.git
     cd piper
     ./setup.sh <path to install Piper to. Default is: $HOME/Bin/Piper>
     # Add Piper to your PATH - note you might have to add this to your
-    # .bashrc to make sure it stays on the path after you log out.
+    # .bashrc to make sure it stays in the path after you log out.
     export PATH=$PATH:<path to install Piper bin directory>
     
 As Piper acts as a wrapper for several standard bioinformatics programs, it requires that these are installed. At this point it requires that the following programs are installed (depending somewhat on the application):
@@ -41,7 +41,7 @@ As Piper acts as a wrapper for several standard bioinformatics programs, it requ
 * [cufflinks](http://cufflinks.cbcb.umd.edu/) 2.1.1
 * [qualimap](http://qualimap.bioinfo.cipf.es/) v1.0 
 
-The paths for these programs are setup in the `globalConfig.sh` file. If you are running on UPPMAX these should already be pointing to the correct locations. But if not, you need to change them there.
+The paths for these programs are setup in the `globalConfig.sh` file. If you are running on UPPMAX these should already be pointing to the correct locations. If not, you need to change them there.
 
 Resource files
 ==============
