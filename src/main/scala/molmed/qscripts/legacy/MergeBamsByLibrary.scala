@@ -1,13 +1,9 @@
-package molmed.qscripts
+package molmed.qscripts.legacy
 
 import org.broadinstitute.sting.queue.QScript
 import org.broadinstitute.sting.queue.util.QScriptUtils
-import org.broadinstitute.sting.queue.extensions.picard.MergeSamFiles
 import molmed.utils.ReadGroupUtils._
-import org.broadinstitute.sting.queue.function.ListWriterFunction
-import molmed.utils.Uppmaxable
 import molmed.utils.GeneralUtils
-import molmed.utils.UppmaxConfig
 import molmed.utils.UppmaxXMLConfiguration
 
 /**

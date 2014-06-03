@@ -1,22 +1,13 @@
-package molmed.qscripts
+package molmed.qscripts.legacy
 
 import org.broadinstitute.sting.queue.QScript
 import scala.xml._
 import collection.JavaConversions._
-import net.sf.samtools.SAMFileReader
-import net.sf.samtools.SAMFileHeader.SortOrder
 import org.broadinstitute.sting.queue.extensions.picard._
-import org.broadinstitute.sting.queue.util.QScriptUtils
-import org.broadinstitute.sting.queue.function.ListWriterFunction
-import org.broadinstitute.sting.commandline.Hidden
 import molmed.queue.setup._
-import org.broadinstitute.sting.queue.function.InProcessFunction
-import org.broadinstitute.sting.utils.io.IOUtils
 import molmed.utils.GeneralUtils._
 import molmed.utils.BwaAlignmentUtils
-import molmed.utils.Uppmaxable
 import molmed.utils.GeneralUtils
-import molmed.utils.UppmaxConfig
 import molmed.utils.UppmaxXMLConfiguration
 
 /**

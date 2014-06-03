@@ -1,4 +1,4 @@
-package molmed.qscripts
+package molmed.qscripts.legacy
 
 import org.testng.annotations._
 import molmed.queue.SnpSeqBaseTest

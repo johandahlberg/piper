@@ -1,15 +1,11 @@
-package molmed.qscripts
+package molmed.qscripts.legacy
 
 import org.broadinstitute.sting.queue.QScript
-import org.broadinstitute.sting.commandline
 import collection.JavaConversions._
-import java.io.File
 import org.broadinstitute.sting.queue.extensions.gatk._
 import org.broadinstitute.sting.queue.util.QScriptUtils
 import molmed.utils.GATKUtils
-import molmed.utils.Uppmaxable
 import molmed.utils.GATKConfig
-import molmed.utils.UppmaxConfig
 import molmed.utils.UppmaxXMLConfiguration
 
 /**

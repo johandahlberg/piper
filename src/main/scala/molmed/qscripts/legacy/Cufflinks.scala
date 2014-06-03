@@ -1,12 +1,10 @@
-package molmed.qscripts
+package molmed.qscripts.legacy
 import collection.JavaConversions._
 import org.broadinstitute.sting.queue.QScript
 import org.broadinstitute.sting.queue.function.ListWriterFunction
 import org.broadinstitute.sting.queue.util.QScriptUtils
-import java.io.File
 import molmed.utils.ReadGroupUtils
 import molmed.utils.UppmaxJob
-import molmed.utils.Uppmaxable
 import molmed.utils.UppmaxConfig
 import molmed.utils.UppmaxXMLConfiguration
 

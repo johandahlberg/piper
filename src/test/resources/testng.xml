@@ -13,29 +13,17 @@
 		<parameter name="runpipeline" value="false" />
 
 		<classes>
-											
-
-			<!--<class name="molmed.qscripts.AlignWithTophatSnpSeqPipelineTest" />
-			<class name="molmed.qscripts.AlignmentQCSnpSeqPipelineTest" />-->
-			<!--<class name="molmed.qscripts.RNACountsPipelineTest" />-->
 			
 			<!-- The following test will fail without their resource files. Uncommented 
 				them to run these tests. -->
-			<!--			
+			
+			<!-- 	
 			<class name="molmed.qscripts.DNABestPracticeVariantCallingSnpSeqPipelineTest" />
 			<class name="molmed.qscripts.HaloplexSnpSeqPipelineTest" />
-			<class name="molmed.qscripts.CufflinksSnpSeqPipelineTest" />
-			<class name="molmed.qscripts.CuffdiffSnpSeqPipelineTest" />
-			<class name="molmed.qscripts.MergeBamsBySampleSnpSeqPipelineTest" />
-			<class name="molmed.qscripts.RNAQCSnpSeqPipelineTest" />
-			-->
-			
-			<!-- Legacy tests -->
-			<!--
-				<class name="molmed.qscripts.AlignWithBWASnpSeqPipelineTest" />
-				<class name="molmed.qscripts.DataProcessingSnpSeqPipelineTest" />
-				<class name="molmed.qscripts.VariantCallingSnpSeqPipelineTest" />
-			-->			
+			 -->
+			 
+			<!-- Not yet implemented tests -->
+			<!-- <class name="molmed.qscripts.RNACountsPipelineTest" />  -->			
 		</classes>
 	</test>
 

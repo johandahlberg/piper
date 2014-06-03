@@ -1,4 +1,4 @@
-package molmed.qscripts
+package molmed.qscripts.legacy
 
 import java.io.FileNotFoundException
 import scala.collection.JavaConversions._
@@ -7,18 +7,13 @@ import org.broadinstitute.sting.gatk.walkers.indels.IndelRealigner.ConsensusDete
 import org.broadinstitute.sting.queue.QScript
 import org.broadinstitute.sting.queue.extensions.gatk._
 import org.broadinstitute.sting.queue.extensions.picard._
-import molmed.queue.extensions.picard.FixMateInformation
-import org.broadinstitute.sting.queue.function.ListWriterFunction
 import org.broadinstitute.sting.queue.util.QScriptUtils
-import org.broadinstitute.sting.utils.baq.BAQ.CalculationMode
 import net.sf.picard.reference.IndexedFastaSequenceFile
 import net.sf.samtools.SAMFileHeader.SortOrder
 import net.sf.samtools.SAMFileReader
-import molmed.utils.Uppmaxable
 import molmed.utils.GATKUtils
 import molmed.utils.GATKConfig
 import molmed.utils.GeneralUtils
-import molmed.utils.UppmaxConfig
 import molmed.utils.UppmaxXMLConfiguration
 
 /**

@@ -1,21 +1,14 @@
-package molmed.qscripts
+package molmed.qscripts.legacy
 
 import org.broadinstitute.sting.queue.extensions.gatk._
 import org.broadinstitute.sting.queue.QScript
-import org.broadinstitute.sting.gatk.phonehome.GATKRunReport
 import org.broadinstitute.sting.queue.util.QScriptUtils
 import org.broadinstitute.sting.commandline.Hidden
-import java.io.IOException
-import org.broadinstitute.sting.commandline.ArgumentException
-import molmed.utils.Resources
-import molmed.utils.Resources
-import molmed.utils.Uppmaxable
-import molmed.utils.VariantCallingTarget
 import molmed.utils.VariantCallingUtils
 import molmed.utils.GATKConfig
 import molmed.utils.VariantCallingUtils
-import molmed.utils.UppmaxConfig
 import molmed.utils.UppmaxXMLConfiguration
+import molmed.utils.VariantCallingTarget
 
 /**
  * Run variant calling using GATK.

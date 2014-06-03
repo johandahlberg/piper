@@ -2,14 +2,10 @@ package molmed.qscripts
 
 import org.broadinstitute.sting.queue.QScript
 import org.broadinstitute.sting.queue.util.QScriptUtils
-import org.broadinstitute.sting.queue.extensions.picard.MergeSamFiles
 import molmed.utils.ReadGroupUtils._
-import org.broadinstitute.sting.queue.function.ListWriterFunction
-import org.broadinstitute.sting.queue.function.InProcessFunction
-import molmed.utils.Uppmaxable
 import molmed.utils.GeneralUtils
-import molmed.utils.UppmaxConfig
 import molmed.utils.UppmaxXMLConfiguration
+import scala.sys.process.Process
 
 /**
  * Merge the bams by the sample names defined by in the read groups.
