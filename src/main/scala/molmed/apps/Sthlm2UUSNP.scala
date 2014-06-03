@@ -16,8 +16,8 @@ object Sthlm2UUSNP extends App {
 
   case class Config(sthlmRoot: Option[File] = None, newUppsalaStyleRoot: Option[File] = None)
 
-  val parser = new OptionParser[Config]("java -cp <class path to piper.jar> molmed.apps.Sthlm2UUSNP") {
-    head("SetupFileCreator", " - A utility program to convert a sthlm style project dir to a ua style one. \n" +
+  val parser = new OptionParser[Config]("sthlm2UUSNP") {
+    head("sthlm2UUSNP", " - A utility program to convert a sthlm style project dir to a ua style one. \n" +
       "Run example: " +
       "./sthlm2UUSNP " +
       " --input_root <sthlm project root folder> " +

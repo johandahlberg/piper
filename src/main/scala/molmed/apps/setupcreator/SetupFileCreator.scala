@@ -23,7 +23,7 @@ object SetupFileCreator extends App {
     sampleFolders: Option[Seq[File]] = None,
     reference: Option[File] = None)
 
-  val parser = new OptionParser[Config]("java -cp <class path to piper.jar> molmed.apps.SetupFileCreator") {
+  val parser = new OptionParser[Config]("SetupFileCreator") {
     head("SetupFileCreator", " - A utility program to create pipeline setup xml files for Piper..")
 
     opt[Unit]('x', "interactive") optional () valueName ("Start the SetupFileCreator in interactive mode") action { (x, c) =>
