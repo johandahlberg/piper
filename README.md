@@ -132,7 +132,7 @@ Unless the `run` flag is added to the workflow commandline the pipeline will onl
 
     ./workflows/Haloplex.sh --xml_input <setup.xml> --intervals <regions file> --amplicons <amplicon file> [--alignments_only] [--run]
 
-The files associated with the Haloplex design can be downloaded from Agilent's homepage. Please note that the design files will be converted to interval files to work with Picard. In this process the names in the files are converted to work with the "b37" genome reference, rather than "hg19", which is the reference used by agilent. This means that if you want to use "hg19" you have to specify the `--do_not_convert` flag in the qscript.
+The files associated with the Haloplex design can be downloaded from Agilent's homepage. Please note that the design files will be converted to interval files to work with Picard. In this process the names in the files are converted to work with the "b37" genome reference, rather than "hg19", which is the reference used by agilent. This means that if you want to use "hg19" then you must specify the `--do_not_convert` flag in the qscript.
 
 **RNACounts**
 
@@ -154,7 +154,7 @@ Pick one of either `--sureselect` or `--truseq` to set which exome intervals sho
 Monitoring progress
 -------------------
 
-To follow the progress of the run look in the `pipeline_output/logs` folder. There you will find the logs for the different scripts. By searching the file for "Run", you can see how many jobs are currently running, how many have finished, and how many have failed. A recommendation is to use e.g. `less -S` to view the file with unwrapped lines, as it is quite difficult to read otherwise.
+To follow the progress of the run look in the `pipeline_output/logs` folder. There you will find the logs for the different scripts. By searching the log file for "Run", you can see how many jobs are currently running, how many have finished, and how many have failed. A recommendation is to use e.g. `less -S` to view the file with unwrapped lines, as it is quite difficult to read otherwise.
 
 
 Development
