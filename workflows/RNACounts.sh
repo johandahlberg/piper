@@ -93,7 +93,9 @@ RRNA_TARGETS="/proj/b2010028/references/piper_references/rRNA_targets/rRNA.sorte
 module load java/sun_jdk1.7.0_25
 module load R/2.15.0
 module load bioinfo-tools
-module load tophat/2.0.4
+module load tophat/2.0.10
+module load samtools/0.1.19
+module load bowtie2/2.1.0
 
 #---------------------------------------------
 # Create output directories
@@ -139,7 +141,6 @@ source piper -S ${SCRIPTS_DIR}/RNACounts.scala \
 	    --path_sync_script ${PATH_TO_SYNC_CUTADAPT} \
 	    --rna_seqc ${PATH_TO_RNA_SEQ_QC} \
 	    -jobRunner ${JOB_RUNNER} \
-	    -jobNative ${JOB_NATIVE_ARGS} \
 	     ${ONLY_ALIGNMENTS} \
 	    -ca \
 	    --job_walltime 518400 \
