@@ -9,7 +9,7 @@
 
 [![Build Status](https://travis-ci.org/johandahlberg/piper.png?branch=master)](https://travis-ci.org/johandahlberg/piper)
 
-A pipeline project for the [SNP&SEQ Technology platform](http://www.molmed.medsci.uu.se/SNP+SEQ+Technology+Platform/) built on top of [GATK Queue](http://www.broadinstitute.org/gatk/guide/topic?name=intro#intro1306). Note that this project is under heavy development and might not be entirely stable at this point. It's also worth noting that this project has the primary goal of analyzing sequencing data from the SNP&SEQ Technology platform and therefore has dependencies on metadata files which are created in the workflow of the platform, such as the `report.xml` which is created by [Sisyphus](https://github.com/Molmed/sisyphus) and delivered with sequencing data from our facility. I'd however be more than happy to support anyone interested in extending the pipeline to other contexts.
+A pipeline project started at the [SNP&SEQ Technology platform](http://www.molmed.medsci.uu.se/SNP+SEQ+Technology+Platform/) built on top of [GATK Queue](http://www.broadinstitute.org/gatk/guide/topic?name=intro#intro1306). Since then Piper has been adopted by the Swedish [National Genomics Infrastructure (IGN)](http://www.scilifelab.se/platforms/ngi/) for use in the the Swedish Genomes Program as well as for samples submitted through the Illumina Genome Network to the NGI platform.
 
 Piper builds on the concept of standardized workflows for different next-generation sequencing applications. At the moment Piper supports the following workflows:
 
@@ -17,54 +17,87 @@ Piper builds on the concept of standardized workflows for different next-generat
 * TruSeq and SureSelect human exome sequencing: These use basically the same pipeline as the whole genome pipeline, but with the modifications suggested in the [best practice document](http://www.broadinstitute.org/gatk/guide/topic?name=best-practices) for exome studies.
 * Haloplex: Haloplex targeted sequencing analysis. Including alignment, data processing and variant calling.
 * RNACounts: Which produces [FPKMs](http://cufflinks.cbcb.umd.edu/faq.html#fpkm) for transcripts of an existing reference annotation using Tophat for mapping and Cufflinks to produce the FPKMs.
-* RNADifferentialExpression: This performs differential expression studies of transcripts of an existing reference annotation using Tophat for mapping and Cuffdiff for differential expression analysis. This can then be visualized using the [cummeRbund](http://compbio.mit.edu/cummeRbund/) R package.
-* Additionally Piper contains a DNAGeneralPipeline and a RNAGeneralPipeline which are used as templates for creating new workflows. These can also be used for creating workflows for species other than human - however they are not expected to work out of the box. You have been warned.
 
 All supported workflows are available in the `workflows` directory in the project root.
 
 Prerequisites and installation
 ==============================
 
-Piper has been tested on the Java(TM) SE Runtime Environment (build 1.7.0_25) on the [UPPMAX](http://www.uppmax.uu.se) cluster Milou. It might run in other environments, but this is untested. Besides the JVM Piper depends on [Maven](http://maven.apache.org/) for building (the GATK) and [git](http://git-scm.com/) to checkout the source. To install piper, make sure that these programs are in you path, then clone this repository and run the setup script:
+Piper has been tested on the Java(TM) SE Runtime Environment (build 1.7.0_25) on the [UPPMAX](http://www.uppmax.uu.se) cluster Milou. It might run in other environments, but this is untested. Besides the JVM Piper depends on [Maven (version 3+)](http://maven.apache.org/) for building (the GATK), [Make](http://www.gnu.org/software/make/) to install and [git](http://git-scm.com/) to checkout the source. To install piper, make sure that these programs are in you path, then clone this repository and run the setup script:
 
     git clone https://github.com/Molmed/piper.git
     cd piper
-    ./setup.sh
+    ./setup.sh <path to install Piper to. Default is: $HOME/Bin/Piper>
+    # Add Piper to your PATH - note you might have to add this to your
+    # .bashrc to make sure it stays on the path after you log out.
+    export PATH=$PATH:<path to install Piper bin directory>
     
 As Piper acts as a wrapper for several standard bioinformatics programs it requires that these are installed. At this point it requires that the following programs are installed (depending somewhat on the application):
 
-* [bwa](http://bio-bwa.sourceforge.net/) 0.6.2
-* [samtools](http://samtools.sourceforge.net/) 0.1.12-10
-* [tophat](http://tophat.cbcb.umd.edu/) 2.0.4
+* [bwa](http://bio-bwa.sourceforge.net/) 0.7.5a
+* [samtools](http://samtools.sourceforge.net/) 0.1.19
+* [tophat](http://tophat.cbcb.umd.edu/) 2.0.10
 * [cutadapt](https://code.google.com/p/cutadapt/) 1.2.1
 * [cufflinks](http://cufflinks.cbcb.umd.edu/) 2.1.1
+* [qualimap](http://qualimap.bioinfo.cipf.es/) v1.0 
 
 The paths for these programs are setup in the `globalConfig.sh` file. If you are running on UPPMAX these should already be pointing to the correct locations. But if not, you need to change them there.
 
 Resource files
 ==============
 
-For the standard application of alignment, data processing and variant calling in human relies on data available in the GATK bundle from the Broad Institute. This is available for download at their [website](http://gatkforums.broadinstitute.org/discussion/1213/what-s-in-the-resource-bundle-and-how-can-i-get-it). If you are working on UPPMAX these resources are available at `/pica/data/uppnex/reference/biodata/GATK/ftp.broadinstitute.org/bundle/2.2/`, however you might want to create your own directory for these in which you soft link the files, as you will be required to create for example bwa indexes.
+For the standard application of alignment, data processing and variant calling in human relies on data available in the GATK bundle from the Broad Institute. This is available for download at their [website](http://gatkforums.broadinstitute.org/discussion/1213/what-s-in-the-resource-bundle-and-how-can-i-get-it). If you are working on UPPMAX these resources are available at `/pica/data/uppnex/reference/biodata/GATK/ftp.broadinstitute.org/bundle/2.8/`, however you might want to create your own directory for these in which you soft link the files, as you will be required to create for example bwa indexes.
 
-The path to the GATK bundle needs to be setup in the `globalConfig.sh` file. For MolMed users this has been setup to reasonable defaults.
+The path to the GATK bundle needs to be setup in the `globalConfig.sh`.
 
 Running the pipeline
 ====================
 
-There are a number of workflows currently supported by Piper (See below). For most users these should just be called accoring to the run examples below. Currently there are two ways which the workflows are setup. The RNA-related scripts are setup in the following way:
+There are a number of workflows currently supported by Piper (See below). For most users these should just be called accoring to the run examples below. If you want to make customizations, open up the appropriate workflow bash script and make. If you need to know what parameters are available run the script with `--help`, e.g:
 
-* A number of bash functions which wrap QScripts with their parameters, some simple log redirecting etc.
-* A Run template, where parameters such as reference genome, interval file (e.g. for targeted sequencing) are set.
-* A section where the different QScripts are chained together so that for example: variant calling follows data processing, etc. If you want to change the order of the analysis, or skip some part entirely, comment these lines out and change their input/outputs accordingly. (Note that not all workflows are setup this way, and if they are not you will have to change the qscript to solve this)
-
-This has however been significantly simplified for the DNA workflows, which are now just wrappers around a single QScript to spare the end user the need to specify all of Pipers (many) parameters.
+    piper -S <path to Script> --help
 
 Setup for run
 -------------
 
-All workflows start with an xml file, for example: `pipelineSetup.xml`. This contains information about the raw data (run folders) that you want to run in the project. This is created using the `createSetupXml.sh` script. Before running this make sure that your run folders are located (or linked) from a common folder (e.g. the runfolders directory under your project), then run this: 
+All workflows start with an xml file, for example: `pipelineSetup.xml`. This contains information about the raw data (run folders) that you want to run in the project. This is created using the `setupFileCreator` command. This can be run either in a interactive mode or by passing all parameters via the commandline.
 
-    ./createSetupXml.sh pipelineSetup.xml
+** Directory structures and report files**
+Piper depends on a special folder structure to be parse metadata about the samples. This structure looks like this:
+
+    Top level
+    |---Runfolder1
+        |---report.xml/report.tsv
+        |---Sample_1
+            |--- 1_<index>_<lane>_<read1>_xxx.fastq.gz
+            |--- 1_<index>_<lane>_<read2>_xxx.fastq.gz (optional)
+        |---Sample_2
+            |--- 2_<index>_<lane>_<read1>_xxx.fastq.gz
+            |--- 2_<index>_<lane>_<read2>_xxx.fastq.gz (optional)
+    |---Runfolder1
+        |---report.xml/report.tsv
+        |---Sample_1
+            |--- 1_<index>_<lane>_<read1>_xxx.fastq.gz
+            |--- 1_<index>_<lane>_<read2>_xxx.fastq.gz (optional)
+        |---Sample_2
+            |--- 2_<index>_<lane>_<read1>_xxx.fastq.gz
+            |--- 2_<index>_<lane>_<read2>_xxx.fastq.gz (optional)
+
+As evident from this structure each runfolder needs to have a file either names `report.xml` or `report.tsv`. In the `report.xml` file case, this is a file which is generated by the software [Sisyphus](https://github.com/Molmed/sisyphus) which is used by the SNP&SEQ Technology Platform to process data. If your data is not delivered from the SNP&SEQ platform you are probably better of using the simple `report.tsv` format. This is a tab-separated file with the following format:
+
+        #SampleName     Lane    ReadLibrary     FlowcellId
+        MyFirstSample   1       FirstLib        9767892AVF
+        MyFirstSample   2       SecondLib       9767892AVF
+        MySecondSample  1       SomeOtherLib    9767892AVF
+
+
+**Running interactively**
+To run `setupFileCreator` interactively follow these steps:
+
+* Before running this make sure that your run folders are located (or linked) from a common folder (e.g. the runfolders directory under your project), then run this: 
+* Run:
+    setupFileCreator --interactive --output pipelineSetup.xml
+* Answer the questions.
 
 and answer the questions. This will create your setup file, which should look something like this:
 
@@ -80,22 +113,15 @@ and answer the questions. This will create your setup file, which should look so
 	    </RunFolder>
     </Project>
 
-
-This is the file you should assign to the `PIPELINE_SETUP_XML` variable to in the workflow scripts.
-
-The `createSetupXml.sh` script will look for a file in each run folder named `report.xml` or `report.tsv`. The `report.xml` file should have the standard format used at the SNP&SEQ Technology platform, the tsv file format is provided to make it easier for project which have not been sequenced at the SNP&SEQ Technology platform to use Piper. This is a simple tab separated file which should look like the following example:
-
-	#SampleName	Lane	ReadLibrary	FlowcellId
-	MyFirstSample	1	FirstLib	9767892AVF
-	MyFirstSample   2	SecondLib	9767892AVF
-	MySecondSample	1	SomeOtherLib	9767892AVF
+**Running non-interactively**
+Run `setupFileCreator` without any arguments. This will show you the list of parameters that you need to set. This option is supplied to make it easier to automize the setup and run process of Piper for continuous large scale projects.
 
 Running
 -------
 
-Pick the workflow that you want to run, e.g. haloplex. Then initiate it (by simply running it, or if you do not have access to node where you can continually run a JVM by using `sbatch` to send it to a node) accoding to the examples below.
+Pick the workflow (they are located in the Piper directory under `workflows`) that you want to run, e.g. haloplex. Then initiate it (by simply running it, or if you do not have access to a node where you can continually run a JVM by using `sbatch` to send it to a node) accoding to the examples below.
 
-Note that all workflows are by default setup to be run with the human_g1k_v37.fasta reference, and associated annotations. This means that if you need some other reference, you will have to set it up manually by configuring the "Run Template" part of the workflow script (and depending somewhat on the use case, make changes to the qscripts themself). 
+Note that all workflows are by default setup to be run with the human_g1k_v37.fasta reference, and associated annotations. This means that if you need some other reference, you will have to set it up manually by configuring the workflow script (and depending somewhat on the use case, make changes to the qscripts themself). 
 
 It's also worth mentioning that all the scripts have a optional `alignments_only` flag which can be set if you are only interested in running the aligments. This is useful what you are working on a project where data is added over time, but you want to create the aligments as data comes in, and then join across the sequencing runs and continue with the downstream analysis.
 
@@ -114,20 +140,11 @@ The files associated with the Haloplex design can be downloaded from Agilents ho
 
 Library types depends on the protcol used. For ScriptSeq, it's for example `fr-secondstrand`.
 
-**RNADifferentialExpression**
-
-    ./workflows/RNADifferentialExpression.sh --xml_input <setup.xml> --library_type <fr-secondstrand/fr-firststrand/fr-unstranded> [--replicates <replicate_file>] [--alignments_only] [--run]
-
-To be able to run this workflow samtools needs to be available on the `PATH`, you can get this by loading the samtools module in your `.bashrc` or by explicitly adding it to the `PATH` variable.
-
-If you have replicates in you cohort specify them in a file (under `--replicates`) accoring to the following: On each line should be the label (e.g. the name of the condition) and sample names of the samples included in that condition seperated by tabs. Please note that only samples which have replicates need to be specified. The default is one sample - one replicate.
-
-
 **Exome**
     
     ./workflows/Exome.sh --xml_input <setup.xml> <--sureselect> || <--truseq> [--alignments_only] [--run]
 
-Pick one if either `--sureselect` or `--truseq` to set which exome intervals should be used.
+Pick one if either `--sureselect` or `--truseq` to set which exome intervals should be used. If you need some other interval files - open up the workflow file and set the `INTERVALS` to the path of your interval file.
 
 **WholeGenome**
 
@@ -143,7 +160,7 @@ To follow the progress of the run look in the `pipeline_output/logs` folder. The
 Development
 ===========
 
-The heavy lifting in Piper is primarilly done in Scala, with Bash glueing together the different scripts to into workflows. Some additional Java and the occasional Perl component is used, but the main body of the code is written in Scala.
+The heavy lifting in Piper is primarily done in Scala, with Bash glueing together the different scripts to into workflows. Some additional Java and the occasional Perl component is used, but the main body of the code is written in Scala.
 
 Coding
 ------
@@ -162,9 +179,9 @@ Although the Scala IDE will compile the code as you type, you will probably also
 
 Will compile your project.
 
-    package
+    pack
 
-Will produce the jars (look under the `target` dir and in the dir for the Scala version that your build targets)
+Will produce the jars, start up scripts and a Make file (look under the `target/pack` to see the output)
 
     clean
 
@@ -183,7 +200,6 @@ This is an (incomplete) overview of Pipers project organization, describing the 
 |-.gitignore        # file which git should ignore
 |-build.sbt         # The primary build definition file for sbt (there is additional build info under project)
 |-globalConfig.sh   # Global setup with e.g. paths to programs etc.
-|-piper             # Basic runscript
 |-README.md         # This readme
 |----sbt            # The sbt compiler - included for the users convinience
 |----lib            # Unmanaged dependecencies
