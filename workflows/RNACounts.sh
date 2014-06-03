@@ -121,7 +121,7 @@ fi
 # in a different way.
 #---------------------------------------------
 
-source piper -S ${SCRIPTS_DIR}/RNACounts.scala \
+piper -S ${SCRIPTS_DIR}/RNACounts.scala \
 	    --xml_input $PIPELINE_SETUP \
 	    --transcripts ${ANNOTATIONS} \
 	    --annotations ${ANNOTATIONS} \

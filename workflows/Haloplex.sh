@@ -76,7 +76,7 @@ module load R/2.15.0
 mkdir -p $OUTPUT_DIR
 mkdir -p ${LOGS}
 
-source piper -S ${SCRIPTS_DIR}/Haloplex.scala \
+piper -S ${SCRIPTS_DIR}/Haloplex.scala \
 	     --xml_input ${PIPELINE_SETUP} \
 	     --resources ${GATK_BUNDLE_B37} \
 	     -intervals ${INTERVALS} \

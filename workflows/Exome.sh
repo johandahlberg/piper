@@ -82,27 +82,27 @@ fi
 #---------------------------------------------
 # Run the qscript
 #---------------------------------------------
-source piper -S ${SCRIPTS_DIR}/DNABestPracticeVariantCalling.scala \
-	     --xml_input ${PIPELINE_SETUP} \
-             --isExome \
-             --gatk_interval_file ${INTERVALS} \
-	     --dbsnp ${DB_SNP_B37} \
-             --extra_indels ${MILLS_B37} \
-             --extra_indels ${ONE_K_G_B37} \
-	     --hapmap ${HAPMAP_B37} \
-	     --omni ${OMNI_B37} \
-	     --mills ${MILLS_B37} \
-	     --thousandGenomes ${THOUSAND_GENOMES_B37} \
-	     -bwa ${PATH_TO_BWA} \
-	     -samtools ${PATH_TO_SAMTOOLS} \
-             -qualimap ${PATH_TO_QUALIMAP} \
-	     --number_of_threads 8 \
-             --scatter_gather 10 \
-	     -jobRunner ${JOB_RUNNER} \
-             -jobNative "${JOB_NATIVE_ARGS}" \
-	     --job_walltime 345600 \
-             --create_delivery \
-	     ${RUN} ${ONLY_ALIGMENTS} ${DEBUG} 2>&1 | tee -a ${LOGS}/exome.log
+piper -S ${SCRIPTS_DIR}/DNABestPracticeVariantCalling.scala \
+	      --xml_input ${PIPELINE_SETUP} \
+	      --isExome \
+	      --gatk_interval_file ${INTERVALS} \
+	      --dbsnp ${DB_SNP_B37} \
+	      --extra_indels ${MILLS_B37} \
+	      --extra_indels ${ONE_K_G_B37} \
+	      --hapmap ${HAPMAP_B37} \
+	      --omni ${OMNI_B37} \
+	      --mills ${MILLS_B37} \
+	      --thousandGenomes ${THOUSAND_GENOMES_B37} \
+	      -bwa ${PATH_TO_BWA} \
+	      -samtools ${PATH_TO_SAMTOOLS} \
+	      -qualimap ${PATH_TO_QUALIMAP} \
+	      --number_of_threads 8 \
+	      --scatter_gather 10 \
+	      -jobRunner ${JOB_RUNNER} \
+	      -jobNative "${JOB_NATIVE_ARGS}" \
+	      --job_walltime 345600 \
+	      --create_delivery \
+	      ${RUN} ${ONLY_ALIGMENTS} ${DEBUG} 2>&1 | tee -a ${LOGS}/exome.log
 
 # Perform final clean up
-final_clean_up
+	      final_clean_up
