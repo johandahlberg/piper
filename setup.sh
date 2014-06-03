@@ -69,7 +69,7 @@ echo "########################################################"
 echo "Checking out and compiling the GATK and Queue"
 echo "########################################################"
 
-#download_and_install_gatk
+download_and_install_gatk
 
 echo "########################################################"
 echo "Download RNA-SeQC"
