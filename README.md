@@ -23,7 +23,7 @@ All supported workflows are available in the `workflows` directory in the projec
 Prerequisites and installation
 ==============================
 
-Piper has been tested on the Java(TM) SE Runtime Environment (build 1.7.0_25) on the [UPPMAX](http://www.uppmax.uu.se) cluster Milou. It might run in other environments, but this is untested. Besides the JVM, Piper depends on [Maven (version 3+)](http://maven.apache.org/) for building (the GATK), [Make](http://www.gnu.org/software/make/) to install and [git](http://git-scm.com/) to checkout the source. To install piper, make sure that these programs are in you path and then clone this repository and run the setup script:
+Piper has been tested on the Java(TM) SE Runtime Environment (build 1.7.0_25) on the [UPPMAX](http://www.uppmax.uu.se) cluster Milou. It might run in other environments, but this is untested. Besides the JVM, Piper depends on [Maven (version 3+)](http://maven.apache.org/) for building (the GATK), [Make](http://www.gnu.org/software/make/) to install, and [git](http://git-scm.com/) to checkout the source. To install piper, make sure that these programs are in you path and then clone this repository and run the setup script:
 
     git clone https://github.com/Molmed/piper.git
     cd piper
@@ -132,13 +132,13 @@ Unless the `run` flag is added to the workflow commandline the pipeline will onl
 
     ./workflows/Haloplex.sh --xml_input <setup.xml> --intervals <regions file> --amplicons <amplicon file> [--alignments_only] [--run]
 
-The files associated with the Haloplex design can be downloaded from Agilent's homepage. Please note that the design files will be converted to interval files to work with Picard. In this process the names in the files are converted to work with the "b37" genome reference, rather than "hg19" which is the reference used by agilent. This means that if you want to use "hg19" you have to specify the `--do_not_convert` flag in the qscript.
+The files associated with the Haloplex design can be downloaded from Agilent's homepage. Please note that the design files will be converted to interval files to work with Picard. In this process the names in the files are converted to work with the "b37" genome reference, rather than "hg19", which is the reference used by agilent. This means that if you want to use "hg19" you have to specify the `--do_not_convert` flag in the qscript.
 
 **RNACounts**
 
     ./workflows/RNACounts.sh --xml_input <setup.xml> --library_type <fr-secondstrand/fr-firststrand/fr-unstranded> [--alignments_only] [--run]
 
-Library types depends on the protcol used. For example, for ScriptSeq libraries (EpiCentre) the library type should be `fr-secondstrand`.
+Library types depends on the protcol used. For example, for ScriptSeq libraries (EpiCentre) the library type should be set to `fr-secondstrand`.
 
 **Exome**
     
