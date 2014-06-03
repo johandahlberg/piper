@@ -9,13 +9,13 @@
 
 [![Build Status](https://travis-ci.org/johandahlberg/piper.png?branch=master)](https://travis-ci.org/johandahlberg/piper)
 
-A pipeline project started at the [SNP&SEQ Technology platform](http://www.molmed.medsci.uu.se/SNP+SEQ+Technology+Platform/) built on top of [GATK Queue](http://www.broadinstitute.org/gatk/guide/topic?name=intro#intro1306). Since then Piper has been adopted by the Swedish [National Genomics Infrastructure (IGN)](http://www.scilifelab.se/platforms/ngi/) for use in the the Swedish Genomes Program as well as for samples submitted through the Illumina Genome Network to the NGI platform.
+A pipeline project started at the [SNP&SEQ Technology platform](http://www.molmed.medsci.uu.se/SNP+SEQ+Technology+Platform/) built on top of [GATK Queue](http://www.broadinstitute.org/gatk/guide/topic?name=intro#intro1306). Since then Piper has been adopted by the Swedish [National Genomics Infrastructure (NGI)](http://www.scilifelab.se/platforms/ngi/) for use in the the Swedish Genomes Program as well as for samples submitted through the Illumina Genome Network to the NGI platform.
 
 Piper builds on the concept of standardized workflows for different next-generation sequencing applications. At the moment Piper supports the following workflows:
 
-* WholeGenome: For human whole genome sequencing data. This goes through alignment, alignment quality control, dataprocessing, variant calling and variant filtration according to the [best practice recommended by the Broad Institute](http://www.broadinstitute.org/gatk/guide/topic?name=best-practices), using primarily the GATK.
+* WholeGenome: For human whole genome sequencing data. This goes through alignment, alignment quality control, data processing, variant calling, and variant filtration according to the [best practice recommended by the Broad Institute](http://www.broadinstitute.org/gatk/guide/topic?name=best-practices), using primarily the GATK.
 * TruSeq and SureSelect human exome sequencing: These use basically the same pipeline as the whole genome pipeline, but with the modifications suggested in the [best practice document](http://www.broadinstitute.org/gatk/guide/topic?name=best-practices) for exome studies.
-* Haloplex: Haloplex targeted sequencing analysis. Including alignment, data processing and variant calling.
+* Haloplex: Haloplex targeted sequencing analysis. Including alignment, data processing, and variant calling.
 * RNACounts: Which produces [FPKMs](http://cufflinks.cbcb.umd.edu/faq.html#fpkm) for transcripts of an existing reference annotation using Tophat for mapping and Cufflinks to produce the FPKMs.
 
 All supported workflows are available in the `workflows` directory in the project root.
@@ -23,7 +23,7 @@ All supported workflows are available in the `workflows` directory in the projec
 Prerequisites and installation
 ==============================
 
-Piper has been tested on the Java(TM) SE Runtime Environment (build 1.7.0_25) on the [UPPMAX](http://www.uppmax.uu.se) cluster Milou. It might run in other environments, but this is untested. Besides the JVM Piper depends on [Maven (version 3+)](http://maven.apache.org/) for building (the GATK), [Make](http://www.gnu.org/software/make/) to install and [git](http://git-scm.com/) to checkout the source. To install piper, make sure that these programs are in you path, then clone this repository and run the setup script:
+Piper has been tested on the Java(TM) SE Runtime Environment (build 1.7.0_25) on the [UPPMAX](http://www.uppmax.uu.se) cluster Milou. It might run in other environments, but this is untested. Besides the JVM, Piper depends on [Maven (version 3+)](http://maven.apache.org/) for building (the GATK), [Make](http://www.gnu.org/software/make/) to install and [git](http://git-scm.com/) to checkout the source. To install piper, make sure that these programs are in you path, and then clone this repository and run the setup script:
 
     git clone https://github.com/Molmed/piper.git
     cd piper
@@ -32,7 +32,7 @@ Piper has been tested on the Java(TM) SE Runtime Environment (build 1.7.0_25) on
     # .bashrc to make sure it stays on the path after you log out.
     export PATH=$PATH:<path to install Piper bin directory>
     
-As Piper acts as a wrapper for several standard bioinformatics programs it requires that these are installed. At this point it requires that the following programs are installed (depending somewhat on the application):
+As Piper acts as a wrapper for several standard bioinformatics programs, it requires that these are installed. At this point it requires that the following programs are installed (depending somewhat on the application):
 
 * [bwa](http://bio-bwa.sourceforge.net/) 0.7.5a
 * [samtools](http://samtools.sourceforge.net/) 0.1.19
@@ -46,7 +46,7 @@ The paths for these programs are setup in the `globalConfig.sh` file. If you are
 Resource files
 ==============
 
-For the standard application of alignment, data processing and variant calling in human relies on data available in the GATK bundle from the Broad Institute. This is available for download at their [website](http://gatkforums.broadinstitute.org/discussion/1213/what-s-in-the-resource-bundle-and-how-can-i-get-it). If you are working on UPPMAX these resources are available at `/pica/data/uppnex/reference/biodata/GATK/ftp.broadinstitute.org/bundle/2.8/`, however you might want to create your own directory for these in which you soft link the files, as you will be required to create for example bwa indexes.
+For the standard application of alignment, data processing, and variant calling in human data, Piper relies on data available in the GATK bundle from the Broad Institute. This is available for download from their [website](http://gatkforums.broadinstitute.org/discussion/1213/what-s-in-the-resource-bundle-and-how-can-i-get-it). If you are working on UPPMAX these resources are available at `/pica/data/uppnex/reference/biodata/GATK/ftp.broadinstitute.org/bundle/2.8/`, however you might want to create your own directory for these in which you soft link the files, as you will be required to create, for example, bwa indexes.
 
 The path to the GATK bundle needs to be setup in the `globalConfig.sh`.
 
@@ -83,7 +83,7 @@ Piper depends on a special folder structure to be parse metadata about the sampl
             |--- 2_<index>_<lane>_<read1>_xxx.fastq.gz
             |--- 2_<index>_<lane>_<read2>_xxx.fastq.gz (optional)
 
-As evident from this structure each runfolder needs to have a file either names `report.xml` or `report.tsv`. In the `report.xml` file case, this is a file which is generated by the software [Sisyphus](https://github.com/Molmed/sisyphus) which is used by the SNP&SEQ Technology Platform to process data. If your data is not delivered from the SNP&SEQ platform you are probably better of using the simple `report.tsv` format. This is a tab-separated file with the following format:
+As evident from this structure of each runfolder needs to have a file named either `report.xml` or `report.tsv`. In the `report.xml` file case, this is a file which is generated by the software [Sisyphus](https://github.com/Molmed/sisyphus) which is used by the SNP&SEQ Technology Platform to process data. If your data is not delivered from the SNP&SEQ platform you are probably better of using the simple `report.tsv` format. This is a tab-separated file with the following format:
 
         #SampleName     Lane    ReadLibrary     FlowcellId
         MyFirstSample   1       FirstLib        9767892AVF
@@ -121,7 +121,7 @@ Running
 
 Pick the workflow (they are located in the Piper directory under `workflows`) that you want to run, e.g. haloplex. Then initiate it (by simply running it, or if you do not have access to a node where you can continually run a JVM by using `sbatch` to send it to a node) accoding to the examples below.
 
-Note that all workflows are by default setup to be run with the human_g1k_v37.fasta reference, and associated annotations. This means that if you need some other reference, you will have to set it up manually by configuring the workflow script (and depending somewhat on the use case, make changes to the qscripts themself). 
+Note that all workflows are by default setup to be run with the human_g1k_v37.fasta reference and associated annotations. This means that if you need some other reference, you will have to set it up manually by configuring the workflow script (and depending somewhat on the use case, make changes to the qscripts themself). 
 
 It's also worth mentioning that all the scripts have a optional `alignments_only` flag which can be set if you are only interested in running the aligments. This is useful what you are working on a project where data is added over time, but you want to create the aligments as data comes in, and then join across the sequencing runs and continue with the downstream analysis.
 
@@ -132,19 +132,19 @@ Unless the `run` flag is added to the workflow commandline the pipeline will onl
 
     ./workflows/Haloplex.sh --xml_input <setup.xml> --intervals <regions file> --amplicons <amplicon file> [--alignments_only] [--run]
 
-The files associated with the Haloplex design can be downloaded from Agilents homepage. Please note that the design files will be converted to interval files to work with Picard. In this process the names in the files are converted to work with the "b37" genome reference, rather than "hg19" which is the reference used by agilent. This means that if you want to use "hg19" you have to specify the `--do_not_convert` flag in the qscript.
+The files associated with the Haloplex design can be downloaded from Agilent's homepage. Please note that the design files will be converted to interval files to work with Picard. In this process the names in the files are converted to work with the "b37" genome reference, rather than "hg19" which is the reference used by agilent. This means that if you want to use "hg19" you have to specify the `--do_not_convert` flag in the qscript.
 
 **RNACounts**
 
     ./workflows/RNACounts.sh --xml_input <setup.xml> --library_type <fr-secondstrand/fr-firststrand/fr-unstranded> [--alignments_only] [--run]
 
-Library types depends on the protcol used. For ScriptSeq, it's for example `fr-secondstrand`.
+Library types depends on the protcol used. For example, for ScriptSeq libraries (EpiCentre) the library type should be `fr-secondstrand`.
 
 **Exome**
     
     ./workflows/Exome.sh --xml_input <setup.xml> <--sureselect> || <--truseq> [--alignments_only] [--run]
 
-Pick one if either `--sureselect` or `--truseq` to set which exome intervals should be used. If you need some other interval files - open up the workflow file and set the `INTERVALS` to the path of your interval file.
+Pick one of either `--sureselect` or `--truseq` to set which exome intervals should be used. If you wish to use another interval file - open up the workflow file and set the `INTERVALS` to the path of your interval file.
 
 **WholeGenome**
 
@@ -185,7 +185,7 @@ Will produce the jars, start up scripts and a Make file (look under the `target/
 
     clean
 
-If something looks strange it's probably a good idea to run this. It deletes all of your class files so that you can be sure you have a totally clean build.
+If something looks strange it is probably a good idea to run this. It deletes all of your class files so that you can be sure you have a totally clean build.
 
     test
 
@@ -220,7 +220,7 @@ This is an (incomplete) overview of Pipers project organization, describing the 
 
 
 ### Making Piper generate graph files
-Queue includes functionallity to generate dot files to visualize the jobs graph. This is highly useful when debugging new qscripts as it lets you see how the jobs connect to one another, so if you have made some mistake in the chaining of the dependencies it is easy to spot. ".dot" files can be opened with e.g. [xdot](https://github.com/jrfonseca/xdot.py).
+Queue includes functionallity to generate dot files to visualize the jobs graph. This is highly useful when debugging new qscripts as it lets you see how the jobs connect to one another. So, if you have made a mistake in the chaining of the dependencies it is easy to spot. ".dot" files can be opened with e.g. [xdot](https://github.com/jrfonseca/xdot.py).
 
 
 ### Using the XML binding compiler (xjc):
@@ -232,10 +232,10 @@ Testing
 -------
 
 ### Running pipeline tests
-Running the tests is done by `sbt test`. However there are some things which need to be noted. As the pipeline tests take a long time and have dependencies on outside programs (such as bwa for alignment, etc.) these can only be run on machine which have all the required programs installed, and which have all the correct resources. This means that by default the tests are setup to just compile the qscripts, but not run them. If you want to run the qscripts you need to go into `src/test/resources/testng.xml` and set the value of the runpipeline parameter to 'true'.
+Running the tests is done by `sbt test`. However, there are some things which need to be noted. As the pipeline tests take a long time and have dependencies on outside programs (such as bwa for alignment, etc.) these can only be run on machines that have all the required programs installed and that have all the correct resources. This means that by default the tests are setup to just compile the qscripts, but not run them. If you want to run the qscripts you need to go into `src/test/resources/testng.xml` and set the value of the runpipeline parameter to 'true'.
 
 ### Writing pipeline tests
-Pipeline tests are setup to run a certain QScript and check the md5sums of the outputs. If md5sums do not match, it will show you what the differences between the files are so that you can decide if the changes to the output are reasonable concidering the changes to the code you have made. At the moment pipeline tests are just setup to accutally run (with all the necessary resources, etc) on my workstation. In furture versions I hope to be able to make this more portable.
+Pipeline tests are setup to run a certain QScript and check the md5sums of the outputs. If md5sums do not match, it will show you what the differences between the files are so that you can decide if the changes to the output are reasonable concidering the changes to the code you have made. At the moment, pipeline tests are just setup to run (with all the necessary resources, etc) on my workstation. In furture versions I hope to be able to make this more portable.
 
 ### Continuous integration using Travis:
 Piper uses [Travis](https://travis-ci.org/) for continious integration. For instruction on how to set this up with a github repository see: http://about.travis-ci.org/docs/user/getting-started/
