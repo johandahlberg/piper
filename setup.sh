@@ -69,7 +69,7 @@ echo "########################################################"
 echo "Checking out and compiling the GATK and Queue"
 echo "########################################################"
 
-download_and_install_gatk
+#download_and_install_gatk
 
 echo "########################################################"
 echo "Download RNA-SeQC"
@@ -88,7 +88,7 @@ check_errs $? "compiling and install piper failed."
 echo "########################################################"
 echo "Piper successfully installed to ${INSTALL_PREFIX}"
 echo "Add it to your PATH by running:"
-echo "  PATH=$PATH:$INSTALL_PREFIX/bin"
+echo "  PATH=\$PATH:$INSTALL_PREFIX/bin"
 echo "And verify it's been installed by running:"
 echo "  piper -S qscripts/examples/NonUppmaxableTestScript.scala --help"
 echo "This should show a list of available options if Piper"
