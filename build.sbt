@@ -5,7 +5,7 @@ name := "Piper"
 
 organization := "molmed"
 
-version := "0.1-SNAPSHOT"
+version := "v1.2.0-beta1"
 
 scalaVersion := "2.10.1"
 
