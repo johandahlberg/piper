@@ -4,15 +4,15 @@
 	targetNamespace="globalconfig.xml.molmed" xmlns="globalconfig.xml.molmed"
 	elementFormDefault="qualified">
 
-	<xs:element name="GlobalConfig">
+	<xs:element name="globalConfig">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Parameter" maxOccurs="unbounded" />
+				<xs:element ref="parameter" maxOccurs="unbounded" />
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 
-	<xs:element name="Parameter">
+	<xs:element name="parameter">
 		<xs:complexType>
 			<xs:sequence>
 				<xs:element name="name" type="xs:string" />
