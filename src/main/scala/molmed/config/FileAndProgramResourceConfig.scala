@@ -128,7 +128,13 @@ trait FileAndProgramResourceConfig {
      */
     def setFileResources(config: GlobalConfig): Unit = {
 
-      val resources = config.getResources().getResource().map(f => f.asInstanceOf[NameAndPath])
+      val resources = config.getResources().getResource().map(f => {
+        val res = new Resource with NameAndPath
+        res.setName(f.getName())
+        res.setPath(f.getPath())
+        res
+      })
+
       val resourceNameToPathsMap = transformToNamePathMap(resources)
 
       if (this.dbSNP == null)
@@ -157,7 +163,13 @@ trait FileAndProgramResourceConfig {
      */
     def setProgramResources(config: GlobalConfig): Unit = {
 
-      val programs = config.getPrograms().getProgram().map(f => f.asInstanceOf[NameAndPath])
+      val programs = config.getPrograms().getProgram().map(f => {
+        val prog = new Program with NameAndPath
+        prog.setName(f.getName())
+        prog.setPath(f.getPath())
+        prog
+      })
+
       val programNameToPathsMap = transformToNamePathMap(programs)
 
       if (this.bwaPath == null)
