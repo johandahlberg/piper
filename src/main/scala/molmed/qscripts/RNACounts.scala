@@ -21,7 +21,7 @@ import molmed.utils.ReadGroupUtils._
 import molmed.utils.TophatAligmentUtils
 import molmed.utils.UppmaxConfig
 import molmed.utils.UppmaxJob
-import molmed.utils.UppmaxXMLConfiguration
+import molmed.config.UppmaxXMLConfiguration
 import molmed.utils.Uppmaxable
 
 class RNACounts extends QScript with UppmaxXMLConfiguration {

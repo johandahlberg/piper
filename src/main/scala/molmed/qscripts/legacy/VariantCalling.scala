@@ -7,7 +7,7 @@ import org.broadinstitute.sting.commandline.Hidden
 import molmed.utils.VariantCallingUtils
 import molmed.utils.GATKConfig
 import molmed.utils.VariantCallingUtils
-import molmed.utils.UppmaxXMLConfiguration
+import molmed.config.UppmaxXMLConfiguration
 import molmed.utils.VariantCallingTarget
 
 /**

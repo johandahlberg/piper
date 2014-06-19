@@ -1,8 +1,10 @@
-package molmed.utils
+package molmed.config
 
 import molmed.queue.setup.SetupXMLReaderAPI
 import molmed.queue.setup.SetupXMLReader
 import java.io.File
+import molmed.utils.UppmaxConfig
+import molmed.utils.Uppmaxable
 
 /**
  * Trait used with QScripts to load a setup xml file.

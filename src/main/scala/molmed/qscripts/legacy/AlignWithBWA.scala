@@ -8,7 +8,7 @@ import molmed.queue.setup._
 import molmed.utils.GeneralUtils._
 import molmed.utils.BwaAlignmentUtils
 import molmed.utils.GeneralUtils
-import molmed.utils.UppmaxXMLConfiguration
+import molmed.config.UppmaxXMLConfiguration
 
 /**
  * 

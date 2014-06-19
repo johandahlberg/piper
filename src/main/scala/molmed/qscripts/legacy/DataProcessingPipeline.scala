@@ -14,7 +14,7 @@ import net.sf.samtools.SAMFileReader
 import molmed.utils.GATKUtils
 import molmed.utils.GATKConfig
 import molmed.utils.GeneralUtils
-import molmed.utils.UppmaxXMLConfiguration
+import molmed.config.UppmaxXMLConfiguration
 
 /**
  * Runs the GATK recommended best practice analysis for data processing.

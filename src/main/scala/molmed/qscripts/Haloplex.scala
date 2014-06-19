@@ -37,7 +37,7 @@ import molmed.utils.Uppmaxable
 import molmed.utils.BwaAlignmentUtils
 import molmed.utils.GeneralUtils
 import molmed.utils.UppmaxConfig
-import molmed.utils.UppmaxXMLConfiguration
+import molmed.config.UppmaxXMLConfiguration
 import molmed.utils.UppmaxJob
 import molmed.utils.BwaAln
 import molmed.utils.BedToIntervalUtils

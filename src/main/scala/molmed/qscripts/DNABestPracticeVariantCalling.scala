@@ -15,7 +15,7 @@ import molmed.utils.GATKUnifiedGenotyper
 import molmed.utils.GeneralUtils
 import molmed.utils.MergeFilesUtils
 import molmed.utils.UppmaxConfig
-import molmed.utils.UppmaxXMLConfiguration
+import molmed.config.UppmaxXMLConfiguration
 import molmed.utils.VariantCallerOption
 import molmed.utils.VariantCallingConfig
 import molmed.utils.VariantCallingUtils
@@ -23,6 +23,7 @@ import org.broadinstitute.sting.queue.function.InProcessFunction
 import java.io.PrintWriter
 import org.broadinstitute.sting.commandline.Input
 import molmed.utils.DeliveryUtils
+import molmed.config.FileAndProgramResourceConfig
 
 /**
  *
@@ -32,7 +33,11 @@ import molmed.utils.DeliveryUtils
  *
  */
 
-class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration {
+class DNABestPracticeVariantCalling extends QScript
+    with UppmaxXMLConfiguration
+    with FileAndProgramResourceConfig {
+
+  // qscript will now be a alias for this (QScript)
   qscript =>
 
   /**
@@ -47,38 +52,11 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
   @Input(doc = "a baits file in Picard interval format format. Used to calculate HSMetrics for exomes.", fullName = "baits_file", shortName = "baits", required = false)
   var baits: File = _
 
-  @Input(doc = "dbsnp ROD to use (must be in VCF format)", fullName = "dbsnp", shortName = "D", required = false)
-  var dbSNP: File = _
-
-  @Input(doc = "extra VCF files to use as reference indels for Indel Realignment", fullName = "extra_indels", shortName = "indels", required = false)
-  var indels: Seq[File] = Seq()
-
-  @Input(doc = "HapMap file to use with variant recalibration.", fullName = "hapmap", shortName = "hm", required = false)
-  var hapmap: File = _
-
-  @Input(doc = "Omni file fo use with variant recalibration ", fullName = "omni", shortName = "om", required = false)
-  var omni: File = _
-
-  @Input(doc = "Mills indel file to use with variant recalibration", fullName = "mills", shortName = "mi", required = false)
-  var mills: File = _
-
-  @Input(doc = "1000 Genomes high confidence SNP  file to use with variant recalibration", fullName = "thousandGenomes", shortName = "tg", required = false)
-  var thousandGenomes: File = _
-
   @Argument(doc = "Cleaning model: KNOWNS_ONLY, USE_READS or USE_SW. (Default: USE_READS)", fullName = "clean_model", shortName = "cm", required = false)
   var cleaningModel: String = "USE_READS"
 
-  @Input(doc = "The path to the binary of bwa (usually BAM files have already been mapped - but if you want to remap this is the option)", fullName = "path_to_bwa", shortName = "bwa", required = false)
-  var bwaPath: File = _
-
   @Argument(doc = "The type of bwa aligner to use. Options are BWA_MEM and BWA_ALN. (Default: BWA_MEM)", fullName = "bwa_aligner", shortName = "bwaa", required = false)
   var bwaAlignerType: String = "BWA_MEM"
-
-  @Input(doc = "The path to the binary of samtools", fullName = "path_to_samtools", shortName = "samtools", required = false)
-  var samtoolsPath: File = "samtools"
-    
-  @Input(doc = "The path to the binary of qualimap", fullName = "path_to_qualimap", shortName = "qualimap", required = false)
-  var qualimapPath: File = "qualimap"
 
   @Argument(doc = "Base path for all output working files.", fullName = "output_directory", shortName = "outputDir", required = false)
   var outputDir: String = "pipeline_output"
@@ -236,7 +214,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
 
     val qualityControlUtils = new AlignmentQCUtils(qscript, projectName, generalUtils, qualimapPath)
     val baseQCOutputFiles = qualityControlUtils.aligmentQC(bamFiles, aligmentQCOutputDir)
-        
+
     /**
      * For exomes, calculate hybrid selection metrics.
      */
@@ -361,6 +339,10 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
     val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
     // NOTE: assumes all samples are to be aligned to the same reference.
     val reference = samples.head._2(0).getReference()
+    
+    // Get default paths to resources from global config xml
+    if(this.globalConfig.isDefined)
+    	this.setResourcesFromConfigXML(this.globalConfig)    
 
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
 
@@ -454,7 +436,7 @@ class DNABestPracticeVariantCalling extends QScript with UppmaxXMLConfiguration 
         val processedBams = dataProcessing(mergedBams)
         val finalQC = qualityControl(processedBams, finalAlignmentQCOutputDir)
         val variantCallFiles = variantCalling(processedBams)
-        
+
         runCreateDelivery(fastqs, processedBams, finalQC, variantCallFiles, deliveryDir)
       }
 

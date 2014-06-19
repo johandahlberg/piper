@@ -6,7 +6,7 @@ import org.broadinstitute.sting.queue.extensions.gatk._
 import org.broadinstitute.sting.queue.util.QScriptUtils
 import molmed.utils.GATKUtils
 import molmed.utils.GATKConfig
-import molmed.utils.UppmaxXMLConfiguration
+import molmed.config.UppmaxXMLConfiguration
 
 /**
  * Simple Alignment quality control using the DepthOfCoverage walker from GATK.

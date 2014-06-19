@@ -25,8 +25,8 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element ref="{globalconfig.xml.molmed}programs"/>
- *         &lt;element ref="{globalconfig.xml.molmed}resources"/>
+ *         &lt;element name="name" type="{http://www.w3.org/2001/XMLSchema}string"/>
+ *         &lt;element name="path" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -37,63 +37,63 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-    "programs",
-    "resources"
+    "name",
+    "path"
 })
-@XmlRootElement(name = "globalConfig")
-public class GlobalConfig {
+@XmlRootElement(name = "resource")
+public class Resource {
 
     @XmlElement(required = true)
-    protected Programs programs;
+    protected String name;
     @XmlElement(required = true)
-    protected Resources resources;
+    protected String path;
 
     /**
-     * Gets the value of the programs property.
+     * Gets the value of the name property.
      * 
      * @return
      *     possible object is
-     *     {@link Programs }
+     *     {@link String }
      *     
      */
-    public Programs getPrograms() {
-        return programs;
+    public String getName() {
+        return name;
     }
 
     /**
-     * Sets the value of the programs property.
+     * Sets the value of the name property.
      * 
      * @param value
      *     allowed object is
-     *     {@link Programs }
+     *     {@link String }
      *     
      */
-    public void setPrograms(Programs value) {
-        this.programs = value;
+    public void setName(String value) {
+        this.name = value;
     }
 
     /**
-     * Gets the value of the resources property.
+     * Gets the value of the path property.
      * 
      * @return
      *     possible object is
-     *     {@link Resources }
+     *     {@link String }
      *     
      */
-    public Resources getResources() {
-        return resources;
+    public String getPath() {
+        return path;
     }
 
     /**
-     * Sets the value of the resources property.
+     * Sets the value of the path property.
      * 
      * @param value
      *     allowed object is
-     *     {@link Resources }
+     *     {@link String }
      *     
      */
-    public void setResources(Resources value) {
-        this.resources = value;
+    public void setPath(String value) {
+        this.path = value;
     }
 
 }

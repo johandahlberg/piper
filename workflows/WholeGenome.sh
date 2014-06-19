@@ -71,16 +71,7 @@ fi
 #---------------------------------------------
 piper -S ${SCRIPTS_DIR}/DNABestPracticeVariantCalling.scala \
 	      --xml_input ${PIPELINE_SETUP} \
-	      --dbsnp ${DB_SNP_B37} \
-	      --extra_indels ${MILLS_B37} \
-	      --extra_indels ${ONE_K_G_B37} \
-	      --hapmap ${HAPMAP_B37} \
-	      --omni ${OMNI_B37} \
-	      --mills ${MILLS_B37} \
-	      --thousandGenomes ${THOUSAND_GENOMES_B37} \
-	      -bwa ${PATH_TO_BWA} \
-	      -samtools ${PATH_TO_SAMTOOLS} \
-	      -qualimap ${PATH_TO_QUALIMAP} \
+	      --global_config ../globalConfig.xml \
 	      --number_of_threads 8 \
 	      --scatter_gather 23 \
 	      -jobRunner ${JOB_RUNNER} \

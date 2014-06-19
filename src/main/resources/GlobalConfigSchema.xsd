@@ -7,16 +7,43 @@
 	<xs:element name="globalConfig">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="parameter" maxOccurs="unbounded" />
+				<xs:element ref="programs" maxOccurs="1" />
+				<xs:element ref="resources" maxOccurs="1" />
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 
-	<xs:element name="parameter">
+	<xs:element name="programs">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="program" maxOccurs="unbounded" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="program">
 		<xs:complexType>
 			<xs:sequence>
 				<xs:element name="name" type="xs:string" />
-				<xs:element name="value" type="xs:string" />
+				<xs:element name="path" type="xs:string" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="resources">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="resource" maxOccurs="unbounded" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+
+	<xs:element name="resource">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="name" type="xs:string" />
+				<xs:element name="path" type="xs:string" />
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>

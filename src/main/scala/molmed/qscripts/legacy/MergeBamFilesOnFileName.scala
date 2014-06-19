@@ -7,7 +7,7 @@ import org.broadinstitute.sting.queue.extensions.picard._
 import org.broadinstitute.sting.queue.util.QScriptUtils
 import molmed.queue.setup._
 import molmed.utils.GeneralUtils
-import molmed.utils.UppmaxXMLConfiguration
+import molmed.config.UppmaxXMLConfiguration
 
 /**
  * This is just a ugly hack I use onced to merge bam file on

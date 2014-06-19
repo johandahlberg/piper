@@ -5,7 +5,7 @@ import org.broadinstitute.sting.queue.util.QScriptUtils
 import molmed.utils.ReadGroupUtils
 import molmed.utils.UppmaxJob
 import molmed.utils.UppmaxConfig
-import molmed.utils.UppmaxXMLConfiguration
+import molmed.config.UppmaxXMLConfiguration
 
 /**
  * Runs cuffdiff to calculate differential expression between samples. By default

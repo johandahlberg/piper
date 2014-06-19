@@ -6,7 +6,7 @@ import org.broadinstitute.sting.queue.util.QScriptUtils
 import molmed.utils.ReadGroupUtils
 import molmed.utils.UppmaxJob
 import molmed.utils.UppmaxConfig
-import molmed.utils.UppmaxXMLConfiguration
+import molmed.config.UppmaxXMLConfiguration
 
 /**
  * Run cufflinks on a cohort to generate FPKMs for the known transcripts.

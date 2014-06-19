@@ -4,7 +4,7 @@ import org.broadinstitute.sting.queue.QScript
 import org.broadinstitute.sting.queue.util.QScriptUtils
 import molmed.utils.ReadGroupUtils._
 import molmed.utils.GeneralUtils
-import molmed.utils.UppmaxXMLConfiguration
+import molmed.config.UppmaxXMLConfiguration
 
 /**
  * Merge bams by the library specified in the read group.
