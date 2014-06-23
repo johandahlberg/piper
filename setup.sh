@@ -33,10 +33,15 @@ check_errs()
 
 download_and_install_gatk()
 {
-  git clone https://github.com/broadgsa/gatk-protected.git gatk-protected
-  check_errs $? "git clone FAILED"
+  GATK_INSTALL_DIR="gatk-protected"
 
-  cd gatk-protected
+  if [ ! -d "$GATK_INSTALL_DIR" ]; then
+    echo "Cloning..."
+    git clone https://github.com/broadgsa/gatk-protected.git $GATK_INSTALL_DIR
+    check_errs $? "git clone FAILED"
+  fi
+
+  cd $GATK_INSTALL_DIR
 
   # Validated gatk-version
   git checkout 72492bb87544de91522cfa52ad16610a9ff85445
@@ -47,7 +52,7 @@ download_and_install_gatk()
   mkdir ../lib
   cp target/* ../lib/
   cd ..
-  rm -rf gatk-protected
+  rm -rf $GATK_INSTALL_DIR
 }
 
 echo "########################################################"
@@ -69,29 +74,55 @@ echo "########################################################"
 echo "Checking out and compiling the GATK and Queue"
 echo "########################################################"
 
-download_and_install_gatk
+#download_and_install_gatk
 
 echo "########################################################"
 echo "Download RNA-SeQC"
 echo "########################################################"
 
-wget http://www.broadinstitute.org/cancer/cga/sites/default/files/data/tools/rnaseqc/RNA-SeQC_v1.1.7.jar --directory-prefix=resources/ --no-clobber
-check_errs $? "wget RNA-SeQC FAILED"
+#wget http://www.broadinstitute.org/cancer/cga/sites/default/files/data/tools/rnaseqc/RNA-SeQC_v1.1.7.jar --directory-prefix=resources/ --no-clobber
+#check_errs $? "wget RNA-SeQC FAILED"
 
 echo "########################################################"
 echo "Compile, package and install Piper"
 echo "########################################################"
 
-sbt/bin/sbt pack && make -C target/pack/ install PREFIX=$INSTALL_PREFIX
-check_errs $? "compiling and install piper failed."
+#sbt/bin/sbt pack && make -C target/pack/ install PREFIX=$INSTALL_PREFIX
+#check_errs $? "compiling and install piper failed."
+
+echo "########################################################"
+echo "Copy workflows to install"
+echo "########################################################"
+cp -rv workflows $INSTALL_PREFIX/
+check_errs $? "copying workflows failed."
+
+# Red text - making people notice instructions since pre-school!
+coloured_text() {
+  echo -e "\e[1;31m ${1} \e[0m"
+}
 
 echo "########################################################"
 echo "Piper successfully installed to ${INSTALL_PREFIX}"
 echo "Add it to your PATH by running:"
-echo "  PATH=\$PATH:$INSTALL_PREFIX/bin"
+coloured_text "  PATH=\$PATH:$INSTALL_PREFIX/bin"
 echo "And verify it's been installed by running:"
-echo "  piper -S qscripts/examples/NonUppmaxableTestScript.scala --help"
+coloured_text "  piper -S qscripts/examples/NonUppmaxableTestScript.scala --help"
 echo "This should show a list of available options if Piper"
-echo " has been installed correctly."
+echo "has been installed correctly."
+echo "To access to workflows from any folder, add them to your path:"
+coloured_text " PATH=\$PATH:$INSTALL_PREFIX/workflows/"
+echo "If you want to run on a cluster you need to make sure "
+echo "that the appropriate libraries are available on the path."
+echo "On Uppmax this is done by exporting: "
+coloured_text '  export LD_LIBRARY_PATH=/sw/apps/build/slurm-drmaa/default/lib/:$LD_LIBRARY_PATH'
+echo "On other systems you need to figure out the path to the slurm-drmaa libraries, "
+echo "and add it in the same way."
+echo "To make sure you can always reach piper, add run following commands to "
+echo "add it to you .bashrc: "
+coloured_text "  echo \"\" >>  ~/.bashrc"
+coloured_text "  echo \"# Piper related variables and setup\" >>  ~/.bashrc"
+coloured_text "  echo 'PATH=\$PATH:$INSTALL_PREFIX/bin' >> ~/.bashrc"
+coloured_text "  echo 'PATH=\$PATH:$INSTALL_PREFIX/workflows' >> ~/.bashrc"
+coloured_text "  echo 'export LD_LIBRARY_PATH=/sw/apps/build/slurm-drmaa/default/lib/:\$LD_LIBRARY_PATH' >> ~/.bashrc"
 echo "########################################################"
 

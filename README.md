@@ -28,9 +28,7 @@ Piper has been tested on the Java(TM) SE Runtime Environment (build 1.7.0_25) on
     git clone https://github.com/Molmed/piper.git
     cd piper
     ./setup.sh <path to install Piper to. Default is: $HOME/Bin/Piper>
-    # Add Piper to your PATH - note you might have to add this to your
-    # .bashrc to make sure it stays in the path after you log out.
-    export PATH=$PATH:<path to install Piper bin directory>
+    # Follow the instructions printed by the setup script.
     
 As Piper acts as a wrapper for several standard bioinformatics programs, it requires that these are installed. At this point it requires that the following programs are installed (depending somewhat on the application):
 
