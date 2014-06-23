@@ -74,21 +74,21 @@ echo "########################################################"
 echo "Checking out and compiling the GATK and Queue"
 echo "########################################################"
 
-#download_and_install_gatk
+download_and_install_gatk
 
 echo "########################################################"
 echo "Download RNA-SeQC"
 echo "########################################################"
 
-#wget http://www.broadinstitute.org/cancer/cga/sites/default/files/data/tools/rnaseqc/RNA-SeQC_v1.1.7.jar --directory-prefix=resources/ --no-clobber
-#check_errs $? "wget RNA-SeQC FAILED"
+wget http://www.broadinstitute.org/cancer/cga/sites/default/files/data/tools/rnaseqc/RNA-SeQC_v1.1.7.jar --directory-prefix=resources/ --no-clobber
+check_errs $? "wget RNA-SeQC FAILED"
 
 echo "########################################################"
 echo "Compile, package and install Piper"
 echo "########################################################"
 
-#sbt/bin/sbt pack && make -C target/pack/ install PREFIX=$INSTALL_PREFIX
-#check_errs $? "compiling and install piper failed."
+sbt/bin/sbt pack && make -C target/pack/ install PREFIX=$INSTALL_PREFIX
+check_errs $? "compiling and install piper failed."
 
 echo "########################################################"
 echo "Copy workflows to install"
