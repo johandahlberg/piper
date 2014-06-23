@@ -55,13 +55,17 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
   /**
    * Joins the bam file specified to a single bam file.
    */
-  case class joinBams(@Input inBams: Seq[File], @Output outBam: File, asIntermediate: Boolean = false) extends MergeSamFiles with OneCoreJob {
+  case class joinBams(@Input inBams: Seq[File], @Output outBam: File, asIntermediate: Boolean = false) extends MergeSamFiles with TwoCoreJob {
 
     this.isIntermediate = asIntermediate
 
     this.input = inBams
     this.output = outBam
 
+    this.USE_THREADING = true
+    // Maximum compression level since we need to write over the network.
+    this.compressionLevel = Some(9)
+    
     override def jobRunnerJobName = projectName.get + "_joinBams"
 
     this.isIntermediate = false
