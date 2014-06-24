@@ -71,7 +71,7 @@ fi
 #---------------------------------------------
 piper -S ${SCRIPTS_DIR}/DNABestPracticeVariantCalling.scala \
 	      --xml_input ${PIPELINE_SETUP} \
-	      --global_config ../globalConfig.xml \
+	      --global_config uppmax_global_config.xml \
 	      --number_of_threads 8 \
 	      --scatter_gather 23 \
 	      -jobRunner ${JOB_RUNNER} \
