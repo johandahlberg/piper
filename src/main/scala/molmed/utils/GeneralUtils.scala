@@ -42,13 +42,13 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     this.input = bam
     this.output = index
   }
-  
+
   /**
    * Creates a bam index for a bam file.
    */
   case class samtoolCreateIndex(@Input bam: File, @Output index: File) extends OneCoreJob {
-    def commandLine = "samtools index " + bam + " " + index +"; echo \"ExitCode: \"$?";
-    
+    def commandLine = "samtools index " + bam + " " + index + "; echo \"ExitCode: \"$?";
+
     override def jobRunnerJobName = projectName.get + "_samtools_bam_index"
   }
 
@@ -65,7 +65,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     this.USE_THREADING = true
     // Maximum compression level since we need to write over the network.
     this.compressionLevel = Some(9)
-    
+
     override def jobRunnerJobName = projectName.get + "_joinBams"
 
     this.isIntermediate = false
@@ -91,54 +91,54 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
   }
 
   /**
-   * 
+   *
    * Read trimmer
-   * 
+   *
    */
   def cutSamplesUsingCuteAdapt(qscript: QScript, cutadaptPath: String, sample: SampleAPI, outputDir: String, @Argument syncPath: String = "resources/FixEmptyReads.pl"): SampleAPI = {
-		// Standard Illumina adaptors
-	  val adaptor1 = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC"
-	  val adaptor2 = "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT"
-	   
-	  val cutadaptOutputDir = new File(outputDir + "/cutadapt")
-	  cutadaptOutputDir.mkdirs()
-	  
-	  // Run cutadapt & sync    
-	  def cutAndSyncSample(sample: SampleAPI): SampleAPI = {
-	   def constructTrimmedName(name: String): String = {
-  		  if (name.endsWith("fastq.gz"))
-  			  name.replace("fastq.gz", "trimmed.fastq.gz")
-  			else
-  			  name.replace("fastq", "trimmed.fastq.gz")
-  		}
+    // Standard Illumina adaptors
+    val adaptor1 = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC"
+    val adaptor2 = "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT"
 
-  		val readpairContainer = sample.getFastqs
-  			
-  		val mate1SyncedFastq = new File(cutadaptOutputDir + "/" + sample.getReadGroupInformation.platformUnitId + "/" + constructTrimmedName(sample.getFastqs.mate1.getName()))
-  		qscript.add(this.cutadapt(readpairContainer.mate1, mate1SyncedFastq, adaptor1, cutadaptPath,syncPath))
-  			
-  		val mate2SyncedFastq = if (readpairContainer.isMatePaired) {
-  			val mate2SyncedFastq = new File(cutadaptOutputDir + "/" + sample.getReadGroupInformation.platformUnitId + "/" + constructTrimmedName(sample.getFastqs.mate2.getName()))
-  			qscript.add(this.cutadapt(readpairContainer.mate2, mate2SyncedFastq, adaptor2, cutadaptPath,syncPath))
-			mate2SyncedFastq
-  		} else null
+    val cutadaptOutputDir = new File(outputDir + "/cutadapt")
+    cutadaptOutputDir.mkdirs()
 
-  		val readGroupContainer = new ReadPairContainer(mate1SyncedFastq, mate2SyncedFastq, sample.getSampleName)
-  		
-  		new Sample(sample.getSampleName, sample.getReference, sample.getReadGroupInformation, readGroupContainer)
-	  }
-	  
+    // Run cutadapt & sync    
+    def cutAndSyncSample(sample: SampleAPI): SampleAPI = {
+      def constructTrimmedName(name: String): String = {
+        if (name.endsWith("fastq.gz"))
+          name.replace("fastq.gz", "trimmed.fastq.gz")
+        else
+          name.replace("fastq", "trimmed.fastq.gz")
+      }
+
+      val readpairContainer = sample.getFastqs
+
+      val mate1SyncedFastq = new File(cutadaptOutputDir + "/" + sample.getReadGroupInformation.platformUnitId + "/" + constructTrimmedName(sample.getFastqs.mate1.getName()))
+      qscript.add(this.cutadapt(readpairContainer.mate1, mate1SyncedFastq, adaptor1, cutadaptPath, syncPath))
+
+      val mate2SyncedFastq = if (readpairContainer.isMatePaired) {
+        val mate2SyncedFastq = new File(cutadaptOutputDir + "/" + sample.getReadGroupInformation.platformUnitId + "/" + constructTrimmedName(sample.getFastqs.mate2.getName()))
+        qscript.add(this.cutadapt(readpairContainer.mate2, mate2SyncedFastq, adaptor2, cutadaptPath, syncPath))
+        mate2SyncedFastq
+      } else null
+
+      val readGroupContainer = new ReadPairContainer(mate1SyncedFastq, mate2SyncedFastq, sample.getSampleName)
+
+      new Sample(sample.getSampleName, sample.getReference, sample.getReadGroupInformation, readGroupContainer)
+    }
+
     cutAndSyncSample(sample)
   }
-    
-  /**mdki
+
+  /**
    * Runs cutadapt on a fastqfile and syncs it (adds a N to any reads which are empty after adaptor trimming).
    */
   case class cutadapt(@Input fastq: File, cutFastq: File, @Argument adaptor: String, @Argument cutadaptPath: String, @Argument syncPath: String = "resources/FixEmptyReads.pl") extends OneCoreJob {
-  	@Output val fastqCut: File = cutFastq
+    @Output val fastqCut: File = cutFastq
     this.isIntermediate = true
     // Run cutadapt and sync via perl script by adding N's in all empty reads.  
-    def commandLine = cutadaptPath +" -a " + adaptor + " " + fastq + " | perl " + syncPath + " -o " + fastqCut
+    def commandLine = cutadaptPath + " -a " + adaptor + " " + fastq + " | perl " + syncPath + " -o " + fastqCut
     override def jobRunnerJobName = projectName.get + "_cutadapt"
   }
 
@@ -207,10 +207,10 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
    * Wrapper for RNA-SeQC.
    */
   case class RNA_QC(bamfile: File, @Input bamIndex: File, bamSampleName: String, rRNATargetsFile: File, downsampling: Int, referenceFile: File, outDir: File, transcriptFile: File, @Output placeHolder: File, pathRNASeQC: File) extends RNASeQC with ThreeCoreJob {
-  	//Perform QC on bam files
+    //Perform QC on bam files
 
     def createRNASeQCInputString(file: File): String = {
-      val sampleName = bamSampleName 
+      val sampleName = bamSampleName
       "\"" + sampleName + "|" + file.getAbsolutePath() + "|" + sampleName + "\""
     }
 
@@ -240,7 +240,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
         " --java-mem-size=64G " +
         " bamqc " +
         " -bam " + bam.getAbsolutePath() +
-        " --paint-chromosome-limits " + 
+        " --paint-chromosome-limits " +
         " -outdir " + outputBase.getAbsolutePath() + "/" +
         " -nt 8" +
         " &> " + logFile.getAbsolutePath()
@@ -374,8 +374,11 @@ object GeneralUtils {
    * @return the file tree starting from f
    */
   def getFileTree(f: File): Stream[File] =
-    f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)
-    else Stream.empty)
+    f #:: (
+      if (f.isDirectory)
+        f.listFiles().toStream.flatMap(getFileTree)
+      else
+        Stream.empty)
 
   /**
    * Create a hard link using the linux cp command
