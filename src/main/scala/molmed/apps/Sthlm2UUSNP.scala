@@ -44,33 +44,134 @@ object Sthlm2UUSNP extends App {
   /**
    * Utility functions
    */
-  def listSubDirectories(dir: File): Seq[File] = dir.listFiles().filter(p => p.isDirectory())
 
-  def createHardLink(sampleName: String, index: String, lane: Int, readPairNumber: Int, readPair: File, uuSampleFolder: File) = {
+  /**
+   * List all subdirectories of dir
+   */
+  def listSubDirectories(dir: File): Seq[File] =
+    dir.listFiles().filter(p => p.isDirectory())
+
+  /**
+   * Create hardlink corresponding to sequencing unit
+   * @param sampleInfo		The sequencing unit
+   * @param uuSampleFolder	Folder to output to
+   * @return the target file
+   */
+  def createHardLink(
+    sampleInfo: SampleInfo,
+    uuSampleFolder: File): File = {
     val uuStyleFileName = List(
-      sampleName,
-      index,
-      "L" + GeneralUtils.getZerroPaddedIntAsString(lane, 3),
-      "R" + readPairNumber,
+      sampleInfo.sampleName,
+      sampleInfo.index,
+      "L" + GeneralUtils.getZerroPaddedIntAsString(sampleInfo.lane, 3),
+      "R" + sampleInfo.read,
       "001.fastq.gz").mkString("_")
 
     val targetFile = new File(uuSampleFolder + "/" + uuStyleFileName)
-    Files.createLink(Paths.get(targetFile.getAbsolutePath()), Paths.get(readPair.getAbsolutePath()))
+    Files.createLink(Paths.get(targetFile.getAbsolutePath()),
+      Paths.get(sampleInfo.fastq.getPath()))
+    targetFile
   }
 
-  def parseSampleInfoFromFileName(file: File) = {
+  /**
+   * Holds information on the Sample and file files associated with it.
+   */
+  case class SampleInfo(
+    sampleName: String,
+    lane: Int,
+    flowCellId: String,
+    index: String,
+    fastq: File,
+    read: Int)
+
+  /**
+   * Sthlm files look like: 1_140528_BC423WACXX_P1142_101_1.fastq.gz
+   * Parse this info to get info about the sample.
+   *
+   * @param file Fastq file on the format described above.
+   * @return Information on the sequencing unit parsed from the file name
+   */
+  def parseSampleInfoFromFileName(file: File): SampleInfo = {
     val fileName = file.getName()
 
-    val splitFileName = fileName.split("_")
+    val regexp = """^(\d)_(\d+)_(\w+)_(\w+_\w+)_(\d).fastq.gz$""".r
 
-    val lane = splitFileName(0).toInt
-    val flowCellId = splitFileName(2)
-    val indexOfLastPart = splitFileName.indexWhere(s => s.contains(".fastq.gz"))
-    val sampleName = splitFileName.slice(3, indexOfLastPart).mkString("_")
-    // TODO Ugly hack since we don't know the index used
-    val index = "AAAAAA"
+    // @TODO 
+    // Note the ugly hack that sets all indicies to AAAAAA
+    // this done since we currently lack a good way to get this
+    // info.
+    val infoAboutSamples = regexp.findAllIn(fileName).matchData.map(m => {
+      SampleInfo(
+        sampleName = m.group(4),
+        lane = m.group(1).toInt,
+        flowCellId = m.group(3),
+        index = "AAAAAA",
+        fastq = file,
+        read = m.group(5).toInt)
+    }).toSeq
 
-    (sampleName, lane, flowCellId, index)
+    require(
+      infoAboutSamples.length == 1,
+      "Just one sample hit should be possible for regexp, found: " +
+        infoAboutSamples.length)
+
+    infoAboutSamples(0)
+  }
+
+  /**
+   * Get all the fastq files from a runfolder (in the sthlm format)
+   * as a Stream
+   * @param runfolder
+   * @return A stream of fastq files sorted by name
+   */
+  def getFastqFiles(runfolder: File): Stream[File] = {
+    val fastqFiles = GeneralUtils.getFileTree(runfolder).
+      filter(p => p.getName().contains(".fastq.gz")).
+      sortBy(f => f.getName())
+    fastqFiles
+  }
+
+  /**
+   * For the sequenced unit, create a hardlink to the appropriate
+   * file in a Uppsala style sample and runfolder and add it to the
+   * correct report.tsv file.
+   * @param 	sequencedUnit			SampleInfo on the file to link
+   * @param 	uppsalaStyleRunfolder	The runfolder to add it in
+   * @return 	tupple of the new hard linked file and report
+   */
+  def hardlinkAndAddToReport(
+    sequencedUnit: SampleInfo,
+    uppsalaStyleRunfolder: File): (File, File) = {
+
+    val hardlinkedFile = createHardLink(sequencedUnit, uppsalaStyleRunfolder)
+
+    // Write/append to the report file.
+    val reportFile = new File(uppsalaStyleRunfolder + "/report.tsv")
+    val reportWasThere = reportFile.exists()
+    val reportWriter = new PrintWriter(new FileWriter(reportFile, true))
+
+    // Only write the header if the file was just created.
+    if (!reportWasThere)
+      reportWriter.println(
+        List(
+          "#SampleName",
+          "Lane",
+          "ReadLibrary",
+          "FlowcellId")
+          .mkString("\t"))
+
+    // Use the sample name as a proxy for the library
+    reportWriter.println(
+      List(
+        sequencedUnit.sampleName,
+        sequencedUnit.lane,
+        sequencedUnit.sampleName,
+        sequencedUnit.flowCellId)
+        .mkString("\t"))
+
+    reportWriter.close()
+
+    (hardlinkedFile, reportFile)
   }
 
   /**
@@ -78,6 +179,8 @@ object Sthlm2UUSNP extends App {
    */
   def runApp(config: Config): Unit = {
 
+    // Iterate through the sthlm sample and runfolder dirs to get to the
+    // fastq files.
     for (sampleDir <- listSubDirectories(config.sthlmRoot.get)) {
       for (runfolder <- listSubDirectories(sampleDir)) {
 
@@ -85,29 +188,14 @@ object Sthlm2UUSNP extends App {
         val uppsalaStyleRunfolder = new File(config.newUppsalaStyleRoot.get + "/" + runfolder.getName())
         uppsalaStyleRunfolder.mkdirs()
 
-        // Create the sample folders
-        val fastqFiles = GeneralUtils.getFileTree(runfolder).
-          filter(p => p.getName().contains(".fastq.gz")).
-          sortBy(f => f.getName())
+        // Get the information on the samples and add them to the
+        // ua style runfolder
+        val fastqFiles = getFastqFiles(runfolder)
+        val infoOnSamples = fastqFiles.map(file => parseSampleInfoFromFileName(file))
 
-        val (sampleName, lane, flowCellId, index) = parseSampleInfoFromFileName(fastqFiles.head)
-
-        createHardLink(sampleName, index, lane, 1, fastqFiles(0), uppsalaStyleRunfolder)
-        createHardLink(sampleName, index, lane, 2, fastqFiles(1), uppsalaStyleRunfolder)
-
-        // Write/append to the report file.
-        val reportFile = new File(uppsalaStyleRunfolder + "/report.tsv")
-        val reportWasThere = reportFile.exists()
-        val reportWriter = new PrintWriter(new FileWriter(reportFile, true))
-
-        // Only write the header if the file was just created.
-        if (!reportWasThere)
-          reportWriter.println(List("#SampleName", "Lane", "ReadLibrary", "FlowcellId").mkString("\t"))
-
-        // Use the sample name as a proxy for the library
-        reportWriter.println(List(sampleName, lane, sampleName, flowCellId).mkString("\t"))
-
-        reportWriter.close()
+        for (sequencedUnit <- infoOnSamples) {
+          hardlinkAndAddToReport(sequencedUnit, uppsalaStyleRunfolder)
+        }
       }
     }
   }

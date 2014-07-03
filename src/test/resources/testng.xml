@@ -6,6 +6,7 @@
 	<test name="UnitTests">
 		<packages>
 			<package name="molmed.queue.setup" />
+			<package name="molmed.apps" />
 		</packages>
 	</test>
 
