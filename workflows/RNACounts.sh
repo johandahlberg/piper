@@ -81,7 +81,7 @@ fi
 #---------------------------------------------
 
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
-source globalConfig.sh
+source $PIPER_GLOB_CONF
 
 GENOME_REFERENCE=${GATK_BUNDLE_B37}"/human_g1k_v37.fasta"
 ANNOTATIONS="/proj/b2010028/references/piper_references/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf"

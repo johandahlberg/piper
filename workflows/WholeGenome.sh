@@ -12,7 +12,7 @@ function usage {
 }
 
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
-source globalConfig.sh
+source ${PIPER_GLOB_CONF}
 
 #---------------------------------------------
 # Parse the arguments
