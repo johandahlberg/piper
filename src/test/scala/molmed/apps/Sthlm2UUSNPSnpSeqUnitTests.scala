@@ -23,25 +23,23 @@ class Sthlm2UUSNPSnpSeqUnitTests {
     }
   }
 
-  //  val outputFolder = new Directory(uuRoot)
-
-  //  @AfterClass
-  //  def removeAllTmpFiles: Unit = {
-  //    testTmpFolder.deleteRecursively
-  //  }
-
   val sthlmRootDir = new File(
     "src/test/resources/testdata/Sthlm2UUTests/sthlm_runfolder_root")
 
   val testSampleInfo = new Sthlm2UUSNP.SampleInfo(
     sampleName = "P1142_101",
     lane = 1,
+    date = "140528",
     flowCellId = "BC423WACXX",
     index = "1",
     fastq = new File(sthlmRootDir +
       "/P1142_101/140528_BC423WACXX/1_140528_BC423WACXX_P1142_101_1.fastq.gz"),
     read = 1)
 
+  @AfterMethod
+  def afterCreateHardLinkTest {
+    TestPaths.tearDownTestFolders()
+  }
   @Test
   def createHardLinkTest {
 
@@ -49,15 +47,23 @@ class Sthlm2UUSNPSnpSeqUnitTests {
 
     createTestFolders()
 
+    val runFolder =
+      new File(
+        uuRoot + "/" + testSampleInfo.date + "_" + testSampleInfo.flowCellId)
+
     val result = Sthlm2UUSNP.createHardLink(
       testSampleInfo,
-      uuRoot)
+      runFolder)
 
     assert(result.exists(), "Did not create file: " + result)
-    assert(result.getParentFile() == uuRoot, "Did not create file: " + result)
 
-    tearDownTestFolders()
+    assert(result.getParentFile().getName() ==
+      "Sample_" + testSampleInfo.sampleName,
+      "Did not create sample dir.")
 
+    assert(result.getParentFile().getParentFile().getName() ==
+      testSampleInfo.date + "_" + testSampleInfo.flowCellId,
+      "Did create correct folder structure: " + result)
   }
 
   @Test
@@ -77,6 +83,10 @@ class Sthlm2UUSNPSnpSeqUnitTests {
 
   }
 
+  @AfterMethod
+  def afterHardlinkAndAddToReportTest {
+    TestPaths.tearDownTestFolders()
+  }
   @Test
   def hardlinkAndAddToReportTest {
     import TestPaths._
@@ -88,11 +98,14 @@ class Sthlm2UUSNPSnpSeqUnitTests {
     assert(result._1.exists(),
       "Did not create (hardlink) file: " + result._1)
 
+    assert(
+      result._1.getParentFile().getName()
+        == "Sample_" + testSampleInfo.sampleName,
+      "Did not create sample folder!")
+
     assert(result._2.exists(), "Did not create report")
     assert(result._2.getName() == "report.tsv", "Did not create report.tsv")
-    //@TODO Might add test of report.tsv content being correct later...        
-
-    tearDownTestFolders()
+    //@TODO Might add test of report.tsv content being correct later...            
   }
 
   @Test
@@ -116,6 +129,7 @@ class Sthlm2UUSNPSnpSeqUnitTests {
     val expeced = new Sthlm2UUSNP.SampleInfo(
       sampleName = "P1142_101",
       lane = 1,
+      date = "140528",
       flowCellId = "BC423WACXX",
       index = "AAAAAA",
       fastq = fileToParse,

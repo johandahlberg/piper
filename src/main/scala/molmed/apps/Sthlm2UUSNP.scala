@@ -59,7 +59,13 @@ object Sthlm2UUSNP extends App {
    */
   def createHardLink(
     sampleInfo: SampleInfo,
-    uuSampleFolder: File): File = {
+    uuRunfolderFolder: File): File = {
+
+    val uuSampleFolder =
+      new File(uuRunfolderFolder + "/" + "Sample_" + sampleInfo.sampleName)
+
+    uuSampleFolder.mkdirs()
+
     val uuStyleFileName = List(
       sampleInfo.sampleName,
       sampleInfo.index,
@@ -79,6 +85,7 @@ object Sthlm2UUSNP extends App {
   case class SampleInfo(
     sampleName: String,
     lane: Int,
+    date: String,
     flowCellId: String,
     index: String,
     fastq: File,
@@ -104,6 +111,7 @@ object Sthlm2UUSNP extends App {
       SampleInfo(
         sampleName = m.group(4),
         lane = m.group(1).toInt,
+        date = m.group(2),
         flowCellId = m.group(3),
         index = "AAAAAA",
         fastq = file,
@@ -184,14 +192,16 @@ object Sthlm2UUSNP extends App {
     for (sampleDir <- listSubDirectories(config.sthlmRoot.get)) {
       for (runfolder <- listSubDirectories(sampleDir)) {
 
-        // Create the ua style runfolder
-        val uppsalaStyleRunfolder = new File(config.newUppsalaStyleRoot.get + "/" + runfolder.getName())
-        uppsalaStyleRunfolder.mkdirs()
-
         // Get the information on the samples and add them to the
         // ua style runfolder
         val fastqFiles = getFastqFiles(runfolder)
-        val infoOnSamples = fastqFiles.map(file => parseSampleInfoFromFileName(file))
+        val infoOnSamples =
+          fastqFiles.map(file => parseSampleInfoFromFileName(file))
+
+        // Create the ua style runfolder       
+        val uppsalaStyleRunfolder =
+          new File(config.newUppsalaStyleRoot.get + "/" + runfolder.getName())
+        uppsalaStyleRunfolder.mkdirs()
 
         for (sequencedUnit <- infoOnSamples) {
           hardlinkAndAddToReport(sequencedUnit, uppsalaStyleRunfolder)
