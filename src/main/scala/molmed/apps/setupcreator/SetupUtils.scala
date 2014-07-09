@@ -62,7 +62,12 @@ object SetupUtils {
    */
   def setupRunfolderStructureFromSamplePaths(project: Project)(samplePaths: Seq[File], reference: File): Project = {
 
-    require(samplePaths.forall(p => p.isDirectory()), "You supplied file instead of a directory to the sample path")
+    require(samplePaths.forall(p => p.isDirectory()),
+        "You supplied file instead of a directory to the sample path")
+    require(samplePaths.forall(p => p.getName().startsWith("Sample_")),
+        "Are you sure that you provided a sample folder as input." +
+        " The name of the sample folder must start with Sample_<the rest of" +
+        "the name>.")
     require(reference.exists(), "Reference " + reference.getAbsolutePath() +  " supplied did not exist.")
     
     val modifiedProject = samplePaths.
