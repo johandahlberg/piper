@@ -14,6 +14,10 @@ function usage {
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
 source ${PIPER_GLOB_CONF}
 
+## Get location of globConfig script
+_LOCATION="$(readlink -f ${BASH_SOURCE[0]})"
+_THIS_SCRIPT_LOCATION="$(dirname $_LOCATION)"
+
 #---------------------------------------------
 # Parse the arguments
 #---------------------------------------------
@@ -71,7 +75,7 @@ fi
 #---------------------------------------------
 piper -S ${SCRIPTS_DIR}/DNABestPracticeVariantCalling.scala \
 	      --xml_input ${PIPELINE_SETUP} \
-	      --global_config uppmax_global_config.xml \
+	      --global_config ${_THIS_SCRIPT_LOCATION}/uppmax_global_config.xml \
 	      --number_of_threads 8 \
 	      --scatter_gather 23 \
 	      -jobRunner ${JOB_RUNNER} \

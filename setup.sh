@@ -99,9 +99,11 @@ check_errs $? "copying workflows failed."
 cp -rv --dereference qscripts $INSTALL_PREFIX/
 check_errs $? "copying qscripts failed."
 
-cp -rv globalConfig.sh $INSTALL_PREFIX/workflows/
+cp -rv globalConfig.* uppmax_global_config.xml $INSTALL_PREFIX/workflows/
 check_errs $? "copying globalConfig.sh failed."
 
+cp -rv globalConfig.xml $INSTALL_PREFIX/workflows/
+check_errs $? "copying globalConfig.xml failed."
 
 # Red text - making people notice instructions since pre-school!
 coloured_text() {
