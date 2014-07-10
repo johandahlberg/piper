@@ -5,6 +5,7 @@ import org.testng.Assert
 import java.io.File
 import molmed.queue.SnpSeqBaseTest
 import scala.reflect.io.Directory
+import scala.io.Source
 
 class Sthlm2UUSNPSnpSeqUnitTests {
 
@@ -88,24 +89,24 @@ class Sthlm2UUSNPSnpSeqUnitTests {
     TestPaths.tearDownTestFolders()
   }
   @Test
-  def hardlinkAndAddToReportTest {
+  def addToReportTest {
+
     import TestPaths._
-
     createTestFolders()
+    val expected =
+      "#SampleName	Lane	ReadLibrary	FlowcellId\n" +
+        "P1142_101	1	P1142_101	BC423WACXX"
 
-    val result = Sthlm2UUSNP.hardlinkAndAddToReport(testSampleInfo, uuRoot)
+    val result = Sthlm2UUSNP.addToReport(testSampleInfo, uuRoot)
 
-    assert(result._1.exists(),
-      "Did not create (hardlink) file: " + result._1)
+    assert(result.exists(), "Did not create report")
+    assert(result.getName() == "report.tsv", "Did not create report.tsv")
+    assert(result.getParentFile() == uuRoot)
 
-    assert(
-      result._1.getParentFile().getName()
-        == "Sample_" + testSampleInfo.sampleName,
-      "Did not create sample folder!")
+    val fileContent = Source.fromFile(result).getLines().mkString("\n")
 
-    assert(result._2.exists(), "Did not create report")
-    assert(result._2.getName() == "report.tsv", "Did not create report.tsv")
-    //@TODO Might add test of report.tsv content being correct later...            
+    assert(fileContent == expected,
+      "fileContent=\n" + fileContent)
   }
 
   @Test

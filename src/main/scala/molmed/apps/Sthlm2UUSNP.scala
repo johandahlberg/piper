@@ -140,18 +140,14 @@ object Sthlm2UUSNP extends App {
   }
 
   /**
-   * For the sequenced unit, create a hardlink to the appropriate
-   * file in a Uppsala style sample and runfolder and add it to the
-   * correct report.tsv file.
-   * @param 	sequencedUnit			SampleInfo on the file to link
-   * @param 	uppsalaStyleRunfolder	The runfolder to add it in
-   * @return 	tupple of the new hard linked file and report
+   * Add information on the sequencedUnit to the report
+   * @param sequencedUnit			The Sample info on the sequenced unit
+   * @param uppsalaStyleRunfolder	The runfolder to add the report to.
+   * @return the report that was written to.
    */
-  def hardlinkAndAddToReport(
+  def addToReport(
     sequencedUnit: SampleInfo,
-    uppsalaStyleRunfolder: File): (File, File) = {
-
-    val hardlinkedFile = createHardLink(sequencedUnit, uppsalaStyleRunfolder)
+    uppsalaStyleRunfolder: File): File = {
 
     // Write/append to the report file.
     val reportFile = new File(uppsalaStyleRunfolder + "/report.tsv")
@@ -179,7 +175,7 @@ object Sthlm2UUSNP extends App {
 
     reportWriter.close()
 
-    (hardlinkedFile, reportFile)
+    reportFile
   }
 
   /**
@@ -204,7 +200,12 @@ object Sthlm2UUSNP extends App {
         uppsalaStyleRunfolder.mkdirs()
 
         for (sequencedUnit <- infoOnSamples) {
-          hardlinkAndAddToReport(sequencedUnit, uppsalaStyleRunfolder)
+          createHardLink(sequencedUnit, uppsalaStyleRunfolder)
+
+          // Since we don't want the unit added twice for paired end data
+          // only add read 1
+          if (sequencedUnit.read == 1)
+            addToReport(sequencedUnit, uppsalaStyleRunfolder)
         }
       }
     }
