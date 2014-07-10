@@ -91,12 +91,17 @@ sbt/bin/sbt pack && make -C target/pack/ install PREFIX=$INSTALL_PREFIX
 check_errs $? "compiling and install piper failed."
 
 echo "########################################################"
-echo "Copy workflows and globalConfig to install location"
+echo "Copy workflows, qscripts and globalConfig to install location"
 echo "########################################################"
 cp -rv workflows $INSTALL_PREFIX/
 check_errs $? "copying workflows failed."
+
+cp -rv --dereference qscripts $INSTALL_PREFIX/
+check_errs $? "copying qscripts failed."
+
 cp -rv globalConfig.sh $INSTALL_PREFIX/workflows/
 check_errs $? "copying globalConfig.sh failed."
+
 
 # Red text - making people notice instructions since pre-school!
 coloured_text() {
