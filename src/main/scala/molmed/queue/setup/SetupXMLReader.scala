@@ -116,11 +116,6 @@ class SetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
     //  For every unique sample in the file, create a sample list
     //  Return a map of sample names -> samples
 
-    sampleList.foreach(f =>
-      assert(
-        f.getName.startsWith("Sample_"),
-        "Sample folders must be prefixed with Sample_"))
-
     val distinctSampleNames = sampleList.map(f => f.getName()).distinct.toList
 
     assert(distinctSampleNames.size >= 1, "Did not find any sample names.")
@@ -163,22 +158,64 @@ class SetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
 
   }
 
-  private def buildReadPairContainer(sampleFolder: Samplefolder, lane: Int): ReadPairContainer = {
+  /**
+   * Construct a read pair container for the specified sample folder.
+   * @param  sampleFolder	The sample folder to check
+   * @param	 lane			The lane in sample folder to get the sample for
+   * @return A ReadPairContainer for the sample from the lane.
+   */
+  private def buildReadPairContainer(
+    sampleFolder: Samplefolder,
+    lane: Int): ReadPairContainer = {
 
     val sampleName = sampleFolder.getName()
     val folder = new File(sampleFolder.getPath())
+
     require(folder.isDirectory(), folder + " was not a directory.")
+    require(
+      folder.getName().startsWith("Sample_"),
+      "A sample folder needs to be prefixed with Sample_. The name was: " +
+        folder.getName())
 
-    val fastq1: List[File] = folder.listFiles().filter(f => f.getName().contains("_L" + GeneralUtils.getZerroPaddedIntAsString(lane, 3) + "_R1_")).toList
-    val fastq2: List[File] = folder.listFiles().filter(f => f.getName().contains("_L" + GeneralUtils.getZerroPaddedIntAsString(lane, 3) + "_R2_")).toList
+    def getFastq(lane: Int, read: Int): List[File] =
+      folder.listFiles().
+        filter(f => {
+          val name = f.getName()
+          name.contains(
+            "_L" + GeneralUtils.getZerroPaddedIntAsString(lane, 3) +
+              "_R" + read + "_")
+        }).toList
 
-    if (fastq1.size == 1 && fastq2.size == 1)
-      new ReadPairContainer(fastq1.get(0).getAbsoluteFile(), fastq2.get(0).getAbsoluteFile(), sampleName)
-    else if (fastq1.size == 1 && fastq2.size == 0)
-      new ReadPairContainer(fastq1.get(0), null, sampleName)
-    else
-      throw new FileNotFoundException("Problem with read pairs in folder: " + folder.getAbsolutePath() + " could not find suitable files. \n" +
-        "the sample name was: " + sampleName + " and the sample lane: " + lane + "fastq1: " + fastq1 + "fastq2: " + fastq2)
+    val fastq1: List[File] = getFastq(lane, 1)
+    val fastq2: List[File] = getFastq(lane, 2)
+
+    val readPairContainer =
+      (fastq1.size, fastq2.size) match {
+        case (1, 1) =>
+          new ReadPairContainer(
+            fastq1.get(0).getAbsoluteFile(),
+            fastq2.get(0).getAbsoluteFile(),
+            sampleName)
+        case (1, 0) =>
+          new ReadPairContainer(fastq1.get(0), null, sampleName)
+        case m: (Int, Int) if m._1 + m._2 > 2 =>
+          throw new IllegalArgumentException(
+            "Found more than two hits for sample: " + sampleName +
+              " and lane: " + lane + ". This might happen if the same sample" +
+              "was sequenced multiple time in the same lane but with " +
+              "different indicies. This is currently not supported by " +
+              "piper. Please manually fix this problem and try again. ")
+        case _ =>
+          throw new FileNotFoundException(
+            "Problem with read pairs in folder: " +
+              folder.getAbsolutePath() +
+              " could not find suitable files. \n" +
+              "the sample name was: " + sampleName +
+              " and the sample lane: " + lane + "fastq1: " +
+              fastq1 + "fastq2: " + fastq2)
+      }
+
+    readPairContainer
   }
 }
     
