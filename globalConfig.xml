@@ -6,7 +6,7 @@
             <path>/data/programs/bwa-0.7.5a/bwa</path>
         </program>
         <program>
-            <name>samtools<name>
+            <name>samtools</name>
             <path>/data/programs/samtools-0.1.19/samtools</path>
         </program>
         <program>
