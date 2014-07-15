@@ -63,8 +63,8 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     this.output = outBam
 
     this.USE_THREADING = true
-    // Maximum compression level since we need to write over the network.
-    this.compressionLevel = Some(9)
+    // 5 seems to be a good compromise between speed and file size
+    this.compressionLevel = Some(5)
 
     override def jobRunnerJobName = projectName.get + "_joinBams"
 
@@ -153,8 +153,8 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     this.output = outBam
     this.metrics = metricsFile
 
-    // Maximum compression level since we need to write over the network.
-    this.compressionLevel = Some(9)
+    // 5 seems to be a good compromise between speed and file size
+    this.compressionLevel = Some(5)
 
     // Set slightly than maximum lower to make sure it does
     // not die from overflowing the memory limit.
