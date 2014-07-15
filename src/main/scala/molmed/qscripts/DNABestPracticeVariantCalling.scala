@@ -317,19 +317,20 @@ class DNABestPracticeVariantCalling extends QScript
     /**
      * Defining output dirs for the different parts of the run
      */
-    val alignmentOutputDir: File = new File(outputDir + "/raw_alignments")
+
+    val alignmentOutputDir: File = new File(outputDir + "/01_raw_alignments")
     alignmentOutputDir.mkdirs()
-    val mergedAligmentOutputDir: File = new File(outputDir + "/merged_aligments")
-    mergedAligmentOutputDir.mkdirs()
-    val preliminaryAlignmentQCOutputDir: File = new File(outputDir + "/preliminary_alignment_qc")
+    val preliminaryAlignmentQCOutputDir: File = new File(outputDir + "/02_preliminary_alignment_qc")
     preliminaryAlignmentQCOutputDir.mkdirs()
-    val finalAlignmentQCOutputDir: File = new File(outputDir + "/final_alignment_qc")
-    finalAlignmentQCOutputDir.mkdirs()
-    val processedAligmentsOutputDir: File = new File(outputDir + "/processed_alignments")
+    val mergedAligmentOutputDir: File = new File(outputDir + "/03_merged_aligments")
+    mergedAligmentOutputDir.mkdirs()
+    val processedAligmentsOutputDir: File = new File(outputDir + "/04_processed_alignments")
     processedAligmentsOutputDir.mkdirs()
-    val variantCallsOutputDir: File = new File(outputDir + "/variant_calls")
+    val finalAlignmentQCOutputDir: File = new File(outputDir + "/05_final_alignment_qc")
+    finalAlignmentQCOutputDir.mkdirs()
+    val variantCallsOutputDir: File = new File(outputDir + "/06_variant_calls")
     variantCallsOutputDir.mkdirs()
-    val miscOutputDir: File = new File(outputDir + "/misc")
+    val miscOutputDir: File = new File(outputDir + "/07_misc")
     miscOutputDir.mkdirs()
 
     /**
@@ -339,10 +340,10 @@ class DNABestPracticeVariantCalling extends QScript
     val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
     // NOTE: assumes all samples are to be aligned to the same reference.
     val reference = samples.head._2(0).getReference()
-    
+
     // Get default paths to resources from global config xml
-    if(this.globalConfig.isDefined)
-    	this.setResourcesFromConfigXML(this.globalConfig)    
+    if (this.globalConfig.isDefined)
+      this.setResourcesFromConfigXML(this.globalConfig)
 
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
 
