@@ -86,6 +86,7 @@ piper -S ${SCRIPTS_DIR}/Haloplex.scala \
 	     -samtools ${PATH_TO_SAMTOOLS} \
 	     -cutadapt ${PATH_TO_CUTADAPT} \
 	     --nbr_of_threads ${NBR_OF_THREADS} \
+	     --disableJobReport \
 	     -jobRunner ${JOB_RUNNER} \
              -jobNative "${JOB_NATIVE_ARGS}" \
 	     --job_walltime 36000 \

@@ -78,6 +78,7 @@ piper -S ${SCRIPTS_DIR}/DNABestPracticeVariantCalling.scala \
 	      --global_config ${_THIS_SCRIPT_LOCATION}/uppmax_global_config.xml \
 	      --number_of_threads 8 \
 	      --scatter_gather 23 \
+	      --disableJobReport \
 	      -jobRunner ${JOB_RUNNER} \
 	      -jobNative "${JOB_NATIVE_ARGS}" \
 	      --job_walltime 345600 \

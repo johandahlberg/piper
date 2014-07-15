@@ -98,6 +98,7 @@ piper -S ${SCRIPTS_DIR}/DNABestPracticeVariantCalling.scala \
 	      -qualimap ${PATH_TO_QUALIMAP} \
 	      --number_of_threads 8 \
 	      --scatter_gather 10 \
+	      --disableJobReport \
 	      -jobRunner ${JOB_RUNNER} \
 	      -jobNative "${JOB_NATIVE_ARGS}" \
 	      --job_walltime 345600 \

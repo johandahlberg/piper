@@ -140,6 +140,7 @@ piper -S ${SCRIPTS_DIR}/RNACounts.scala \
 	    --path_to_cutadapt ${PATH_TO_CUTADAPT} \
 	    --path_sync_script ${PATH_TO_SYNC_CUTADAPT} \
 	    --rna_seqc ${PATH_TO_RNA_SEQ_QC} \
+	    --disableJobReport \
 	    -jobRunner ${JOB_RUNNER} \
 	    -jobNative ${JOB_NATIVE_ARGS} \
 	     ${ONLY_ALIGNMENTS} \
