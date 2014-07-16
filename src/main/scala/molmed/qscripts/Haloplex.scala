@@ -4,21 +4,19 @@ import java.io.FileNotFoundException
 import java.io.PrintWriter
 import scala.collection.JavaConversions._
 import scala.io.Source
-import org.broadinstitute.sting.commandline.Hidden
-import org.broadinstitute.sting.gatk.downsampling.DownsampleType
-import org.broadinstitute.sting.queue.QScript
-import org.broadinstitute.sting.queue.extensions.gatk.BamGatherFunction
-import org.broadinstitute.sting.queue.extensions.gatk.BaseRecalibrator
-import org.broadinstitute.sting.queue.extensions.gatk.ClipReads
-import org.broadinstitute.sting.queue.extensions.gatk.CommandLineGATK
-import org.broadinstitute.sting.queue.extensions.gatk.IndelRealigner
-import org.broadinstitute.sting.queue.extensions.gatk.RealignerTargetCreator
-import org.broadinstitute.sting.queue.extensions.gatk.UnifiedGenotyper
-import org.broadinstitute.sting.queue.extensions.gatk.VariantFiltration
-import org.broadinstitute.sting.queue.extensions.gatk.VcfGatherFunction
-import org.broadinstitute.sting.queue.extensions.picard.MergeSamFiles
-import org.broadinstitute.sting.queue.extensions.picard.SortSam
-import org.broadinstitute.sting.queue.function.ListWriterFunction
+import org.broadinstitute.gatk.queue.QScript
+import org.broadinstitute.gatk.queue.extensions.gatk.BamGatherFunction
+import org.broadinstitute.gatk.queue.extensions.gatk.BaseRecalibrator
+import org.broadinstitute.gatk.queue.extensions.gatk.ClipReads
+import org.broadinstitute.gatk.queue.extensions.gatk.CommandLineGATK
+import org.broadinstitute.gatk.queue.extensions.gatk.IndelRealigner
+import org.broadinstitute.gatk.queue.extensions.gatk.RealignerTargetCreator
+import org.broadinstitute.gatk.queue.extensions.gatk.UnifiedGenotyper
+import org.broadinstitute.gatk.queue.extensions.gatk.VariantFiltration
+import org.broadinstitute.gatk.queue.extensions.gatk.VcfGatherFunction
+import org.broadinstitute.gatk.queue.extensions.picard.MergeSamFiles
+import org.broadinstitute.gatk.queue.extensions.picard.SortSam
+import org.broadinstitute.gatk.queue.function.ListWriterFunction
 import molmed.queue.extensions.picard.CollectTargetedPcrMetrics
 import molmed.queue.setup.ReadGroupInformation
 import molmed.queue.setup.ReadPairContainer
@@ -28,10 +26,10 @@ import molmed.queue.setup.SetupXMLReader
 import molmed.queue.setup.SetupXMLReaderAPI
 import molmed.utils.Resources
 import molmed.utils.GeneralUtils._
-import net.sf.samtools.SAMFileHeader
-import net.sf.samtools.SAMFileHeader.SortOrder
-import net.sf.samtools.SAMFileReader
-import net.sf.samtools.SAMTextHeaderCodec
+import htsjdk.samtools.SAMFileHeader
+import htsjdk.samtools.SAMFileHeader.SortOrder
+import htsjdk.samtools.SAMFileReader
+import htsjdk.samtools.SAMTextHeaderCodec
 import molmed.utils.ReadGroupUtils._
 import molmed.utils.Uppmaxable
 import molmed.utils.BwaAlignmentUtils
@@ -41,6 +39,7 @@ import molmed.config.UppmaxXMLConfiguration
 import molmed.utils.UppmaxJob
 import molmed.utils.BwaAln
 import molmed.utils.BedToIntervalUtils
+import org.broadinstitute.gatk.engine.downsampling.DownsampleType
 
 /**
  * Haloplex best practice analysis from fastqs to variant calls.
@@ -306,8 +305,8 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
         this.downsample_to_coverage = 200
       }
 
-      this.output_mode = org.broadinstitute.sting.gatk.walkers.genotyper.UnifiedGenotyperEngine.OUTPUT_MODE.EMIT_VARIANTS_ONLY
-      this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.BOTH
+      this.output_mode = org.broadinstitute.gatk.tools.walkers.genotyper.OutputMode.EMIT_VARIANTS_ONLY
+      this.glm = org.broadinstitute.gatk.tools.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.BOTH
 
       override def jobRunnerJobName = projectName.get + "_genotype"
 
@@ -338,7 +337,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
       this.known :+= resources.dbsnp
       this.known :+= resources.mills
       this.known :+= resources.phase1
-      this.consensusDeterminationModel = org.broadinstitute.sting.gatk.walkers.indels.IndelRealigner.ConsensusDeterminationModel.KNOWNS_ONLY
+      this.consensusDeterminationModel = org.broadinstitute.gatk.tools.walkers.indels.IndelRealigner.ConsensusDeterminationModel.KNOWNS_ONLY
       this.compress = 0
       this.scatterCount = nContigs
       override def jobRunnerJobName = projectName.get + "_clean"
@@ -373,7 +372,7 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
       this.out = outBam
       this.cyclesToTrim = "1-5"
       this.scatterCount = nContigs
-      this.clipRepresentation = org.broadinstitute.sting.utils.clipping.ClippingRepresentation.WRITE_NS
+      this.clipRepresentation = org.broadinstitute.gatk.utils.clipping.ClippingRepresentation.WRITE_NS
       this.BQSR = covariates
 
       override def jobRunnerJobName = projectName.get + "_clean"

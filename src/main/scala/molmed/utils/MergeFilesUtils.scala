@@ -3,8 +3,8 @@ package molmed.utils
 import java.io.File
 import scala.annotation.elidable
 import scala.annotation.elidable.ASSERTION
-import org.broadinstitute.sting.queue.QScript
-import org.broadinstitute.sting.queue.function.InProcessFunction
+import org.broadinstitute.gatk.queue.QScript
+import org.broadinstitute.gatk.queue.function.InProcessFunction
 
 /**
  * Classes and functions used to merge files.

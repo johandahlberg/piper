@@ -1,9 +1,8 @@
 package molmed.utils
 
-import net.sf.picard.reference.IndexedFastaSequenceFile
-import org.broadinstitute.sting.queue.QScript
+import org.broadinstitute.gatk.queue.QScript
 import java.io.File
-import org.broadinstitute.sting.gatk.walkers.indels.IndelRealigner.ConsensusDeterminationModel
+import org.broadinstitute.gatk.tools.walkers.indels.IndelRealigner.ConsensusDeterminationModel
 
 /**
  * Functions to run GATK data processing workflows.

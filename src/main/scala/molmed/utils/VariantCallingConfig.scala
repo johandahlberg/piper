@@ -1,6 +1,6 @@
 package molmed.utils
 
-import org.broadinstitute.sting.queue.QScript
+import org.broadinstitute.gatk.queue.QScript
 import java.io.File
 
 /**

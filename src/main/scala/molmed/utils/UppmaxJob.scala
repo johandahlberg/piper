@@ -1,6 +1,6 @@
 package molmed.utils
 
-import org.broadinstitute.sting.queue.function.CommandLineFunction
+import org.broadinstitute.gatk.queue.function.CommandLineFunction
 
 /**
  * Utility class holding uppmax resource configurations and settings. 

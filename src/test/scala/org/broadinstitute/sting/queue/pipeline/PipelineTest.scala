@@ -23,23 +23,23 @@
 * THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-package org.broadinstitute.sting.queue.pipeline
+package org.broadinstitute.gatk.queue.pipeline
 
 import collection.JavaConversions._
-import org.broadinstitute.sting.utils.Utils
+import org.broadinstitute.gatk.utils.Utils
 import org.testng.Assert
-import org.broadinstitute.sting.commandline.CommandLineProgram
 import java.util.Date
 import java.text.SimpleDateFormat
 import org.broadinstitute.sting.BaseTest
 import org.broadinstitute.sting.MD5DB
-import org.broadinstitute.sting.queue.QCommandLine
-import org.broadinstitute.sting.queue.util.Logging
+import org.broadinstitute.gatk.queue.QCommandLine
+import org.broadinstitute.gatk.queue.util.Logging
 import java.io.File
-import org.broadinstitute.sting.gatk.report.GATKReport
 import org.apache.commons.io.FileUtils
-import org.broadinstitute.sting.queue.engine.CommandLinePluginManager
+import org.broadinstitute.gatk.queue.engine.CommandLinePluginManager
 import molmed.queue.SnpSeqBaseTest
+import org.broadinstitute.gatk.engine.report.GATKReport
+import org.broadinstitute.gatk.utils.commandline.CommandLineProgram
 
 object PipelineTest extends BaseTest with Logging {
 

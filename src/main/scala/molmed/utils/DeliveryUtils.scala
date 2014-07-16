@@ -1,7 +1,7 @@
 package molmed.utils
 
 import java.io.File
-import org.broadinstitute.sting.queue.function.InProcessFunction
+import org.broadinstitute.gatk.queue.function.InProcessFunction
 import molmed.queue.setup.SampleAPI
 
 object DeliveryUtils {

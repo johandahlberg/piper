@@ -1,9 +1,9 @@
 package molmed.qscripts.legacy
 
-import org.broadinstitute.sting.queue.QScript
+import org.broadinstitute.gatk.queue.QScript
 import scala.xml._
 import collection.JavaConversions._
-import org.broadinstitute.sting.queue.extensions.picard._
+import org.broadinstitute.gatk.queue.extensions.picard._
 import molmed.queue.setup._
 import molmed.utils.GeneralUtils._
 import molmed.utils.BwaAlignmentUtils

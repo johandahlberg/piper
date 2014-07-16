@@ -1,7 +1,6 @@
 package molmed.qscripts
 
-import org.broadinstitute.sting.commandline.Hidden
-import org.broadinstitute.sting.queue.QScript
+import org.broadinstitute.gatk.queue.QScript
 import molmed.queue.setup.SampleAPI
 import molmed.utils.AlignerOption
 import molmed.utils.AlignmentQCUtils
@@ -19,9 +18,8 @@ import molmed.config.UppmaxXMLConfiguration
 import molmed.utils.VariantCallerOption
 import molmed.utils.VariantCallingConfig
 import molmed.utils.VariantCallingUtils
-import org.broadinstitute.sting.queue.function.InProcessFunction
+import org.broadinstitute.gatk.queue.function.InProcessFunction
 import java.io.PrintWriter
-import org.broadinstitute.sting.commandline.Input
 import molmed.utils.DeliveryUtils
 import molmed.config.FileAndProgramResourceConfig
 

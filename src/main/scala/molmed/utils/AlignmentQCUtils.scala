@@ -1,7 +1,7 @@
 package molmed.utils
 
 import java.io.File
-import org.broadinstitute.sting.queue.QScript
+import org.broadinstitute.gatk.queue.QScript
 
 /**
  * Contains functions for running quality control (right now a very simple one which uses the GATK DepthOfCoverage walker).

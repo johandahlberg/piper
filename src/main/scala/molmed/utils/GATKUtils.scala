@@ -2,13 +2,13 @@ package molmed.utils
 
 import java.io.File
 
-import org.broadinstitute.sting.gatk.walkers.indels.IndelRealigner.ConsensusDeterminationModel
-import org.broadinstitute.sting.queue.extensions.gatk.BaseRecalibrator
-import org.broadinstitute.sting.queue.extensions.gatk.CommandLineGATK
-import org.broadinstitute.sting.queue.extensions.gatk.IndelRealigner
-import org.broadinstitute.sting.queue.extensions.gatk.PrintReads
-import org.broadinstitute.sting.queue.extensions.gatk.RealignerTargetCreator
-import org.broadinstitute.sting.utils.baq.BAQ.CalculationMode
+import org.broadinstitute.gatk.tools.walkers.indels.IndelRealigner.ConsensusDeterminationModel
+import org.broadinstitute.gatk.queue.extensions.gatk.BaseRecalibrator
+import org.broadinstitute.gatk.queue.extensions.gatk.CommandLineGATK
+import org.broadinstitute.gatk.queue.extensions.gatk.IndelRealigner
+import org.broadinstitute.gatk.queue.extensions.gatk.PrintReads
+import org.broadinstitute.gatk.queue.extensions.gatk.RealignerTargetCreator
+import org.broadinstitute.gatk.utils.baq.BAQ.CalculationMode
 
 /**
  * Commandline wappers for GATK programs.
@@ -20,7 +20,7 @@ class GATKUtils(gatkOptions: GATKConfig, projectName: Option[String], uppmaxConf
     this.reference_sequence = gatkOptions.reference
   }
 
-  case class DepthOfCoverage(inBam: File, outputDir: File) extends org.broadinstitute.sting.queue.extensions.gatk.DepthOfCoverage with CommandLineGATKArgs with OneCoreJob {
+  case class DepthOfCoverage(inBam: File, outputDir: File) extends org.broadinstitute.gatk.queue.extensions.gatk.DepthOfCoverage with CommandLineGATKArgs with OneCoreJob {
     this.input_file = Seq(inBam)
     this.out = outputDir
     if (!gatkOptions.intervalFile.isEmpty) this.intervals :+= gatkOptions.intervalFile.get

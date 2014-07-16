@@ -2,19 +2,19 @@ package molmed.qscripts.legacy
 
 import java.io.FileNotFoundException
 import scala.collection.JavaConversions._
-import org.broadinstitute.sting.commandline.Hidden
-import org.broadinstitute.sting.gatk.walkers.indels.IndelRealigner.ConsensusDeterminationModel
-import org.broadinstitute.sting.queue.QScript
-import org.broadinstitute.sting.queue.extensions.gatk._
-import org.broadinstitute.sting.queue.extensions.picard._
-import org.broadinstitute.sting.queue.util.QScriptUtils
-import net.sf.picard.reference.IndexedFastaSequenceFile
-import net.sf.samtools.SAMFileHeader.SortOrder
-import net.sf.samtools.SAMFileReader
+import org.broadinstitute.gatk.utils.commandline.Hidden
+import org.broadinstitute.gatk.tools.walkers.indels.IndelRealigner.ConsensusDeterminationModel
+import org.broadinstitute.gatk.queue.QScript
+import org.broadinstitute.gatk.queue.extensions.gatk._
+import org.broadinstitute.gatk.queue.extensions.picard._
+import org.broadinstitute.gatk.queue.util.QScriptUtils
+import htsjdk.samtools.SAMFileHeader.SortOrder
+import htsjdk.samtools.SAMFileReader
 import molmed.utils.GATKUtils
 import molmed.utils.GATKConfig
 import molmed.utils.GeneralUtils
 import molmed.config.UppmaxXMLConfiguration
+import htsjdk.samtools.reference.IndexedFastaSequenceFile
 
 /**
  * Runs the GATK recommended best practice analysis for data processing.

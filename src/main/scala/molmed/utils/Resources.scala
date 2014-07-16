@@ -3,8 +3,6 @@ package molmed.utils
 import java.io.File
 import java.io.IOException
 
-import org.broadinstitute.sting.commandline.ArgumentException
-
 /**
  * Utility class to fetch resource files based on a based folder.
  * @todo In the future this will probably be removed as it's quite bulky
@@ -25,9 +23,9 @@ class Resources(resources: File, testMode: Boolean = false) {
       if (resources.exists())
         resources.getAbsoluteFile().listFiles()
       else
-        throw new ArgumentException("Could not locate GATK bundle at: " + resources.getAbsolutePath())
+        throw new IllegalArgumentException("Could not locate GATK bundle at: " + resources.getAbsolutePath())
     } catch {
-      case e: ArgumentException => if (testMode) Array[File]() else throw e
+      case e: IllegalArgumentException => if (testMode) Array[File]() else throw e
     }
   }
 

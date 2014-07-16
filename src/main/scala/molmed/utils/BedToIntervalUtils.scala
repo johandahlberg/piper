@@ -6,11 +6,11 @@ import java.io.PrintWriter
 import scala.collection.JavaConversions.seqAsJavaList
 import scala.io.Source
 
-import org.broadinstitute.sting.queue.function.InProcessFunction
+import org.broadinstitute.gatk.queue.function.InProcessFunction
 
-import net.sf.samtools.SAMFileHeader
-import net.sf.samtools.SAMFileReader
-import net.sf.samtools.SAMTextHeaderCodec
+import htsjdk.samtools.SAMFileHeader
+import htsjdk.samtools.SAMFileReader
+import htsjdk.samtools.SAMTextHeaderCodec
 
 object BedToIntervalUtils {
 

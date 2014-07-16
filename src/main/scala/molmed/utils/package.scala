@@ -1,6 +1,7 @@
 package molmed
 
-import annotation.target.field
+
+import molmed.utils.Fields
 
 /**
  * Contains classes relating to:
@@ -10,12 +11,7 @@ import annotation.target.field
  *
  * @todo This should probably be better organized.
  */
-package object utils {
+package object utils extends Fields{
 
-  type Input = org.broadinstitute.sting.commandline.Input @field
-  type Output = org.broadinstitute.sting.commandline.Output @field
-  type Argument = org.broadinstitute.sting.commandline.Argument @field
-  type ArgumentCollection = org.broadinstitute.sting.commandline.ArgumentCollection @field
-  type Gather = org.broadinstitute.sting.commandline.Gather @field
 
 }

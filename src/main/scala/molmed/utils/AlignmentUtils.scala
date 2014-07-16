@@ -2,18 +2,18 @@ package molmed.utils
 
 import java.io.File
 import scala.collection.JavaConversions._
-import org.broadinstitute.sting.queue.QScript
-import org.broadinstitute.sting.queue.function.CommandLineFunction
-import org.broadinstitute.sting.queue.function.InProcessFunction
-import org.broadinstitute.sting.queue.function.ListWriterFunction
+import org.broadinstitute.gatk.queue.QScript
+import org.broadinstitute.gatk.queue.function.CommandLineFunction
+import org.broadinstitute.gatk.queue.function.InProcessFunction
+import org.broadinstitute.gatk.queue.function.ListWriterFunction
 import molmed.queue.setup._
 import molmed.queue.setup.ReadPairContainer
 import molmed.queue.setup.SampleAPI
 import molmed.utils.GeneralUtils.checkReferenceIsBwaIndexed
-import net.sf.samtools.SAMFileHeader
-import net.sf.samtools.SAMFileReader
+import htsjdk.samtools.SAMFileHeader
+import htsjdk.samtools.SAMFileReader
 import molmed.utils.ReadGroupUtils._
-import org.broadinstitute.sting.queue.util.StringFileConversions
+import org.broadinstitute.gatk.queue.util.StringFileConversions
 
 /**
  * Base class for alignment workflows.

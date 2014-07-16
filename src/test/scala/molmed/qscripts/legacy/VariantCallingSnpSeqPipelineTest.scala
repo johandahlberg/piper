@@ -2,11 +2,11 @@ package molmed.qscripts.legacy
 
 import org.testng.annotations._
 import molmed.queue.SnpSeqBaseTest
-import org.broadinstitute.sting.queue.pipeline._
+import org.broadinstitute.gatk.queue.pipeline._
 
 /**
  * TODO
- * Implement cluster style testing as in AlignWithBwaSnpSeqPipelineTest
+ * Implement cluster style tegatk as in AlignWithBwaSnpSeqPipelineTest
  */
 
 class VariantCallingSnpSeqPipelineTest {

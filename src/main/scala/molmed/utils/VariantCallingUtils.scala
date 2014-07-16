@@ -1,16 +1,16 @@
 package molmed.utils
 
-import org.broadinstitute.sting.queue.extensions.gatk.UnifiedGenotyper
+import org.broadinstitute.gatk.queue.extensions.gatk.UnifiedGenotyper
 import java.io.File
-import org.broadinstitute.sting.queue.extensions.gatk.VariantFiltration
-import org.broadinstitute.sting.queue.extensions.gatk.VariantRecalibrator
-import org.broadinstitute.sting.queue.extensions.gatk.TaggedFile
-import org.broadinstitute.sting.queue.extensions.gatk.ApplyRecalibration
-import org.broadinstitute.sting.queue.extensions.gatk.VariantEval
-import org.broadinstitute.sting.queue.QScript
-import org.broadinstitute.sting.queue.extensions.gatk.HaplotypeCaller
-import org.broadinstitute.sting.queue.extensions.gatk.GenotypeGVCFs
-import org.broadinstitute.sting.queue.extensions.gatk.SelectVariants
+import org.broadinstitute.gatk.queue.extensions.gatk.VariantFiltration
+import org.broadinstitute.gatk.queue.extensions.gatk.VariantRecalibrator
+import org.broadinstitute.gatk.queue.extensions.gatk.TaggedFile
+import org.broadinstitute.gatk.queue.extensions.gatk.ApplyRecalibration
+import org.broadinstitute.gatk.queue.extensions.gatk.VariantEval
+import org.broadinstitute.gatk.queue.QScript
+import org.broadinstitute.gatk.queue.extensions.gatk.HaplotypeCaller
+import org.broadinstitute.gatk.queue.extensions.gatk.GenotypeGVCFs
+import org.broadinstitute.gatk.queue.extensions.gatk.SelectVariants
 
 /**
  * Wrapping case classed and functions for doing variant calling using the GATK.
@@ -207,23 +207,23 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     // Make sure we emit a GVCF
     // @TODO make this optional
     this.emitRefConfidence =
-      org.broadinstitute.sting.gatk.walkers.haplotypecaller.HaplotypeCaller.ReferenceConfidenceMode.GVCF
+      org.broadinstitute.gatk.tools.walkers.haplotypecaller.ReferenceConfidenceMode.GVCF     
 
     this.variant_index_type =
-      org.broadinstitute.sting.utils.variant.GATKVCFIndexType.LINEAR
+      org.broadinstitute.gatk.utils.variant.GATKVCFIndexType.LINEAR
     this.variant_index_parameter = Some(128000)
 
     // Make sure to follow recommendations how to analyze 
     // PCR free libraries.
     this.pcr_indel_model =
       if (pcrFree.isDefined && pcrFree.get)
-        org.broadinstitute.sting.gatk.walkers.haplotypecaller.PairHMMLikelihoodCalculationEngine.PCR_ERROR_MODEL.NONE
+        org.broadinstitute.gatk.tools.walkers.haplotypecaller.PairHMMLikelihoodCalculationEngine.PCR_ERROR_MODEL.NONE
       else
-        org.broadinstitute.sting.gatk.walkers.haplotypecaller.PairHMMLikelihoodCalculationEngine.PCR_ERROR_MODEL.CONSERVATIVE
+        org.broadinstitute.gatk.tools.walkers.haplotypecaller.PairHMMLikelihoodCalculationEngine.PCR_ERROR_MODEL.CONSERVATIVE
 
     // This use vector optimization to speed up.
     this.pair_hmm_implementation =
-      org.broadinstitute.sting.utils.pairhmm.PairHMM.HMM_IMPLEMENTATION.LOGLESS_CACHING
+      org.broadinstitute.gatk.utils.pairhmm.PairHMM.HMM_IMPLEMENTATION.LOGLESS_CACHING
 
     override def jobRunnerJobName = projectName.get + "_HC"
   }
@@ -269,11 +269,11 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
     variantType match {
       case SNPs => {
-        this.selectTypeToInclude = Seq(org.broadinstitute.variant.variantcontext.VariantContext.Type.SNP)
+        this.selectTypeToInclude = Seq(htsjdk.variant.variantcontext.VariantContext.Type.SNP)
         this.out = t.rawSnpVCF
       }
       case INDELs => {
-        this.selectTypeToInclude = Seq(org.broadinstitute.variant.variantcontext.VariantContext.Type.INDEL)
+        this.selectTypeToInclude = Seq(htsjdk.variant.variantcontext.VariantContext.Type.INDEL)
         this.out = t.rawIndelVCF
       }
     }
@@ -318,8 +318,8 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
       UnifiedGenotyperSnpCall.this.max_deletion_fraction = deletions
 
     UnifiedGenotyperSnpCall.this.out = t.rawSnpVCF
-    UnifiedGenotyperSnpCall.this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.SNP
-    UnifiedGenotyperSnpCall.this.baq = if (noBAQ || t.isExome) { org.broadinstitute.sting.utils.baq.BAQ.CalculationMode.OFF } else { org.broadinstitute.sting.utils.baq.BAQ.CalculationMode.CALCULATE_AS_NECESSARY }
+    UnifiedGenotyperSnpCall.this.glm = org.broadinstitute.gatk.tools.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.SNP
+    UnifiedGenotyperSnpCall.this.baq = if (noBAQ || t.isExome) { org.broadinstitute.gatk.utils.baq.BAQ.CalculationMode.OFF } else { org.broadinstitute.gatk.utils.baq.BAQ.CalculationMode.CALCULATE_AS_NECESSARY }
     override def jobRunnerJobName = projectName.get + "_UGs"
   }
 
@@ -330,8 +330,8 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     downsampleFraction: Option[Double])
       extends UnifiedGenotyperBase(t, testMode, downsampleFraction) {
     UnifiedGenotyperIndelCall.this.out = t.rawIndelVCF
-    UnifiedGenotyperIndelCall.this.baq = org.broadinstitute.sting.utils.baq.BAQ.CalculationMode.OFF
-    UnifiedGenotyperIndelCall.this.glm = org.broadinstitute.sting.gatk.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.INDEL
+    UnifiedGenotyperIndelCall.this.baq = org.broadinstitute.gatk.utils.baq.BAQ.CalculationMode.OFF
+    UnifiedGenotyperIndelCall.this.glm = org.broadinstitute.gatk.tools.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.INDEL
     override def jobRunnerJobName = projectName.get + "_UGi"
   }
 
@@ -390,7 +390,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     this.recal_file = t.recalSnpFile
 
     this.rscript_file = t.vqsrSnpRscript
-    this.mode = org.broadinstitute.sting.gatk.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.SNP
+    this.mode = org.broadinstitute.gatk.tools.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.SNP
     override def jobRunnerJobName = projectName.get + "_VQSRs"
   }
 
@@ -410,7 +410,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     this.tranches_file = t.tranchesIndelFile
     this.recal_file = t.recalIndelFile
     this.rscript_file = t.vqsrIndelRscript
-    this.mode = org.broadinstitute.sting.gatk.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.INDEL
+    this.mode = org.broadinstitute.gatk.tools.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.INDEL
     override def jobRunnerJobName = projectName.get + "_VQSRi"
   }
 
@@ -428,7 +428,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
     // By default this is 99.0
     // this.ts_filter_level = t.snpTrancheTarget
-    this.mode = org.broadinstitute.sting.gatk.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.SNP
+    this.mode = org.broadinstitute.gatk.tools.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.SNP
     this.out = t.recalibratedSnpVCF
     override def jobRunnerJobName = projectName.get + "_AVQSRs"
   }
@@ -440,7 +440,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
     // By default this is 99.0
     //this.ts_filter_level = t.indelTranchTarget
-    this.mode = org.broadinstitute.sting.gatk.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.INDEL
+    this.mode = org.broadinstitute.gatk.tools.walkers.variantrecalibration.VariantRecalibratorArgumentCollection.Mode.INDEL
     this.out = t.recalibratedIndelVCF
     override def jobRunnerJobName = projectName.get + "_AVQSRi"
   }

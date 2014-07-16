@@ -1,17 +1,17 @@
 package molmed.queue.extensions.picard
 
-import org.broadinstitute.sting.commandline._
+import org.broadinstitute.gatk.utils.commandline._
 import java.io.File
-import net.sf.picard.analysis.MetricAccumulationLevel
-import org.broadinstitute.sting.queue.extensions.picard.PicardMetricsFunction
+import picard.analysis.MetricAccumulationLevel
+import org.broadinstitute.gatk.queue.extensions.picard.PicardMetricsFunction
 
 /**
  * Queue extension for CollectTargetedPcrMetrics
  */
-class CollectTargetedPcrMetrics extends org.broadinstitute.sting.queue.function.JavaCommandLineFunction with PicardMetricsFunction {
+class CollectTargetedPcrMetrics extends org.broadinstitute.gatk.queue.function.JavaCommandLineFunction with PicardMetricsFunction {
 
   analysisName = "CollectTargetedPcrMetrics"
-  javaMainClass = "net.sf.picard.analysis.directed.CollectTargetedPcrMetrics"
+  javaMainClass = "htsjdk.picard.analysis.directed.CollectTargetedPcrMetrics"
 
   @Input(doc = "The input SAM or BAM files to analyze.  Must be coordinate sorted.", shortName = "input", fullName = "input_bam_files", required = true)
   var input: Seq[File] = Nil

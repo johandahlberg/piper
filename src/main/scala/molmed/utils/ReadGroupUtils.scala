@@ -1,8 +1,8 @@
 package molmed.utils
 
 import java.io.File
-import net.sf.samtools.SAMFileHeader
-import net.sf.samtools.SAMFileReader
+import htsjdk.samtools.SAMFileHeader
+import htsjdk.samtools.SAMFileReader
 import scala.collection.JavaConversions._
 
 /**

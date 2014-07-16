@@ -1,7 +1,7 @@
 package molmed.qscripts
 
-import org.broadinstitute.sting.queue.QScript
-import org.broadinstitute.sting.queue.util.QScriptUtils
+import org.broadinstitute.gatk.queue.QScript
+import org.broadinstitute.gatk.queue.util.QScriptUtils
 import molmed.utils.ReadGroupUtils._
 import molmed.utils.GeneralUtils
 import molmed.config.UppmaxXMLConfiguration

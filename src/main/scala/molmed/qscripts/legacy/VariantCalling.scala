@@ -1,14 +1,14 @@
 package molmed.qscripts.legacy
 
-import org.broadinstitute.sting.queue.extensions.gatk._
-import org.broadinstitute.sting.queue.QScript
-import org.broadinstitute.sting.queue.util.QScriptUtils
-import org.broadinstitute.sting.commandline.Hidden
+import org.broadinstitute.gatk.queue.extensions.gatk._
+import org.broadinstitute.gatk.queue.QScript
+import org.broadinstitute.gatk.queue.util.QScriptUtils
 import molmed.utils.VariantCallingUtils
 import molmed.utils.GATKConfig
 import molmed.utils.VariantCallingUtils
 import molmed.config.UppmaxXMLConfiguration
 import molmed.utils.VariantCallingTarget
+import org.broadinstitute.gatk.utils.commandline.Hidden
 
 /**
  * Run variant calling using GATK.

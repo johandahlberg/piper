@@ -7,27 +7,27 @@ import scala.annotation.elidable.ASSERTION
 import scala.collection.immutable.Stream.consWrapper
 import scala.io.Source
 import scala.sys.process.Process
-import org.broadinstitute.sting.queue.extensions.picard.CalculateHsMetrics
-import org.broadinstitute.sting.queue.extensions.picard.MarkDuplicates
-import org.broadinstitute.sting.queue.extensions.picard.MergeSamFiles
-import org.broadinstitute.sting.queue.extensions.picard.RevertSam
-import org.broadinstitute.sting.queue.extensions.picard.SamToFastq
-import org.broadinstitute.sting.queue.extensions.picard.SortSam
-import org.broadinstitute.sting.queue.extensions.picard.ValidateSamFile
-import org.broadinstitute.sting.queue.function.InProcessFunction
-import org.broadinstitute.sting.queue.function.ListWriterFunction
+import org.broadinstitute.gatk.queue.extensions.picard.CalculateHsMetrics
+import org.broadinstitute.gatk.queue.extensions.picard.MarkDuplicates
+import org.broadinstitute.gatk.queue.extensions.picard.MergeSamFiles
+import org.broadinstitute.gatk.queue.extensions.picard.RevertSam
+import org.broadinstitute.gatk.queue.extensions.picard.SamToFastq
+import org.broadinstitute.gatk.queue.extensions.picard.SortSam
+import org.broadinstitute.gatk.queue.extensions.picard.ValidateSamFile
+import org.broadinstitute.gatk.queue.function.InProcessFunction
+import org.broadinstitute.gatk.queue.function.ListWriterFunction
 import molmed.queue.extensions.RNAQC.RNASeQC
 import molmed.queue.extensions.picard.BuildBamIndex
 import molmed.queue.extensions.picard.CollectTargetedPcrMetrics
 import molmed.queue.extensions.picard.FixMateInformation
 import molmed.utils.ReadGroupUtils.getSampleNameFromReadGroups
-import net.sf.samtools.SAMFileHeader.SortOrder
-import org.broadinstitute.sting.queue.extensions.picard.CalculateHsMetrics
+import htsjdk.samtools.SAMFileHeader.SortOrder
+import org.broadinstitute.gatk.queue.extensions.picard.CalculateHsMetrics
 import molmed.queue.setup.SampleAPI
 import molmed.queue.setup.ReadPairContainer
 import molmed.queue.setup.Sample
-import org.broadinstitute.sting.queue.util.StringFileConversions
-import org.broadinstitute.sting.queue.QScript
+import org.broadinstitute.gatk.queue.util.StringFileConversions
+import org.broadinstitute.gatk.queue.QScript
 
 /**
  * Assorted commandline wappers, mostly for file doing small things link indexing files. See case classes to figure out

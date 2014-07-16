@@ -1,9 +1,9 @@
 package molmed.qscripts.legacy
 
-import org.broadinstitute.sting.queue.QScript
+import org.broadinstitute.gatk.queue.QScript
 import collection.JavaConversions._
-import org.broadinstitute.sting.queue.extensions.gatk._
-import org.broadinstitute.sting.queue.util.QScriptUtils
+import org.broadinstitute.gatk.queue.extensions.gatk._
+import org.broadinstitute.gatk.queue.util.QScriptUtils
 import molmed.utils.GATKUtils
 import molmed.utils.GATKConfig
 import molmed.config.UppmaxXMLConfiguration

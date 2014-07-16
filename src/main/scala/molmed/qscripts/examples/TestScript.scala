@@ -1,10 +1,10 @@
 package molmed.qscripts.examples
 
-import org.broadinstitute.sting.queue.QScript
+import org.broadinstitute.gatk.queue.QScript
 import molmed.utils.Uppmaxable
 import molmed.utils.UppmaxConfig
 import molmed.utils.UppmaxJob
-import org.broadinstitute.sting.queue.util.QScriptUtils
+import org.broadinstitute.gatk.queue.util.QScriptUtils
 import java.io.PrintWriter
 import scala.io.Source
 

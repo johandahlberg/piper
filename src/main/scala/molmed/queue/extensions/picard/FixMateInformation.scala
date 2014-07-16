@@ -1,16 +1,16 @@
 package molmed.queue.extensions.picard
 
-import org.broadinstitute.sting.commandline._
+import org.broadinstitute.gatk.utils.commandline._
 import java.io.File
-import org.broadinstitute.sting.queue.extensions.picard.PicardBamFunction
+import org.broadinstitute.gatk.queue.extensions.picard.PicardBamFunction
 
 /**
  * Queue extension for Picard FixMatInformation
  */
-class FixMateInformation extends org.broadinstitute.sting.queue.function.JavaCommandLineFunction with PicardBamFunction {
+class FixMateInformation extends org.broadinstitute.gatk.queue.function.JavaCommandLineFunction with PicardBamFunction {
 
     analysisName = "FixMateInformation"
-    javaMainClass = "net.sf.picard.sam.FixMateInformation"
+    javaMainClass = "htsjdk.picard.sam.FixMateInformation"
 
     @Input(doc = "The input SAM or BAM files to analyze.  Must be coordinate sorted.", shortName = "input", fullName = "input_bam_files", required = true)
     var input: Seq[File] = Nil

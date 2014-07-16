@@ -2,7 +2,7 @@ package molmed.utils
 
 import collection.JavaConversions._
 import java.io.File
-import org.broadinstitute.sting.queue.function.ListWriterFunction
+import org.broadinstitute.gatk.queue.function.ListWriterFunction
 
 class CufflinksUtils (projectName: Option[String], annotations: Option[File], libraryType: String, uppmaxConfig: UppmaxConfig) extends UppmaxJob(uppmaxConfig){
   

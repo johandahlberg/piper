@@ -1,8 +1,7 @@
 package molmed.qscripts
 
-import org.broadinstitute.sting.queue.QScript
+import org.broadinstitute.gatk.queue.QScript
 import java.io.File
-import org.broadinstitute.sting.commandline.Argument
 
 class NonUppmaxableTestScript extends QScript {
 

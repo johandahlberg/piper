@@ -3,16 +3,12 @@ package molmed.qscripts
 import java.io.File
 import java.io.PrintWriter
 import java.util.regex.Pattern
-
 import scala.collection.JavaConversions._
-
-import org.broadinstitute.sting.commandline.Hidden
-import org.broadinstitute.sting.queue.extensions.picard._
-import org.broadinstitute.sting.queue.function.InProcessFunction
-import org.broadinstitute.sting.queue.function.ListWriterFunction
-import org.broadinstitute.sting.queue.QScript
-import org.broadinstitute.sting.queue.util.QScriptUtils
-
+import org.broadinstitute.gatk.queue.extensions.picard._
+import org.broadinstitute.gatk.queue.function.InProcessFunction
+import org.broadinstitute.gatk.queue.function.ListWriterFunction
+import org.broadinstitute.gatk.queue.QScript
+import org.broadinstitute.gatk.queue.util.QScriptUtils
 import molmed.queue.setup._
 import molmed.utils.CufflinksUtils
 import molmed.utils.GeneralUtils

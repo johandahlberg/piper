@@ -1,8 +1,8 @@
 package molmed.queue.extensions.RNAQC
 
-import org.broadinstitute.sting.commandline._
+import org.broadinstitute.gatk.utils.commandline._
 import java.io.File
-import org.broadinstitute.sting.queue.function.CommandLineFunction
+import org.broadinstitute.gatk.queue.function.CommandLineFunction
 
 /**
  * Queue extension for RNASeQC

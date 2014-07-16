@@ -2,7 +2,7 @@ package molmed.qscripts
 
 import org.testng.annotations._
 import molmed.queue.SnpSeqBaseTest
-import org.broadinstitute.sting.queue.pipeline._
+import org.broadinstitute.gatk.queue.pipeline._
 
 class DNABestPracticeVariantCallingSnpSeqPipelineTest {
 
