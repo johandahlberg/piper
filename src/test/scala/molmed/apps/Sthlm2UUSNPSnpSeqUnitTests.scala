@@ -128,11 +128,12 @@ class Sthlm2UUSNPSnpSeqUnitTests {
 
     import TestPaths._
     createTestFolders()
+    
     val expected =
       "#SampleName	Lane	ReadLibrary	FlowcellId\n" +
         "P1142_101	1	P1142_101	BC423WACXX"
 
-    val result = Sthlm2UUSNP.addToReport(testSampleInfo, uuRoot)
+    val result = Sthlm2UUSNP.addToReport(Seq(testSampleInfo), uuRoot)
 
     assert(result.exists(), "Did not create report")
     assert(result.getName() == "report.tsv", "Did not create report.tsv")

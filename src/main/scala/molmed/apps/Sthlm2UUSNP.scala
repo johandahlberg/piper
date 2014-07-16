@@ -14,7 +14,7 @@ import java.io.FileWriter
  * Utility program to convert sthlm sequencing platform meta format to UU SNP format.
  */
 object Sthlm2UUSNP extends App {
-  
+
   case class Config(sthlmRoot: Option[File] = None, newUppsalaStyleRoot: Option[File] = None)
 
   val parser = new OptionParser[Config]("sthlm2UUSNP") {
@@ -178,32 +178,32 @@ object Sthlm2UUSNP extends App {
    * @return the report that was written to.
    */
   def addToReport(
-    sequencedUnit: SampleInfo,
+    sequencedUnits: Seq[SampleInfo],
     uppsalaStyleRunfolder: File): File = {
 
     // Write/append to the report file.
     val reportFile = new File(uppsalaStyleRunfolder + "/report.tsv")
-    val reportWasThere = reportFile.exists()
     val reportWriter = new PrintWriter(new FileWriter(reportFile, true))
 
-    // Only write the header if the file was just created.
-    if (!reportWasThere)
-      reportWriter.println(
-        List(
-          "#SampleName",
-          "Lane",
-          "ReadLibrary",
-          "FlowcellId")
-          .mkString("\t"))
-
-    // Use the sample name as a proxy for the library
+    // Only write the header if the file was just created.    
     reportWriter.println(
       List(
-        sequencedUnit.sampleName,
-        sequencedUnit.lane,
-        sequencedUnit.sampleName,
-        sequencedUnit.flowCellId)
+        "#SampleName",
+        "Lane",
+        "ReadLibrary",
+        "FlowcellId")
         .mkString("\t"))
+
+    for (sequencedUnit <- sequencedUnits) {
+      // Use the sample name as a proxy for the library
+      reportWriter.println(
+        List(
+          sequencedUnit.sampleName,
+          sequencedUnit.lane,
+          sequencedUnit.sampleName,
+          sequencedUnit.flowCellId)
+          .mkString("\t"))
+    }
 
     reportWriter.close()
 
@@ -234,12 +234,11 @@ object Sthlm2UUSNP extends App {
 
         for (sequencedUnit <- infoOnSamples) {
           createHardLink(sequencedUnit, uppsalaStyleRunfolder)
-
-          // Since we don't want the unit added twice for paired end data
-          // only add read 1
-          if (sequencedUnit.read == 1)
-            addToReport(sequencedUnit, uppsalaStyleRunfolder)
         }
+
+        val onlyReadOneSequencedData = infoOnSamples.filter(p => p.read == 1)
+        addToReport(onlyReadOneSequencedData, uppsalaStyleRunfolder)
+
       }
     }
   }
