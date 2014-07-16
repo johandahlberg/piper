@@ -6,6 +6,7 @@ import molmed.utils.GeneralUtils
 import java.io.PrintWriter
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.nio.file.FileAlreadyExistsException
 import scopt._
 import java.io.FileWriter
 
@@ -13,7 +14,7 @@ import java.io.FileWriter
  * Utility program to convert sthlm sequencing platform meta format to UU SNP format.
  */
 object Sthlm2UUSNP extends App {
-
+  
   case class Config(sthlmRoot: Option[File] = None, newUppsalaStyleRoot: Option[File] = None)
 
   val parser = new OptionParser[Config]("sthlm2UUSNP") {
@@ -48,8 +49,16 @@ object Sthlm2UUSNP extends App {
   /**
    * List all subdirectories of dir
    */
-  def listSubDirectories(dir: File): Seq[File] =
-    dir.listFiles().filter(p => p.isDirectory())
+  def listSubDirectories(dir: File): Seq[File] = {
+
+    require(dir.isDirectory(), dir + " was not a directory!")
+
+    val subDirectories = dir.listFiles().filter(p => p.isDirectory())
+    assert(subDirectories.size > 0,
+      "Found no subdirectories for: " + dir.getAbsolutePath())
+
+    subDirectories
+  }
 
   /**
    * Create hardlink corresponding to sequencing unit
@@ -74,8 +83,17 @@ object Sthlm2UUSNP extends App {
       "001.fastq.gz").mkString("_")
 
     val targetFile = new File(uuSampleFolder + "/" + uuStyleFileName)
-    Files.createLink(Paths.get(targetFile.getAbsolutePath()),
-      Paths.get(sampleInfo.fastq.getPath()))
+
+    try {
+      Files.createLink(Paths.get(targetFile.getAbsolutePath()),
+        Paths.get(sampleInfo.fastq.getPath()))
+    } catch {
+      case e: FileAlreadyExistsException =>
+        System.err.println(
+          "File " + targetFile.getName() + "already exists." +
+            " Will not re-link it.")
+    }
+
     targetFile
   }
 

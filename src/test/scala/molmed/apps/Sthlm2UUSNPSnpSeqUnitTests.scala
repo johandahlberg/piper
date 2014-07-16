@@ -67,6 +67,41 @@ class Sthlm2UUSNPSnpSeqUnitTests {
       "Did create correct folder structure: " + result)
   }
 
+  @AfterMethod
+  def afterCreateHardLinkTwiceTest {
+    TestPaths.tearDownTestFolders()
+  }
+  @Test
+  def createHardLinkTwiceTest {
+
+    import TestPaths._
+
+    createTestFolders()
+
+    val runFolder =
+      new File(
+        uuRoot + "/" + testSampleInfo.date + "_" + testSampleInfo.flowCellId)
+
+    Sthlm2UUSNP.createHardLink(
+      testSampleInfo,
+      runFolder)
+
+    val result =
+      Sthlm2UUSNP.createHardLink(
+        testSampleInfo,
+        runFolder)
+
+    assert(result.exists(), "Did not create file: " + result)
+
+    assert(result.getParentFile().getName() ==
+      "Sample_" + testSampleInfo.sampleName,
+      "Did not create sample dir.")
+
+    assert(result.getParentFile().getParentFile().getName() ==
+      testSampleInfo.date + "_" + testSampleInfo.flowCellId,
+      "Did create correct folder structure: " + result)
+  }
+
   @Test
   def getFastqFilesTest {
     val root =
@@ -85,7 +120,7 @@ class Sthlm2UUSNPSnpSeqUnitTests {
   }
 
   @AfterMethod
-  def afterHardlinkAndAddToReportTest {
+  def afterAddToReportTest {
     TestPaths.tearDownTestFolders()
   }
   @Test
