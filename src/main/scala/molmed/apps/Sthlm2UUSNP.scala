@@ -92,31 +92,45 @@ object Sthlm2UUSNP extends App {
     read: Int)
 
   /**
-   * Sthlm files look like: 1_140528_BC423WACXX_P1142_101_1.fastq.gz
+   * @TODO Old format: 1_140528_BC423WACXX_P1142_101_1.fastq.gz
+   *
+   * Illumina files look like: P1142_101_NoIndex_L001_R1_001.fastq.gz and are
+   * located in runfolers with the following naming structure:
+   *  140528_BC423WACXX
    * Parse this info to get info about the sample.
    *
-   * @param file Fastq file on the format described above.
+   * @param file 	  Fastq file on the format described above.
+   * @param runFolder The runfoler where the fastq file is located with a
+   * 				  name conforming to the specification above.
    * @return Information on the sequencing unit parsed from the file name
    */
-  def parseSampleInfoFromFileName(file: File): SampleInfo = {
+  def parseSampleInfoFromFileNameAndRunfolder(
+    file: File,
+    runfolder: File): SampleInfo = {
+
+    def getDataAndFlowcellIdFromRunfolder(runfolder: File): (String, String) = {
+      val split = runfolder.getName().split("_")
+      (split(0), split(1))
+    }
+
+    val runfolderName = runfolder.getName()
+    val (date, flowcellId) = getDataAndFlowcellIdFromRunfolder(runfolder)
+
     val fileName = file.getName()
+    val fastqFileRegexp =
+      """^(\w+_\w+)_(\w+)_L(\d+)_R(\d)_(\d+)\.fastq\.gz$""".r
 
-    val regexp = """^(\d)_(\d+)_(\w+)_(\w+_\w+)_(\d).fastq.gz$""".r
-
-    // @TODO 
-    // Note the ugly hack that sets all indicies to AAAAAA
-    // this done since we currently lack a good way to get this
-    // info.
-    val infoAboutSamples = regexp.findAllIn(fileName).matchData.map(m => {
-      SampleInfo(
-        sampleName = m.group(4),
-        lane = m.group(1).toInt,
-        date = m.group(2),
-        flowCellId = m.group(3),
-        index = "AAAAAA",
-        fastq = file,
-        read = m.group(5).toInt)
-    }).toSeq
+    val infoAboutSamples = fastqFileRegexp.findAllIn(fileName).
+      matchData.map(m => {
+        SampleInfo(
+          sampleName = m.group(1),
+          lane = m.group(3).toInt,
+          date = date,
+          flowCellId = flowcellId,
+          index = m.group(2),
+          fastq = file,
+          read = m.group(4).toInt)
+      }).toSeq
 
     require(
       infoAboutSamples.length == 1,
@@ -192,7 +206,8 @@ object Sthlm2UUSNP extends App {
         // ua style runfolder
         val fastqFiles = getFastqFiles(runfolder)
         val infoOnSamples =
-          fastqFiles.map(file => parseSampleInfoFromFileName(file))
+          fastqFiles.map(file =>
+            parseSampleInfoFromFileNameAndRunfolder(file, runfolder))
 
         // Create the ua style runfolder       
         val uppsalaStyleRunfolder =

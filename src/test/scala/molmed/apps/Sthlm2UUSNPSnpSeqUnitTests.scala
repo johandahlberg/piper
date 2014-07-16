@@ -125,18 +125,20 @@ class Sthlm2UUSNPSnpSeqUnitTests {
   @Test
   def parseSampleInfoFromFileNameTest {
 
-    val fileToParse = new File("1_140528_BC423WACXX_P1142_101_1.fastq.gz")
+    val runfolder = new File("140528_BC423WACXX")
+    val fileToParse = new File("P1142_101_NoIndex_L001_R1_001.fastq.gz")
 
     val expeced = new Sthlm2UUSNP.SampleInfo(
       sampleName = "P1142_101",
       lane = 1,
       date = "140528",
       flowCellId = "BC423WACXX",
-      index = "AAAAAA",
+      index = "NoIndex",
       fastq = fileToParse,
       read = 1)
 
-    val actual = Sthlm2UUSNP.parseSampleInfoFromFileName(fileToParse)
+    val actual = Sthlm2UUSNP.
+      parseSampleInfoFromFileNameAndRunfolder(fileToParse, runfolder)
 
     assert(actual == expeced)
   }
