@@ -128,11 +128,41 @@ class Sthlm2UUSNPSnpSeqUnitTests {
 
     import TestPaths._
     createTestFolders()
-    
+
     val expected =
       "#SampleName	Lane	ReadLibrary	FlowcellId\n" +
         "P1142_101	1	P1142_101	BC423WACXX"
 
+    val result = Sthlm2UUSNP.addToReport(Seq(testSampleInfo), uuRoot)
+
+    assert(result.exists(), "Did not create report")
+    assert(result.getName() == "report.tsv", "Did not create report.tsv")
+    assert(result.getParentFile() == uuRoot)
+
+    val fileContent = Source.fromFile(result).getLines().mkString("\n")
+
+    assert(fileContent == expected,
+      "fileContent=\n" + fileContent)
+  }
+
+  @AfterMethod
+  def afterAddToReportMultipleTimesTest {
+    TestPaths.tearDownTestFolders()
+  }
+  /**
+   * When the report is written to multiple times, it should be overwritten.
+   */
+  @Test
+  def addToReportMultipleTimesTest {
+
+    import TestPaths._
+    createTestFolders()
+
+    val expected =
+      "#SampleName	Lane	ReadLibrary	FlowcellId\n" +
+        "P1142_101	1	P1142_101	BC423WACXX"
+
+    Sthlm2UUSNP.addToReport(Seq(testSampleInfo), uuRoot)
     val result = Sthlm2UUSNP.addToReport(Seq(testSampleInfo), uuRoot)
 
     assert(result.exists(), "Did not create report")

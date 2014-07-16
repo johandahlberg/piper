@@ -183,7 +183,9 @@ object Sthlm2UUSNP extends App {
 
     // Write/append to the report file.
     val reportFile = new File(uppsalaStyleRunfolder + "/report.tsv")
-    val reportWriter = new PrintWriter(new FileWriter(reportFile, true))
+    val reportWriter =
+      new PrintWriter(
+        new FileWriter(reportFile, false))
 
     // Only write the header if the file was just created.    
     reportWriter.println(
