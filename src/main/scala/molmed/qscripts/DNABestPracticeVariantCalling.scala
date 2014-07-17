@@ -22,6 +22,7 @@ import org.broadinstitute.gatk.queue.function.InProcessFunction
 import java.io.PrintWriter
 import molmed.utils.DeliveryUtils
 import molmed.config.FileAndProgramResourceConfig
+import org.broadinstitute.gatk.utils.commandline.Hidden
 
 /**
  *

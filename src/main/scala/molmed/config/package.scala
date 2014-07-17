@@ -7,6 +7,6 @@ import molmed.utils.Fields
  * E.g. to setup Uppmax related properies, but also specifying
  * paths to resources and programs.
  */
-package object config extends Fields{
+package object config extends Fields {
 
 }

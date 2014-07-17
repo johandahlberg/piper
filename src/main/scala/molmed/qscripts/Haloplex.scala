@@ -40,6 +40,7 @@ import molmed.utils.UppmaxJob
 import molmed.utils.BwaAln
 import molmed.utils.BedToIntervalUtils
 import org.broadinstitute.gatk.engine.downsampling.DownsampleType
+import org.broadinstitute.gatk.utils.commandline.Hidden
 
 /**
  * Haloplex best practice analysis from fastqs to variant calls.

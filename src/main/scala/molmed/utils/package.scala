@@ -1,6 +1,5 @@
 package molmed
 
-
 import molmed.utils.Fields
 
 /**
@@ -12,6 +11,5 @@ import molmed.utils.Fields
  * @todo This should probably be better organized.
  */
 package object utils extends Fields{
-
 
 }

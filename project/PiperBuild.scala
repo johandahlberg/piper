@@ -12,12 +12,14 @@ object PiperBuild extends Build {
         scalacOptions in Compile ++= Seq("-deprecation", "-unchecked"),
         fork in Test := true,
         mappings in (Compile, packageBin) ~=
-          (_ filter { case (f, s) => !s.contains("molmed/qscripts") }),
+          (_ filter {
+            case (f, s) =>
+              !s.contains("molmed/qscripts")}),
         parallelExecution in Test := false) ++
         packSettings ++
         Seq(
           packMain := Map(
-            "piper" -> "org.broadinstitute.sting.queue.QCommandLine",
+            "piper" -> "org.broadinstitute.gatk.queue.QCommandLine",
             "setupFileCreator" -> "molmed.apps.setupcreator.SetupFileCreator",
             "sthlm2UUSNP" -> "molmed.apps.Sthlm2UUSNP"))
           ++ dependencies)
