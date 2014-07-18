@@ -229,17 +229,38 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     override def jobRunnerJobName = projectName.get + "_RNA_QC"
   }
 
-  case class qualimapQC(@Input bam: File, @Output outputBase: File, @Output logFile: File, @Argument pathToQualimap: File)
+  /**
+   * Run qualimap to get info quality control metrics
+   * @param bam 			file to run qualimap on
+   * @param outputBase 		the folder where the output files will end up
+   * @param logFile 		the path to output the log file to
+   * @param pathToQualimap  path to the qualimap program
+   * @param intervalFile	Optional interval file in BED or GFF format to
+   * 						output statistics for targeted regions.
+   */
+  case class qualimapQC(
+    @Input bam: File,
+    @Output outputBase: File,
+    @Output logFile: File,
+    @Argument pathToQualimap: File,
+    @Argument intervalFile: Option[File] = None)
       extends EightCoreJob {
 
     this.isIntermediate = false
     override def jobRunnerJobName = projectName.get + "_qualimap"
+
+    def gffString =
+      if (intervalFile.isDefined)
+        " -gff " + intervalFile.get.getAbsolutePath() + " "
+      else
+        ""
 
     override def commandLine =
       pathToQualimap + " " +
         " --java-mem-size=64G " +
         " bamqc " +
         " -bam " + bam.getAbsolutePath() +
+        gffString +
         " --paint-chromosome-limits " +
         " -outdir " + outputBase.getAbsolutePath() + "/" +
         " -nt 8" +

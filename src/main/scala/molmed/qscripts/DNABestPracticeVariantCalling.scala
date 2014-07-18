@@ -51,6 +51,9 @@ class DNABestPracticeVariantCalling extends QScript
   @Input(doc = "a baits file in Picard interval format format. Used to calculate HSMetrics for exomes.", fullName = "baits_file", shortName = "baits", required = false)
   var baits: File = _
 
+  @Input(doc = "an intervals file to be used by qualimap. (In BED/GFF format)", fullName = "bed_interval_file", shortName = "bed_intervals", required = false)
+  var bedIntervals: File = _
+
   @Argument(doc = "Cleaning model: KNOWNS_ONLY, USE_READS or USE_SW. (Default: USE_READS)", fullName = "clean_model", shortName = "cm", required = false)
   var cleaningModel: String = "USE_READS"
 
@@ -212,7 +215,7 @@ class DNABestPracticeVariantCalling extends QScript
     generalUtils: GeneralUtils): Seq[File] = {
 
     val qualityControlUtils = new AlignmentQCUtils(qscript, projectName, generalUtils, qualimapPath)
-    val baseQCOutputFiles = qualityControlUtils.aligmentQC(bamFiles, aligmentQCOutputDir)
+    val baseQCOutputFiles = qualityControlUtils.aligmentQC(bamFiles, aligmentQCOutputDir, bedIntervals)
 
     /**
      * For exomes, calculate hybrid selection metrics.
