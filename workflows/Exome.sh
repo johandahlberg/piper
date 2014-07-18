@@ -8,7 +8,7 @@
 #SBATCH -e pipeline-%j.error
 
 function usage {
-   echo "Usage: ./workflows/Exome.sh --xml_input <setup.xml> --intervals <intervals> --bed <intervals.bed>  [--alignments_only] [--run]"
+   echo "Usage: ./workflows/Exome.sh --xml_input <setup.xml> --intervals <intervals> --bed_intervals <intervals.bed>  [--alignments_only] [--run]"
 }
 
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
