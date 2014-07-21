@@ -29,12 +29,14 @@ class Sthlm2UUSNPSnpSeqUnitTests {
 
   val testSampleInfo = new Sthlm2UUSNP.SampleInfo(
     sampleName = "P1142_101",
+    library = "A",
     lane = 1,
     date = "140528",
     flowCellId = "BC423WACXX",
     index = "1",
     fastq = new File(sthlmRootDir +
-      "/P1142_101/140528_BC423WACXX/1_140528_BC423WACXX_P1142_101_1.fastq.gz"),
+      "/P1142_101/A/140528_BC423WACXX/" +
+      "1_140528_BC423WACXX_P1142_101_1.fastq.gz"),
     read = 1)
 
   @AfterMethod
@@ -106,7 +108,7 @@ class Sthlm2UUSNPSnpSeqUnitTests {
   def getFastqFilesTest {
     val root =
       "src/test/resources/testdata/Sthlm2UUTests/" +
-        "sthlm_runfolder_root/P1142_101/"
+        "sthlm_runfolder_root/P1142_101/A/"
     val expected = List(
       new File(root + "140528_BC423WACXX/1_140528_BC423WACXX_P1142_101_1.fastq.gz"),
       new File(root + "140528_BC423WACXX/1_140528_BC423WACXX_P1142_101_2.fastq.gz"),
@@ -131,7 +133,7 @@ class Sthlm2UUSNPSnpSeqUnitTests {
 
     val expected =
       "#SampleName	Lane	ReadLibrary	FlowcellId\n" +
-        "P1142_101	1	P1142_101	BC423WACXX"
+        "P1142_101	1	A	BC423WACXX"
 
     val result = Sthlm2UUSNP.addToReport(Seq(testSampleInfo), uuRoot)
 
@@ -160,7 +162,7 @@ class Sthlm2UUSNPSnpSeqUnitTests {
 
     val expected =
       "#SampleName	Lane	ReadLibrary	FlowcellId\n" +
-        "P1142_101	1	P1142_101	BC423WACXX"
+        "P1142_101	1	A	BC423WACXX"
 
     Sthlm2UUSNP.addToReport(Seq(testSampleInfo), uuRoot)
     val result = Sthlm2UUSNP.addToReport(Seq(testSampleInfo), uuRoot)
@@ -191,11 +193,13 @@ class Sthlm2UUSNPSnpSeqUnitTests {
   @Test
   def parseSampleInfoFromFileNameTest {
 
+    val libraryfolder = new File("A")
     val runfolder = new File("140528_BC423WACXX")
     val fileToParse = new File("P1142_101_NoIndex_L001_R1_001.fastq.gz")
 
     val expeced = new Sthlm2UUSNP.SampleInfo(
       sampleName = "P1142_101",
+      library = "A",
       lane = 1,
       date = "140528",
       flowCellId = "BC423WACXX",
@@ -204,7 +208,7 @@ class Sthlm2UUSNPSnpSeqUnitTests {
       read = 1)
 
     val actual = Sthlm2UUSNP.
-      parseSampleInfoFromFileNameAndRunfolder(fileToParse, runfolder)
+      parseSampleInfoFromFileHierarchy(fileToParse, runfolder, libraryfolder)
 
     assert(actual == expeced)
   }

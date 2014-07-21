@@ -102,6 +102,7 @@ object Sthlm2UUSNP extends App {
    */
   case class SampleInfo(
     sampleName: String,
+    library: String,
     lane: Int,
     date: String,
     flowCellId: String,
@@ -110,21 +111,30 @@ object Sthlm2UUSNP extends App {
     read: Int)
 
   /**
-   * @TODO Old format: 1_140528_BC423WACXX_P1142_101_1.fastq.gz
+   * The Stockholm folder structure looks like this:
    *
-   * Illumina files look like: P1142_101_NoIndex_L001_R1_001.fastq.gz and are
-   * located in runfolers with the following naming structure:
-   *  140528_BC423WACXX
-   * Parse this info to get info about the sample.
+   * Project
+   * └── Sample
+   *     └── Library Prep
+   *         └── Sequencing Run
+   *             ├── P1142_101_NoIndex_L002_R1_001.fastq.gz
+   *             └── P1142_101_NoIndex_L002_R1_001.fastq.gz
    *
-   * @param file 	  Fastq file on the format described above.
-   * @param runFolder The runfoler where the fastq file is located with a
-   * 				  name conforming to the specification above.
+   * And this should be parsed to get info on the sample
+   *
+   *
+   * @param file 	  		Fastq file on the format described above.
+   * @param runFolder 		The runfoler where the fastq file is located with a
+   * 				  		name conforming to the specification above.
+   * @param libraryPrepDir  The location of the libary pre dir
    * @return Information on the sequencing unit parsed from the file name
    */
-  def parseSampleInfoFromFileNameAndRunfolder(
+  def parseSampleInfoFromFileHierarchy(
     file: File,
-    runfolder: File): SampleInfo = {
+    runfolder: File,
+    libraryPrepDir: File): SampleInfo = {
+
+    val libraryPrepName = libraryPrepDir.getName()
 
     def getDataAndFlowcellIdFromRunfolder(runfolder: File): (String, String) = {
       val split = runfolder.getName().split("_")
@@ -142,6 +152,7 @@ object Sthlm2UUSNP extends App {
       matchData.map(m => {
         SampleInfo(
           sampleName = m.group(1),
+          library = libraryPrepName,
           lane = m.group(3).toInt,
           date = date,
           flowCellId = flowcellId,
@@ -197,12 +208,11 @@ object Sthlm2UUSNP extends App {
         .mkString("\t"))
 
     for (sequencedUnit <- sequencedUnits) {
-      // Use the sample name as a proxy for the library
       reportWriter.println(
         List(
           sequencedUnit.sampleName,
           sequencedUnit.lane,
-          sequencedUnit.sampleName,
+          sequencedUnit.library,
           sequencedUnit.flowCellId)
           .mkString("\t"))
     }
@@ -217,31 +227,37 @@ object Sthlm2UUSNP extends App {
    */
   def runApp(config: Config): Unit = {
 
-    // Iterate through the sthlm sample and runfolder dirs to get to the
-    // fastq files.
+    // Iterate through the sthlm sample, library perp and runfolder 
+    // dirs to get to the fastq files.
     for (sampleDir <- listSubDirectories(config.sthlmRoot.get)) {
-      for (runfolder <- listSubDirectories(sampleDir)) {
+      for (libraryPrepDir <- listSubDirectories(sampleDir)) {
+        for (runfolderDir <- listSubDirectories(libraryPrepDir)) {
 
-        // Get the information on the samples and add them to the
-        // ua style runfolder
-        val fastqFiles = getFastqFiles(runfolder)
-        val infoOnSamples =
-          fastqFiles.map(file =>
-            parseSampleInfoFromFileNameAndRunfolder(file, runfolder))
+          // Get the information on the samples and add them to the
+          // ua style runfolder
+          val fastqFiles = getFastqFiles(runfolderDir)
+          val infoOnSamples =
+            fastqFiles.map(file =>
+              parseSampleInfoFromFileHierarchy(
+                file,
+                runfolderDir,
+                libraryPrepDir))
 
-        // Create the ua style runfolder       
-        val uppsalaStyleRunfolder =
-          new File(config.newUppsalaStyleRoot.get + "/" + runfolder.getName())
-        uppsalaStyleRunfolder.mkdirs()
+          // Create the ua style runfolder       
+          val uppsalaStyleRunfolder =
+            new File(config.newUppsalaStyleRoot.get +
+              "/" + runfolderDir.getName())
+          uppsalaStyleRunfolder.mkdirs()
 
-        for (sequencedUnit <- infoOnSamples) {
-          createHardLink(sequencedUnit, uppsalaStyleRunfolder)
+          for (sequencedUnit <- infoOnSamples) {
+            createHardLink(sequencedUnit, uppsalaStyleRunfolder)
+          }
+
+          val onlyReadOnceSequencedData = infoOnSamples.filter(p => p.read == 1)
+          addToReport(onlyReadOnceSequencedData, uppsalaStyleRunfolder)
         }
-
-        val onlyReadOneSequencedData = infoOnSamples.filter(p => p.read == 1)
-        addToReport(onlyReadOneSequencedData, uppsalaStyleRunfolder)
-
       }
+
     }
   }
 
