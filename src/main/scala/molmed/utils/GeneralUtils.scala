@@ -243,7 +243,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     @Output outputBase: File,
     @Output logFile: File,
     @Argument pathToQualimap: File,
-    @Argument intervalFile: Option[File] = None)
+    @Argument(required = false) intervalFile: Option[File] = None)
       extends EightCoreJob {
 
     this.isIntermediate = false
