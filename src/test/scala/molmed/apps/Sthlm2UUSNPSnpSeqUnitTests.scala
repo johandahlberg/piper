@@ -191,7 +191,7 @@ class Sthlm2UUSNPSnpSeqUnitTests {
   }
 
   @Test
-  def parseSampleInfoFromFileNameTest {
+  def parseSampleInfoFromFileHierarchyTest {
 
     val libraryfolder = new File("A")
     val runfolder = new File("140528_BC423WACXX")
@@ -204,6 +204,29 @@ class Sthlm2UUSNPSnpSeqUnitTests {
       date = "140528",
       flowCellId = "BC423WACXX",
       index = "NoIndex",
+      fastq = fileToParse,
+      read = 1)
+
+    val actual = Sthlm2UUSNP.
+      parseSampleInfoFromFileHierarchy(fileToParse, runfolder, libraryfolder)
+
+    assert(actual == expeced)
+  }
+
+  @Test
+  def parseSampleInfoFromFileHierarchyWithDualIndexing {
+    val libraryfolder = new File("A")
+    val runfolder = new File("140528_BC423WACXX")
+    val fileToParse = 
+      new File("P1171_102_ATTCAGAA-CCTATCCT_L001_R1_001.fastq.gz")
+
+    val expeced = new Sthlm2UUSNP.SampleInfo(
+      sampleName = "P1171_102",
+      library = "A",
+      lane = 1,
+      date = "140528",
+      flowCellId = "BC423WACXX",
+      index = "ATTCAGAA-CCTATCCT",
       fastq = fileToParse,
       read = 1)
 
