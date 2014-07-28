@@ -53,23 +53,23 @@ object SetupUtils {
   }
 
   /**
-   * From a Seq of sample paths, this will create a project structure including 
+   * From a Seq of sample paths, this will create a project structure including
    * all the samples referred to.
    * @param project		the project to add the samples to
    * @param samplePaths	paths to all sample directoris the you which to use.
    * @param reference	the reference to add.
    * @return
    */
-  def setupRunfolderStructureFromSamplePaths(project: Project)(samplePaths: Seq[File], reference: File): Project = {
+  def setupRunfolderStructureFromSamplePaths(project: Project)(samplePaths: Set[File], reference: File): Project = {
 
     require(samplePaths.forall(p => p.isDirectory()),
-        "You supplied file instead of a directory to the sample path")
+      "You supplied file instead of a directory to the sample path")
     require(samplePaths.forall(p => p.getName().startsWith("Sample_")),
-        "Are you sure that you provided a sample folder as input." +
+      "Are you sure that you provided a sample folder as input." +
         " The name of the sample folder must start with Sample_<the rest of" +
         "the name>.")
-    require(reference.exists(), "Reference " + reference.getAbsolutePath() +  " supplied did not exist.")
-    
+    require(reference.exists(), "Reference " + reference.getAbsolutePath() + " supplied did not exist.")
+
     val modifiedProject = samplePaths.
       foldLeft(project)((project, sampleDir) => {
         val runFolderDir = sampleDir.getParentFile()
@@ -77,10 +77,16 @@ object SetupUtils {
 
         val runFolderList = projectWithRunfolder.getInputs().getRunfolder()
 
-        // This is now done as a side effect - which is not pretty, but
-        // hopefully it will work.
-        for (runfolder <- runFolderList) {
+        def runfolderParentFile(runfolder: Runfolder) =
+          new File(runfolder.getReport()).getParentFile()
+
+        for {
+          runfolder <- runFolderList
+          if runfolderParentFile(runfolder) == sampleDir.getParentFile()
+        } {
           val sampleFolder = runfolder.getSamplefolder()
+          // This is now done as a side effect - which is not pretty, but
+          // hopefully it will work.
           addSampleFolder(sampleFolder, Seq(sampleDir), reference)
         }
 

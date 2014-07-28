@@ -20,7 +20,7 @@ object SetupFileCreator extends App {
     sequencingCenter: Option[String] = None,
     uppmaxProjectId: Option[String] = None,
     uppmaxQoSFlag: Option[String] = Some(""),
-    sampleFolders: Option[Seq[File]] = None,
+    sampleFolders: Option[Set[File]] = None,
     reference: Option[File] = None)
 
   val parser = new OptionParser[Config]("SetupFileCreator") {
@@ -51,8 +51,8 @@ object SetupFileCreator extends App {
     } text ("This is a required argument if you are not using interactive mode.")
 
     opt[File]('i', "input_sample") unbounded () optional () valueName ("Input path to sample directory.") action { (x, c) =>
-      c.copy(sampleFolders = c.sampleFolders.getOrElse(Seq()) :+ x)
-    } text ("his is a required argument if you are not using interactive mode. Can be specified multiple times.")
+      c.copy(sampleFolders = c.sampleFolders.getOrElse(Set()) + x)
+    } text ("This is a required argument if you are not using interactive mode. Can be specified multiple times.")
 
     opt[File]('r', "reference") optional () valueName ("Reference fasta file to use.") action { (x, c) =>
       c.copy(reference = Some(x))
