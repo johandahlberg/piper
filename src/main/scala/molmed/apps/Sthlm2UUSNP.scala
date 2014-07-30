@@ -260,7 +260,9 @@ object Sthlm2UUSNP extends App {
           }
 
           runfolderToSampleMap = runfolderToSampleMap.
-            updated(uppsalaStyleRunfolder, infoOnSamples)
+            updated(
+              uppsalaStyleRunfolder,
+              runfolderToSampleMap(uppsalaStyleRunfolder) ++ infoOnSamples)
 
         }
       }
