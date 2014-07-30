@@ -223,12 +223,16 @@ object Sthlm2UUSNP extends App {
   }
 
   /**
-   * Run the app!
+   * Generate a Uppsala file structure from the IGN-sthlm format.
+   * @param config The config for what to run
+   * @return A map of the runfolders and the sample information relating to
+   * them. This can be used to generate the report files.
    */
-  def runApp(config: Config): Unit = {
-
+  def generateFileStructure(config: Config): Map[File, Seq[SampleInfo]] = {
     // Iterate through the sthlm sample, library perp and runfolder 
     // dirs to get to the fastq files.
+    var runfolderToSampleMap: Map[File, Seq[SampleInfo]] = Map()
+
     for (sampleDir <- listSubDirectories(config.sthlmRoot.get)) {
       for (libraryPrepDir <- listSubDirectories(sampleDir)) {
         for (runfolderDir <- listSubDirectories(libraryPrepDir)) {
@@ -253,12 +257,36 @@ object Sthlm2UUSNP extends App {
             createHardLink(sequencedUnit, uppsalaStyleRunfolder)
           }
 
-          val onlyReadOnceSequencedData = infoOnSamples.filter(p => p.read == 1)
-          addToReport(onlyReadOnceSequencedData, uppsalaStyleRunfolder)
+          runfolderToSampleMap = runfolderToSampleMap.
+            updated(uppsalaStyleRunfolder, infoOnSamples)
+
         }
       }
-
     }
+
+    runfolderToSampleMap
+
+  }
+
+  def createReportFiles(
+    runfoldersToSampleMap: Map[File, Seq[SampleInfo]]): Seq[File] = {
+
+    val reportFiles =
+      for (runfolder <- runfoldersToSampleMap.keys) yield {
+        val infoOnSamples = runfoldersToSampleMap(runfolder)
+        val onlyReadOne = infoOnSamples.filter(p => p.read == 1)
+        addToReport(onlyReadOne, runfolder)
+      }
+
+    reportFiles.toSeq
+  }
+
+  /**
+   * Run the app!
+   */
+  def runApp(config: Config): Unit = {
+	  val runfoldersToSampleMap = generateFileStructure(config)
+	  val reportFiles = createReportFiles(runfoldersToSampleMap)   
   }
 
 }
