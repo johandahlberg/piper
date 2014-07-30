@@ -233,7 +233,8 @@ object Sthlm2UUSNP extends App {
   def generateFileStructure(config: Config): Map[File, Seq[SampleInfo]] = {
     // Iterate through the sthlm sample, library perp and runfolder 
     // dirs to get to the fastq files.
-    var runfolderToSampleMap: Map[File, Seq[SampleInfo]] = Map()
+    var runfolderToSampleMap: Map[File, Seq[SampleInfo]] = 
+      Map().withDefaultValue(Seq())
 
     for (sampleDir <- listSubDirectories(config.sthlmRoot.get)) {
       for (libraryPrepDir <- listSubDirectories(sampleDir)) {
