@@ -194,18 +194,20 @@ object Sthlm2UUSNP extends App {
 
     // Write/append to the report file.
     val reportFile = new File(uppsalaStyleRunfolder + "/report.tsv")
+    val reportAlreadyExists = reportFile.exists()
     val reportWriter =
       new PrintWriter(
-        new FileWriter(reportFile, false))
+        new FileWriter(reportFile, reportAlreadyExists))
 
-    // Only write the header if the file was just created.    
-    reportWriter.println(
-      List(
-        "#SampleName",
-        "Lane",
-        "ReadLibrary",
-        "FlowcellId")
-        .mkString("\t"))
+    // Only write the header if the file was just created.
+    if (!reportAlreadyExists)
+      reportWriter.println(
+        List(
+          "#SampleName",
+          "Lane",
+          "ReadLibrary",
+          "FlowcellId")
+          .mkString("\t"))
 
     for (sequencedUnit <- sequencedUnits) {
       reportWriter.println(
@@ -285,8 +287,8 @@ object Sthlm2UUSNP extends App {
    * Run the app!
    */
   def runApp(config: Config): Unit = {
-	  val runfoldersToSampleMap = generateFileStructure(config)
-	  val reportFiles = createReportFiles(runfoldersToSampleMap)   
+    val runfoldersToSampleMap = generateFileStructure(config)
+    val reportFiles = createReportFiles(runfoldersToSampleMap)
   }
 
 }
