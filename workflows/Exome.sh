@@ -8,7 +8,7 @@
 #SBATCH -e pipeline-%j.error
 
 function usage {
-   echo "Usage: ./workflows/Exome.sh --xml_input <setup.xml> <--sureselect> || <--truseq> [--alignments_only] [--run]"
+   echo "Usage: ./workflows/Exome.sh --xml_input <setup.xml> --intervals <intervals> --bed_intervals <intervals.bed>  [--alignments_only] [--run]"
 }
 
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
@@ -21,6 +21,7 @@ PIPELINE_SETUP=""
 RUN=""
 ONLY_ALIGMENTS="--create_delivery"
 INTERVALS=""
+BED_INTERVALS=""
 
 while :
     do
@@ -41,14 +42,14 @@ while :
                ONLY_ALIGMENTS="--alignment_and_qc"
                shift
                ;; 
-           -e | --sureselect)
-               INTERVALS="/proj/b2010028/references/piper_references/Enrichments/Agilent/SureSelect_All_Exon_50mb_with_annotation_hg19-gatk.interval_list"
-               shift
+           -i | --intervals)
+               INTERVALS=$2
+               shift 2
                ;;
-           -t | --truseq)
-               INTERVALS="/proj/b2010028/references/piper_references/Enrichments/Illumina/TruSeq_exome_targeted_regions-gatk.interval_list"
-               shift
-               ;;          
+           -b | --bed_intervals)
+               BED_INTERVALS=$2
+               shift 2
+               ;;
            -*)
                echo "WARN: Unknown option (ignored): $1" >&2
                shift
@@ -86,16 +87,8 @@ piper -S ${SCRIPTS_DIR}/DNABestPracticeVariantCalling.scala \
 	      --xml_input ${PIPELINE_SETUP} \
 	      --isExome \
 	      --gatk_interval_file ${INTERVALS} \
-	      --dbsnp ${DB_SNP_B37} \
-	      --extra_indels ${MILLS_B37} \
-	      --extra_indels ${ONE_K_G_B37} \
-	      --hapmap ${HAPMAP_B37} \
-	      --omni ${OMNI_B37} \
-	      --mills ${MILLS_B37} \
-	      --thousandGenomes ${THOUSAND_GENOMES_B37} \
-	      -bwa ${PATH_TO_BWA} \
-	      -samtools ${PATH_TO_SAMTOOLS} \
-	      -qualimap ${PATH_TO_QUALIMAP} \
+	      --bed_interval_file ${BED_INTERVALS} \
+	      --global_config ${_THIS_SCRIPT_LOCATION}/uppmax_global_config.xml \
 	      --number_of_threads 8 \
 	      --scatter_gather 10 \
 	      --disableJobReport \
@@ -105,4 +98,4 @@ piper -S ${SCRIPTS_DIR}/DNABestPracticeVariantCalling.scala \
 	      ${RUN} ${ONLY_ALIGMENTS} ${DEBUG} 2>&1 | tee -a ${LOGS}/exome.log
 
 # Perform final clean up
-	      final_clean_up
+final_clean_up
