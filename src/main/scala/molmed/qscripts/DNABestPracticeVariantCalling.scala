@@ -81,7 +81,7 @@ class DNABestPracticeVariantCalling extends QScript
   @Argument(doc = "If the project is a exome sequencing project", fullName = "isExome", shortName = "ie", required = false)
   var isExome: Boolean = false
 
-  @Argument(doc = "Run variant calling for each bam file seperatly. By default all samples will be analyzed together", fullName = "analyze_separatly", shortName = "analyzeSeparatly", required = false)
+  @Argument(doc = "Run variant calling for each bam file separately. By default all samples will be analyzed together", fullName = "analyze_separately", shortName = "analyzeSeparately", required = false)
   var runSeparatly = false
 
   @Argument(shortName = "noBAQ", doc = "turns off BAQ calculation in variant calling", required = false)
