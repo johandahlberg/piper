@@ -25,7 +25,7 @@ class RNACounts
     extends QScript
     with UppmaxXMLConfiguration
     with FileAndProgramResourceConfig {
-
+  
   qscript =>
 
   /**

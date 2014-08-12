@@ -10,9 +10,4 @@ import java.io.File
  */
 package object qscripts {
 
-  /**
-   * Implicitly convert any File to Option File, as necessary.
-   */
-  implicit def file2Option(file: File) = if (file == null) None else Some(file)
-
 }

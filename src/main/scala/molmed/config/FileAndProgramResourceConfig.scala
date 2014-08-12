@@ -72,6 +72,11 @@ trait FileAndProgramResourceConfig {
   var tophatPath: File = _
 
   /**
+   * Implicitly convert any File to Option File, as necessary.
+   */
+  implicit def file2Option(file: File) = if (file == null) None else Some(file)
+
+  /**
    * Will load file resources from XML file. Any values set via the
    * commandline will not be overriden by this.
    * @param	xmlFile	A xml file conforming to the specification in GlobalConfigSchema.xsd
