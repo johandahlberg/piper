@@ -174,6 +174,11 @@ class RNACounts
 
     //Import uppmxax-settings,samples and project info
     val uppmaxConfig = loadUppmaxConfigFromXML()
+
+    // Get default paths to resources from global config xml
+    if (this.globalConfig.isDefined)
+      this.setResourcesFromConfigXML(this.globalConfig)
+
     val sampleMap: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
     //Setup cufflink

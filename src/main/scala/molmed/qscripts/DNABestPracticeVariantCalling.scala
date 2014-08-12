@@ -143,11 +143,6 @@ class DNABestPracticeVariantCalling extends QScript
    */
 
   /**
-   * Implicitly convert any File to Option File, as necessary.
-   */
-  implicit def file2Option(file: File) = if (file == null) None else Some(file)
-
-  /**
    * Deparces string options into proper Variant caller options
    * @param stringOption	Text to convert to Option class
    * @returns A Option[Aligner] holding a valid aligner option
