@@ -125,7 +125,7 @@ fi
 
 piper -S ${SCRIPTS_DIR}/RNACounts.scala \
 	    --xml_input $PIPELINE_SETUP \
-	    --global_config ${_THIS_SCRIPT_LOCATION}/uppmax_global_config.    xml \
+	    --global_config ${_THIS_SCRIPT_LOCATION}/uppmax_global_config.xml \
 	    --transcripts ${ANNOTATIONS} \
 	    --annotations ${ANNOTATIONS} \
 	    --mask ${RRNA_TARGETS} \
