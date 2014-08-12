@@ -56,19 +56,19 @@ trait FileAndProgramResourceConfig {
   @Input(doc = "The path to the binary of qualimap", fullName = "path_to_qualimap", shortName = "qualimap", required = false)
   var qualimapPath: File = _
 
-  @Input(doc = "The path to RNA-SeQC", shortName = "rnaseqc", fullName = "rna_seqc", required = true)
+  @Input(doc = "The path to RNA-SeQC", shortName = "rnaseqc", fullName = "rna_seqc", required = false)
   var pathToRNASeQC: File = _
 
-  @Input(doc = "The path to the perl script used correct for empty reads ", fullName = "path_sync_script", shortName = "sync", required = true)
+  @Input(doc = "The path to the perl script used correct for empty reads ", fullName = "path_sync_script", shortName = "sync", required = false)
   var syncPath: File = _
 
-  @Input(doc = "The path to the binary of cufflinks", fullName = "path_to_cufflinks", shortName = "cufflinks", required = true)
+  @Input(doc = "The path to the binary of cufflinks", fullName = "path_to_cufflinks", shortName = "cufflinks", required = false)
   var cufflinksPath: File = _
 
-  @Input(doc = "The path to the binary of cutadapt", fullName = "path_to_cutadapt", shortName = "cutadapt", required = true)
+  @Input(doc = "The path to the binary of cutadapt", fullName = "path_to_cutadapt", shortName = "cutadapt", required = false)
   var cutadaptPath: File = _
 
-  @Input(doc = "The path to the binary of tophat", fullName = "path_to_tophat", shortName = "tophat", required = true)
+  @Input(doc = "The path to the binary of tophat", fullName = "path_to_tophat", shortName = "tophat", required = false)
   var tophatPath: File = _
 
   /**
