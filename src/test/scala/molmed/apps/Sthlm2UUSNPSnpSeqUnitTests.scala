@@ -179,7 +179,9 @@ class Sthlm2UUSNPSnpSeqUnitTests {
     val config = new Sthlm2UUSNP.Config(Some(sthlmRootDir), Some(uuRoot), Seq())
     val actual = Sthlm2UUSNP.generateFileStructure(config)
 
-    assert(expectedSampleInfoMap == actual)
+    assert(
+      expectedSampleInfoMap.map(x => x._2.sortBy(f => f.sampleName))
+        == actual.map(x => x._2.sortBy(f => f.sampleName)))
 
   }
 
@@ -198,7 +200,9 @@ class Sthlm2UUSNPSnpSeqUnitTests {
     val config = new Sthlm2UUSNP.Config(Some(sthlmRootDir), Some(uuRoot), Seq("140702_AC41A2ANXX"))
     val actual = Sthlm2UUSNP.generateFileStructure(config)
 
-    assert(expectedSampleInfoMap == actual)
+    assert(
+      expectedSampleInfoMap.map(x => x._2.sortBy(f => f.sampleName))
+        == actual.map(x => x._2.sortBy(f => f.sampleName)))
 
   }
 
@@ -235,7 +239,7 @@ class Sthlm2UUSNPSnpSeqUnitTests {
 
     val actual = Sthlm2UUSNP.listSubDirectories(sthlmRootDir)
 
-    assert(actual == expected, "acutal=" + actual + " expected=" + expected)
+    assert(actual.sorted == expected.sorted, "acutal=" + actual + " expected=" + expected)
   }
 
   @Test
