@@ -19,8 +19,13 @@ import molmed.utils.UppmaxConfig
 import molmed.utils.UppmaxJob
 import molmed.config.UppmaxXMLConfiguration
 import molmed.utils.Uppmaxable
+import molmed.config.FileAndProgramResourceConfig
 
-class RNACounts extends QScript with UppmaxXMLConfiguration {
+class RNACounts
+    extends QScript
+    with UppmaxXMLConfiguration
+    with FileAndProgramResourceConfig {
+  
   qscript =>
 
   /**
@@ -104,58 +109,35 @@ class RNACounts extends QScript with UppmaxXMLConfiguration {
   var rRNATargetsFile: File = _
 
   /**
-   * **************************************************************************
-   * --------------------------------------------------------------------------
-   *  	Path to applications
-   * --------------------------------------------------------------------------
-   * ***************************************************************************
-   */
-
-  @Input(doc = "The path to RNA-SeQC", shortName = "rnaseqc", fullName = "rna_seqc", required = true)
-  var pathToRNASeQC: File = _
-  
-  @Input(doc = "The path to the perl script used correct for empty reads ", fullName = "path_sync_script", shortName = "sync", required = true)
-  var syncPath: File = _
-
-  @Input(doc = "The path to the binary of cufflinks", fullName = "path_to_cufflinks", shortName = "cufflinks", required = true)
-  var cufflinksPath: File = _
-
-  @Input(doc = "The path to the binary of cutadapt", fullName = "path_to_cutadapt", shortName = "cutadapt", required = true)
-  var cutadaptPath: File = _
-
-  @Input(doc = "The path to the binary of tophat", fullName = "path_to_tophat", shortName = "tophat", required = true)
-  var tophatPath: File = _
-
-  /**
    * Help methods
    */
 
   /**
-   * 
+   *
    * Create folders for sample and perform cufflink operation
-   * 
+   *
    */
   private def runCuffLinks(cufflinksUtils: CufflinksUtils, bamFile: File, sampleName: String, outDir: File): File = {
     var cufflinkOutputDir: File = new File(outDir + "/" + sampleName)
     if (!cufflinkOutputDir.exists()) {
       cufflinkOutputDir.mkdirs()
     }
-    
+
     val placeHolderFile = new File(cufflinkOutputDir + "/qscript_cufflinks.stdout.log")
-    
+
     add(cufflinksUtils.cufflinks(this.cufflinksPath, this.maskFile, bamFile, cufflinkOutputDir, placeHolderFile, this.findNovelTranscripts))
     placeHolderFile
   }
 
   /**
-   * 
+   *
    * Create folders for sample and perform QC
-   * 
+   *
    */
-  private def runQC(bamFile: File, index: File, sampleName: String, sample: SampleAPI, outDir: File, generalUtils: GeneralUtils) : File = {
+  private def runQC(bamFile: File, index: File, sampleName: String, sample: SampleAPI, outDir: File, generalUtils: GeneralUtils): File = {
     val sampleOutputDirQC = new File(outDir + "/" + sampleName)
-    if(!sampleOutputDirQC.exists())
-    	sampleOutputDirQC.mkdir()
+    if (!sampleOutputDirQC.exists())
+      sampleOutputDirQC.mkdir()
     val placeHolderFile: File = new File(sampleOutputDirQC + "/qscript_RNASeQC.stdout.log")
     add(generalUtils.RNA_QC(bamFile, index, sampleName, this.rRNATargetsFile, this.downsampling, sample.getReference(), sampleOutputDirQC, this.transcripts, placeHolderFile, this.pathToRNASeQC))
     placeHolderFile
@@ -192,6 +174,11 @@ class RNACounts extends QScript with UppmaxXMLConfiguration {
 
     //Import uppmxax-settings,samples and project info
     val uppmaxConfig = loadUppmaxConfigFromXML()
+
+    // Get default paths to resources from global config xml
+    if (this.globalConfig.isDefined)
+      this.setResourcesFromConfigXML(this.globalConfig)
+
     val sampleMap: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
     //Setup cufflink
@@ -226,11 +213,11 @@ class RNACounts extends QScript with UppmaxXMLConfiguration {
         if (!onlyAlignment) {
           //Assemble transcripts
           runCuffLinks(cufflinksUtils, bamFile, sampleName, getOutputDirCufflink)
-          
+
           //Create index for BAM file
           val index = new File(bamFile.replace(".bam", ".bai"))
           add(generalUtils.createIndex(bamFile, index))
-          
+
           // Perform QC on processed BAM file
           qcPlacehodlerList :+= runQC(bamFile, index, sampleName, sample, getOutputDirQCResult, generalUtils)
         }

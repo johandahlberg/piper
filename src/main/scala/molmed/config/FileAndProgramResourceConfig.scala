@@ -56,6 +56,26 @@ trait FileAndProgramResourceConfig {
   @Input(doc = "The path to the binary of qualimap", fullName = "path_to_qualimap", shortName = "qualimap", required = false)
   var qualimapPath: File = _
 
+  @Input(doc = "The path to RNA-SeQC", shortName = "rnaseqc", fullName = "rna_seqc", required = false)
+  var pathToRNASeQC: File = _
+
+  @Input(doc = "The path to the perl script used correct for empty reads ", fullName = "path_sync_script", shortName = "sync", required = false)
+  var syncPath: File = _
+
+  @Input(doc = "The path to the binary of cufflinks", fullName = "path_to_cufflinks", shortName = "cufflinks", required = false)
+  var cufflinksPath: File = _
+
+  @Input(doc = "The path to the binary of cutadapt", fullName = "path_to_cutadapt", shortName = "cutadapt", required = false)
+  var cutadaptPath: File = _
+
+  @Input(doc = "The path to the binary of tophat", fullName = "path_to_tophat", shortName = "tophat", required = false)
+  var tophatPath: File = _
+
+  /**
+   * Implicitly convert any File to Option File, as necessary.
+   */
+  implicit def file2Option(file: File) = if (file == null) None else Some(file)
+
   /**
    * Will load file resources from XML file. Any values set via the
    * commandline will not be overriden by this.
@@ -180,6 +200,22 @@ trait FileAndProgramResourceConfig {
 
       if (this.qualimapPath == null)
         this.qualimapPath = getFileFromKey(programNameToPathsMap, "qualimap")
+
+      if (this.pathToRNASeQC == null)
+        this.pathToRNASeQC = getFileFromKey(programNameToPathsMap, "RNA-SeQC")
+
+      if (this.syncPath == null)
+        this.syncPath = getFileFromKey(programNameToPathsMap, "fixemptyreads")
+
+      if (this.cufflinksPath == null)
+        this.cufflinksPath = getFileFromKey(programNameToPathsMap, "cufflinks")
+
+      if (this.cutadaptPath == null)
+        this.cutadaptPath = getFileFromKey(programNameToPathsMap, "cutadapt")
+
+      if (this.tophatPath == null)
+        this.tophatPath = getFileFromKey(programNameToPathsMap, "tophat")
+
     }
 
     val context = JAXBContext.newInstance(classOf[GlobalConfig])

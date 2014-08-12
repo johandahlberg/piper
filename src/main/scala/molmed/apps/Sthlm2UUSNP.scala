@@ -15,7 +15,10 @@ import java.io.FileWriter
  */
 object Sthlm2UUSNP extends App {
 
-  case class Config(sthlmRoot: Option[File] = None, newUppsalaStyleRoot: Option[File] = None)
+  case class Config(
+    sthlmRoot: Option[File] = None,
+    newUppsalaStyleRoot: Option[File] = None,
+    flowcells: Seq[String] = Seq())
 
   val parser = new OptionParser[Config]("sthlm2UUSNP") {
     head("sthlm2UUSNP", " - A utility program to convert a sthlm style project dir to a ua style one. \n" +
@@ -31,6 +34,11 @@ object Sthlm2UUSNP extends App {
     opt[File]('o', "out_root") required () valueName ("Root dir where the ua style directories will be written.") action { (x, c) =>
       c.copy(newUppsalaStyleRoot = Some(x))
     } text ("This is a required argument.")
+
+    opt[String]('f', "flowcell") unbounded () optional () valueName ("Data format conversion will be restricted to the following flowcells.") action { (x, c) =>
+      c.copy(flowcells = c.flowcells :+ x)
+    } text ("This is a optional argument, and it can be specified multiple times.")
+
   }
 
   // Start up the app!
@@ -90,7 +98,7 @@ object Sthlm2UUSNP extends App {
     } catch {
       case e: FileAlreadyExistsException =>
         System.err.println(
-          "File " + targetFile.getName() + "already exists." +
+          "File " + targetFile.getName() + " already exists." +
             " Will not re-link it.")
     }
 
@@ -224,6 +232,13 @@ object Sthlm2UUSNP extends App {
     reportFile
   }
 
+  def shouldBeIncluded(config: Config, runfolderDir: File): Boolean = {
+    if (config.flowcells.isEmpty)
+      true
+    else
+      config.flowcells.exists(flowcell => flowcell == runfolderDir.getName()) 
+  }
+
   /**
    * Generate a Uppsala file structure from the IGN-sthlm format.
    * @param config The config for what to run
@@ -233,16 +248,19 @@ object Sthlm2UUSNP extends App {
   def generateFileStructure(config: Config): Map[File, Seq[SampleInfo]] = {
     // Iterate through the sthlm sample, library perp and runfolder 
     // dirs to get to the fastq files.
-    var runfolderToSampleMap: Map[File, Seq[SampleInfo]] = 
+    var runfolderToSampleMap: Map[File, Seq[SampleInfo]] =
       Map().withDefaultValue(Seq())
 
     for (sampleDir <- listSubDirectories(config.sthlmRoot.get)) {
       for (libraryPrepDir <- listSubDirectories(sampleDir)) {
-        for (runfolderDir <- listSubDirectories(libraryPrepDir)) {
+        for {
+          runfolderDir <- listSubDirectories(libraryPrepDir)
+          if shouldBeIncluded(config, runfolderDir)
+        } {
 
           // Get the information on the samples and add them to the
           // ua style runfolder
-          val fastqFiles = getFastqFiles(runfolderDir)
+          val fastqFiles = getFastqFiles(runfolderDir)        
           val infoOnSamples =
             fastqFiles.map(file =>
               parseSampleInfoFromFileHierarchy(

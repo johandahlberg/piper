@@ -35,8 +35,8 @@ class Sthlm2UUSNPSnpSeqUnitTests {
     flowCellId = "BC423WACXX",
     index = "1",
     fastq = new File(sthlmRootDir +
-      "/P1142_101/A/140528_BC423WACXX/" +
-      "1_140528_BC423WACXX_P1142_101_1.fastq.gz"),
+      "/P1171_102/A/140702_AC41A2ANXX/" +
+      "P1171_102_ATTCAGAA-CCTATCCT_L001_R1_001.fastq.gz"),
     read = 1)
 
   @AfterMethod
@@ -108,16 +108,20 @@ class Sthlm2UUSNPSnpSeqUnitTests {
   def getFastqFilesTest {
     val root =
       "src/test/resources/testdata/Sthlm2UUTests/" +
-        "sthlm_runfolder_root/P1142_101/A/"
+        "sthlm_runfolder_root/"
     val expected = List(
-      new File(root + "140528_BC423WACXX/1_140528_BC423WACXX_P1142_101_1.fastq.gz"),
-      new File(root + "140528_BC423WACXX/1_140528_BC423WACXX_P1142_101_2.fastq.gz"),
-      new File(root + "140528_BC423WACXX/2_140528_BC423WACXX_P1142_101_1.fastq.gz"),
-      new File(root + "140528_BC423WACXX/2_140528_BC423WACXX_P1142_101_2.fastq.gz"))
+      new File(root + "P1171_102/A/140702_AC41A2ANXX/P1171_102_ATTCAGAA-CCTATCCT_L001_R1_001.fastq.gz"),
+      new File(root + "P1171_102/A/140702_AC41A2ANXX/P1171_102_ATTCAGAA-CCTATCCT_L001_R2_001.fastq.gz"),
+      new File(root + "P1171_102/A/140702_AC41A2ANXX/P1171_102_ATTCAGAA-CCTATCCT_L002_R2_001.fastq.gz"),
+      new File(root + "P1171_102/A/140702_AC41A2ANXX/P1171_102_ATTCAGAA-CCTATCCT_L002_R1_001.fastq.gz"),
+      new File(root + "P1171_104/A/140702_AC41A2ANXX/P1171_104_ATTCAGAA-GGCTCTGA_L002_R2_001.fastq.gz"),
+      new File(root + "P1171_104/A/140702_AC41A2ANXX/P1171_104_ATTCAGAA-GGCTCTGA_L002_R1_001.fastq.gz"),
+      new File(root + "P1171_104/A/140702_AC41A2ANXX/P1171_104_ATTCAGAA-GGCTCTGA_L001_R2_001.fastq.gz"),
+      new File(root + "P1171_104/A/140702_AC41A2ANXX/P1171_104_ATTCAGAA-GGCTCTGA_L001_R1_001.fastq.gz"))
 
     val result = Sthlm2UUSNP.getFastqFiles(sthlmRootDir).toList
 
-    assert(expected == result, "Did not find correct fastq files")
+    assert(expected.sorted == result.sorted, "Did not find correct fastq files: Found: " + result)
 
   }
 
@@ -147,35 +151,76 @@ class Sthlm2UUSNPSnpSeqUnitTests {
       "fileContent=\n" + fileContent)
   }
 
+  val expectedSampleInfoMap =
+    Map(
+      new File("test_tmp/test_uu_sample_folder/140702_AC41A2ANXX") ->
+        List(
+          new Sthlm2UUSNP.SampleInfo("P1171_102", "A", 1, "140702", "AC41A2ANXX", "ATTCAGAA-CCTATCCT", new File("src/test/resources/testdata/Sthlm2UUTests/sthlm_runfolder_root/P1171_102/A/140702_AC41A2ANXX/P1171_102_ATTCAGAA-CCTATCCT_L001_R1_001.fastq.gz"), 1),
+          new Sthlm2UUSNP.SampleInfo("P1171_102", "A", 1, "140702", "AC41A2ANXX", "ATTCAGAA-CCTATCCT", new File("src/test/resources/testdata/Sthlm2UUTests/sthlm_runfolder_root/P1171_102/A/140702_AC41A2ANXX/P1171_102_ATTCAGAA-CCTATCCT_L001_R2_001.fastq.gz"), 2),
+          new Sthlm2UUSNP.SampleInfo("P1171_102", "A", 2, "140702", "AC41A2ANXX", "ATTCAGAA-CCTATCCT", new File("src/test/resources/testdata/Sthlm2UUTests/sthlm_runfolder_root/P1171_102/A/140702_AC41A2ANXX/P1171_102_ATTCAGAA-CCTATCCT_L002_R1_001.fastq.gz"), 1),
+          new Sthlm2UUSNP.SampleInfo("P1171_102", "A", 2, "140702", "AC41A2ANXX", "ATTCAGAA-CCTATCCT", new File("src/test/resources/testdata/Sthlm2UUTests/sthlm_runfolder_root/P1171_102/A/140702_AC41A2ANXX/P1171_102_ATTCAGAA-CCTATCCT_L002_R2_001.fastq.gz"), 2),
+
+          new Sthlm2UUSNP.SampleInfo("P1171_104", "A", 1, "140702", "AC41A2ANXX", "ATTCAGAA-GGCTCTGA", new File("src/test/resources/testdata/Sthlm2UUTests/sthlm_runfolder_root/P1171_104/A/140702_AC41A2ANXX/P1171_104_ATTCAGAA-GGCTCTGA_L001_R1_001.fastq.gz"), 1),
+          new Sthlm2UUSNP.SampleInfo("P1171_104", "A", 1, "140702", "AC41A2ANXX", "ATTCAGAA-GGCTCTGA", new File("src/test/resources/testdata/Sthlm2UUTests/sthlm_runfolder_root/P1171_104/A/140702_AC41A2ANXX/P1171_104_ATTCAGAA-GGCTCTGA_L001_R2_001.fastq.gz"), 2),
+          new Sthlm2UUSNP.SampleInfo("P1171_104", "A", 2, "140702", "AC41A2ANXX", "ATTCAGAA-GGCTCTGA", new File("src/test/resources/testdata/Sthlm2UUTests/sthlm_runfolder_root/P1171_104/A/140702_AC41A2ANXX/P1171_104_ATTCAGAA-GGCTCTGA_L002_R1_001.fastq.gz"), 1),
+          new Sthlm2UUSNP.SampleInfo("P1171_104", "A", 2, "140702", "AC41A2ANXX", "ATTCAGAA-GGCTCTGA", new File("src/test/resources/testdata/Sthlm2UUTests/sthlm_runfolder_root/P1171_104/A/140702_AC41A2ANXX/P1171_104_ATTCAGAA-GGCTCTGA_L002_R2_001.fastq.gz"), 2)))
+
   @AfterMethod
-  def afterAddToReportMultipleTimesTest {
+  def afterGenerateFileStructureTest {
     TestPaths.tearDownTestFolders()
   }
-//  /**
-//   * When the report is written to multiple times, it should be overwritten.
-//   */
-//  @Test
-//  def addToReportMultipleTimesTest {
-//
-//    import TestPaths._
-//    createTestFolders()
-//
-//    val expected =
-//      "#SampleName	Lane	ReadLibrary	FlowcellId\n" +
-//        "P1142_101	1	A	BC423WACXX"
-//
-//    Sthlm2UUSNP.addToReport(Seq(testSampleInfo), uuRoot)
-//    val result = Sthlm2UUSNP.addToReport(Seq(testSampleInfo), uuRoot)
-//
-//    assert(result.exists(), "Did not create report")
-//    assert(result.getName() == "report.tsv", "Did not create report.tsv")
-//    assert(result.getParentFile() == uuRoot)
-//
-//    val fileContent = Source.fromFile(result).getLines().mkString("\n")
-//
-//    assert(fileContent == expected,
-//      "fileContent=\n" + fileContent)
-//  }
+
+  @Test
+  def generateFileStructureTest {
+
+    import TestPaths._
+    createTestFolders()
+
+    val config = new Sthlm2UUSNP.Config(Some(sthlmRootDir), Some(uuRoot), Seq())
+    val actual = Sthlm2UUSNP.generateFileStructure(config)
+
+    assert(expectedSampleInfoMap == actual)
+
+  }
+
+  @AfterMethod
+  def afterGenerateFileStructureAndOnlyIncludeSomeRunfolderTest {
+    TestPaths.tearDownTestFolders()
+  }
+
+  @Test
+  def generateFileStructureAndOnlyIncludeSomeRunfolderTest {
+
+    import TestPaths._
+    createTestFolders()
+
+    // Note the runfolder is set
+    val config = new Sthlm2UUSNP.Config(Some(sthlmRootDir), Some(uuRoot), Seq("140702_AC41A2ANXX"))
+    val actual = Sthlm2UUSNP.generateFileStructure(config)
+
+    assert(expectedSampleInfoMap == actual)
+
+  }
+
+  @AfterMethod
+  def afterGenerateFileStructureAndDoNotIncludeRunfolderTest {
+    TestPaths.tearDownTestFolders()
+  }
+
+  @Test
+  def generateFileStructureAndDoNotIncludeRunfolderTest {
+
+    import TestPaths._
+    createTestFolders()
+
+    // Note the runfolder is set to something else than the runfolder available
+    // under sthlmRootDir
+    val config = new Sthlm2UUSNP.Config(Some(sthlmRootDir), Some(uuRoot), Seq("141202_AC41A2ANXX"))
+    val actual = Sthlm2UUSNP.generateFileStructure(config)
+
+    assert(Map() == actual)
+
+  }
 
   @Test
   def listSubDirectoriesTest {
@@ -183,7 +228,10 @@ class Sthlm2UUSNPSnpSeqUnitTests {
     val expected = Seq(
       new File(
         "src/test/resources/testdata/Sthlm2UUTests/" +
-          "sthlm_runfolder_root/P1142_101"))
+          "sthlm_runfolder_root/P1171_102"),
+      new File(
+        "src/test/resources/testdata/Sthlm2UUTests/" +
+          "sthlm_runfolder_root/P1171_104"))
 
     val actual = Sthlm2UUSNP.listSubDirectories(sthlmRootDir)
 
@@ -217,7 +265,7 @@ class Sthlm2UUSNPSnpSeqUnitTests {
   def parseSampleInfoFromFileHierarchyWithDualIndexing {
     val libraryfolder = new File("A")
     val runfolder = new File("140528_BC423WACXX")
-    val fileToParse = 
+    val fileToParse =
       new File("P1171_102_ATTCAGAA-CCTATCCT_L001_R1_001.fastq.gz")
 
     val expeced = new Sthlm2UUSNP.SampleInfo(
