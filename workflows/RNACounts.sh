@@ -125,24 +125,19 @@ fi
 
 piper -S ${SCRIPTS_DIR}/RNACounts.scala \
 	    --xml_input $PIPELINE_SETUP \
+	    --global_config ${_THIS_SCRIPT_LOCATION}/uppmax_global_config.    xml \
 	    --transcripts ${ANNOTATIONS} \
 	    --annotations ${ANNOTATIONS} \
 	    --mask ${RRNA_TARGETS} \
 	    --library_type ${LIBRARY_TYPE} \
 	    --rRNA_targets ${RRNA_TARGETS} \
 	    --downsample 1000 \
-	    --path_to_tophat ${PATH_TO_TOPHAT} \
-	    --path_to_cufflinks ${PATH_TO_CUFFLINKS} \
 	    --bam_output_directory ${RAW_BAM_OUTPUT} \
 	    --qc_output_directory ${RNA_QC_OUTPUT} \
 	    --cufflink_output_directory ${CUFFLINKS_OUTPUT} \
 	    --tophat_threads ${NBR_OF_THREADS} \
-	    --path_to_cutadapt ${PATH_TO_CUTADAPT} \
-	    --path_sync_script ${PATH_TO_SYNC_CUTADAPT} \
-	    --rna_seqc ${PATH_TO_RNA_SEQ_QC} \
 	    --disableJobReport \
 	    -jobRunner ${JOB_RUNNER} \
-	    -jobNative ${JOB_NATIVE_ARGS} \
 	     ${ONLY_ALIGNMENTS} \
 	    -ca \
 	    --job_walltime 518400 \
