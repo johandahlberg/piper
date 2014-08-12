@@ -84,9 +84,9 @@ fi
 source $PIPER_GLOB_CONF
 
 GENOME_REFERENCE=${GATK_BUNDLE_B37}"/human_g1k_v37.fasta"
-ANNOTATIONS="/proj/b2010028/references/piper_references/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf"
+ANNOTATIONS="/proj/a2009002/piper_references/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf"
 #ANNOTATIONS="/data/test_data/piper_references/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf"
-RRNA_TARGETS="/proj/b2010028/references/piper_references/rRNA_targets/rRNA.sorted.1-based.intervals.list"
+RRNA_TARGETS="/proj/a2009002/piper_references/rRNA_targets/rRNA.sorted.1-based.intervals.list"
 #RRNA_TARGETS="/local/test_data/piper_references/rRNA_targets/rRNA.sorted.1-based.intervals.list"
 
 # We also need the correct java engine and R version
