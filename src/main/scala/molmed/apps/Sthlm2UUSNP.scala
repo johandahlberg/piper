@@ -192,6 +192,8 @@ object Sthlm2UUSNP extends App {
 
   /**
    * Add information on the sequencedUnit to the report
+   * If the report file already exists it will remove the
+   * report file and create a new one.
    * @param sequencedUnit			The Sample info on the sequenced unit
    * @param uppsalaStyleRunfolder	The runfolder to add the report to.
    * @return the report that was written to.
@@ -200,22 +202,27 @@ object Sthlm2UUSNP extends App {
     sequencedUnits: Seq[SampleInfo],
     uppsalaStyleRunfolder: File): File = {
 
-    // Write/append to the report file.
+    // Write to the report file.
     val reportFile = new File(uppsalaStyleRunfolder + "/report.tsv")
     val reportAlreadyExists = reportFile.exists()
+
+    if (reportAlreadyExists) {
+      System.err.println("There is already a copy of " + reportFile +
+        " will delete and replace it now.")
+      reportFile.delete()
+    }
+
     val reportWriter =
       new PrintWriter(
-        new FileWriter(reportFile, reportAlreadyExists))
+        new FileWriter(reportFile))
 
-    // Only write the header if the file was just created.
-    if (!reportAlreadyExists)
-      reportWriter.println(
-        List(
-          "#SampleName",
-          "Lane",
-          "ReadLibrary",
-          "FlowcellId")
-          .mkString("\t"))
+    reportWriter.println(
+      List(
+        "#SampleName",
+        "Lane",
+        "ReadLibrary",
+        "FlowcellId")
+        .mkString("\t"))
 
     for (sequencedUnit <- sequencedUnits) {
       reportWriter.println(
@@ -236,7 +243,7 @@ object Sthlm2UUSNP extends App {
     if (config.flowcells.isEmpty)
       true
     else
-      config.flowcells.exists(flowcell => flowcell == runfolderDir.getName()) 
+      config.flowcells.exists(flowcell => flowcell == runfolderDir.getName())
   }
 
   /**
@@ -260,7 +267,7 @@ object Sthlm2UUSNP extends App {
 
           // Get the information on the samples and add them to the
           // ua style runfolder
-          val fastqFiles = getFastqFiles(runfolderDir)        
+          val fastqFiles = getFastqFiles(runfolderDir)
           val infoOnSamples =
             fastqFiles.map(file =>
               parseSampleInfoFromFileHierarchy(
