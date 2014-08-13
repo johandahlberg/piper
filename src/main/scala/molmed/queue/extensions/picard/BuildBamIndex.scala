@@ -10,7 +10,7 @@ import org.broadinstitute.gatk.queue.extensions.picard.PicardBamFunction
 class BuildBamIndex extends org.broadinstitute.gatk.queue.function.JavaCommandLineFunction {
 
   analysisName = "BuildBamIndex"
-  javaMainClass = "htsjdk.picard.sam.BuildBamIndex"
+  javaMainClass = "picard.sam.BuildBamIndex"
 
   @Input(doc = "The input SAM or BAM file to index.  Must be coordinate sorted.", shortName = "input", fullName = "input_bam_file", required = true)
   var input: File = _
