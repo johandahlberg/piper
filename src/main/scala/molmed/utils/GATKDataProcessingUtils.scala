@@ -7,15 +7,24 @@ import org.broadinstitute.gatk.tools.walkers.indels.IndelRealigner.ConsensusDete
 /**
  * Functions to run GATK data processing workflows.
  */
-class GATKDataProcessingUtils(qscript: QScript, gatkOptions: GATKConfig, generalUtils: GeneralUtils, projectName: Option[String], uppmaxConfig: UppmaxConfig)
+class GATKDataProcessingUtils(
+    qscript: QScript,
+    gatkOptions: GATKConfig,
+    generalUtils: GeneralUtils,
+    projectName: Option[String], 
+    uppmaxConfig: UppmaxConfig)
     extends GATKUtils(gatkOptions, projectName, uppmaxConfig) {
 
   /**
    * @param bams				bam files to process
    * @param outputDir			output folder
-   * @param	cleaningModel		the cleaning model to use as a string. Allowed values: KNOWNS_ONLY, USE_SW, USE_READS. Default: USE_READS
-   * @param	skipDeduplication	Skip deduplication (useful e.g. with amplicon based methods)
-   * @param testMode			true if in test mode (don't add dates, etc. to files).
+   * @param	cleaningModel		the cleaning model to use as a string.
+   * 						    Allowed values: KNOWNS_ONLY, USE_SW, USE_READS.
+   *                            Default: USE_READS
+   * @param	skipDeduplication	Skip deduplication (useful e.g. with amplicon
+   * 							based methods)
+   * @param testMode			true if in test mode 
+   * 						    (don't add dates, etc. to files).
    * @return the processed bam files.
    */
   def dataProcessing(bams: Seq[File],

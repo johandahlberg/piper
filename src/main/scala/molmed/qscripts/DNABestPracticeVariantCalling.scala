@@ -264,7 +264,6 @@ class DNABestPracticeVariantCalling extends QScript
       bamFiles,
       outputDirectory,
       runSeparatly,
-      notHuman,
       isLowPass,
       isExome,
       noRecal,
@@ -340,14 +339,15 @@ class DNABestPracticeVariantCalling extends QScript
 
     // Get default paths to resources from global config xml
     if (this.globalConfig.isDefined)
-      this.setResourcesFromConfigXML(this.globalConfig)
+      this.setResourcesFromConfigXML(this.globalConfig, notHuman)
 
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
 
     val gatkOptions =
       new GATKConfig(reference, nbrOfThreads, scatterGatherCount,
         intervals,
-        dbSNP, Some(indels), hapmap, omni, mills, thousandGenomes)
+        dbSNP, Some(indels), hapmap, omni, mills, thousandGenomes,
+        notHuman)
 
     /**
      * Define a number of partial functions which will then be chained

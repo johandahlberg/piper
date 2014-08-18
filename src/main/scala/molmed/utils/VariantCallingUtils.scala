@@ -107,7 +107,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
     // Establish if all samples should be run separately of if they should be
     // run together.
-    val targets: Seq[VariantCallingTarget] = (config.runSeparatly, config.notHuman) match {
+    val targets: Seq[VariantCallingTarget] = (config.runSeparatly, gatkOptions.notHuman) match {
       case (true, false) =>
         config.bams.map(bam => new VariantCallingTarget(config.outputDir,
           bam.getName(),

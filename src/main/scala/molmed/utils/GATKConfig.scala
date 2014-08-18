@@ -15,4 +15,6 @@ case class GATKConfig(
   hapmap: Option[File] = None,
   omni: Option[File] = None,
   mills: Option[File] = None,
-  thousandGenomes: Option[File] = None)
+  thousandGenomes: Option[File] = None,
+  notHuman: Boolean = false
+  )

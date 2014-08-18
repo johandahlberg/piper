@@ -19,7 +19,6 @@ case object GATKHaplotypeCaller extends VariantCallerOption
  * @param bams				the bam files to run on
  * @param outputDir			output dir
  * @param runSeparatly		Create one vcf per bam sample instead of running on full cohort
- * @param notHuman			true if not running on human sample
  * @param isLowPass			true if low pass
  * @param isExome				true if this is a exome
  * @param	noRecal				true if no recal to be done, e.g. if this is not a human sample
@@ -36,7 +35,6 @@ case class VariantCallingConfig(qscript: QScript,
                                 bams: Seq[File],
                                 outputDir: File,
                                 runSeparatly: Boolean,
-                                notHuman: Boolean,
                                 isLowPass: Boolean,
                                 isExome: Boolean,
                                 noRecal: Boolean,

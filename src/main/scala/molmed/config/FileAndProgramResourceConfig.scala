@@ -80,9 +80,13 @@ trait FileAndProgramResourceConfig {
    * Will load file resources from XML file. Any values set via the
    * commandline will not be overriden by this.
    * @param	xmlFile	A xml file conforming to the specification in GlobalConfigSchema.xsd
+   * @param	notHuman If the studied organism is not human, don't default load
+   * 			     resource files.
    * @returns Unit
    */
-  def setResourcesFromConfigXML(xmlFile: File): Unit = {
+  def setResourcesFromConfigXML(
+    xmlFile: File,
+    notHuman: Boolean = false): Unit = {
 
     /**
      * This trait is used to make sure that both programs
@@ -224,7 +228,8 @@ trait FileAndProgramResourceConfig {
     val config = unmarshaller.unmarshal(reader).asInstanceOf[GlobalConfig]
     reader.close()
 
-    setFileResources(config)
+    if (!notHuman)
+      setFileResources(config)
     setProgramResources(config)
 
   }
