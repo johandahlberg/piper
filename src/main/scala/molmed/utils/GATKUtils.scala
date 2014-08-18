@@ -54,11 +54,7 @@ class GATKUtils(gatkOptions: GATKConfig, projectName: Option[String], uppmaxConf
 
     this.isIntermediate = asIntermediate
 
-    /**
-     * Maximum compression of the bam files to handle io-boundedness
-     * of write operations across the network.
-     */
-    this.bam_compression = Some(9)
+    this.bam_compression = Some(5)
 
     this.input_file = inBams
     this.targetIntervals = tIntervals
@@ -98,11 +94,7 @@ class GATKUtils(gatkOptions: GATKConfig, projectName: Option[String], uppmaxConf
 
     this.input_file :+= inBam
 
-    /**
-     * Maximum compression of the bam files to handle io-boundedness
-     * of write operations across the network.
-     */
-    this.bam_compression = Some(9)
+    this.bam_compression = Some(5)
 
     this.BQSR = inRecalFile
     this.baq = CalculationMode.CALCULATE_AS_NECESSARY
