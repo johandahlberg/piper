@@ -146,7 +146,7 @@ object Sthlm2UUSNP extends App {
 
     def getDataAndFlowcellIdFromRunfolder(runfolder: File): (String, String) = {
       val split = runfolder.getName().split("_")
-      (split(0), split(1))
+      (split(0), split(split.length - 1))
     }
 
     val runfolderName = runfolder.getName()
