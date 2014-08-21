@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-	targetNamespace="setup.xml.molmed" xmlns="setup.xml.molmed" elementFormDefault="qualified">
+	targetNamespace="legacy.setup.xml.molmed" xmlns="legacy.setup.xml.molmed" elementFormDefault="qualified">
 
 	<xs:element name="project">
 		<xs:complexType>

@@ -8,11 +8,7 @@ import scala.collection.JavaConversions.seqAsJavaList
 
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.Marshaller
-import molmed.xml.setup.Inputs
-import molmed.xml.setup.Metadata
-import molmed.xml.setup.Project
-import molmed.xml.setup.Runfolder
-import molmed.xml.setup.Samplefolder
+import molmed.xml.setup.legacy._
 
 object SetupUtils {
 

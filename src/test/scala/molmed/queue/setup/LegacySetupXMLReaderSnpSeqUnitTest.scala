@@ -9,14 +9,14 @@ import scala.collection.Seq
 import molmed.queue.setup.stubs.IlluminaXMLReportReaderStub
 import java.io.PrintWriter
 
-class SetupXMLReaderSnpSeqUnitTest {
+class LegacySetupXMLReaderSnpSeqUnitTest {
 
     /*
      * Note the these tests are dependent on the report.xml file, so if that is changed the tests need to be updated.
      */
     val baseTest = SnpSeqBaseTest
     val setupFile: File = new File(baseTest.pathSetupFile)
-    val setupXMLReader = new SetupXMLReader(setupFile)
+    val setupXMLReader = SetupXMLReader(setupFile)
     val sampleName = "1"
     val runFolderName = "src/test/resources/testdata/smallTestFastqDataFolder/report.xml"
 
@@ -24,7 +24,7 @@ class SetupXMLReaderSnpSeqUnitTest {
     def beforeTest() {
         val baseTest = SnpSeqBaseTest
         val setupFile: File = new File("src/test/resources/testdata/exampleForNewSetupXML.xml")
-        val setupXMLReader = new SetupXMLReader(setupFile)
+        val setupXMLReader = SetupXMLReader(setupFile)
         val sampleName = "1"
     }
 
@@ -79,7 +79,7 @@ class SetupXMLReaderSnpSeqUnitTest {
 
         // Reset some of the shared resources
         val setupFile: File = new File("src/test/resources/testdata/newPipelineSetupSameSampleAcrossMultipleLanes.xml")
-        val setupXMLReader = new SetupXMLReader(setupFile)
+        val setupXMLReader = SetupXMLReader(setupFile)
 
         val expected: Map[String, Seq[molmed.queue.setup.SampleAPI]] = Map(
             "1" -> List(
@@ -105,7 +105,7 @@ class SetupXMLReaderSnpSeqUnitTest {
 
         // Reset some of the shared resources
         val setupFile: File = new File("src/test/resources/testdata/newPipelineSetupSameSampleAcrossMultipleRunFolders.xml")
-        val setupXMLReader = new SetupXMLReader(setupFile)
+        val setupXMLReader = SetupXMLReader(setupFile)
 
         val expected: Map[String, Seq[molmed.queue.setup.SampleAPI]] = Map(
             "1" -> List(

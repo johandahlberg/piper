@@ -31,7 +31,7 @@ object ReportParser extends App {
       throw new IllegalArgumentException(usage)
   }
 
-  val setupXMLReader = new SetupXMLReader(setupFile)
+  val setupXMLReader = SetupXMLReader(setupFile)
   val printWriter = new PrintWriter(outputFile)  
   
   // Write file header

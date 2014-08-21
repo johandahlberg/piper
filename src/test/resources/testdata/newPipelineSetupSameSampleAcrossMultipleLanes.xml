@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<project xmlns="setup.xml.molmed">
+<project xmlns="legacy.setup.xml.molmed">
     <metadata>
         <name>TestProject</name>
         <sequenceingcenter>SNP_SEQ_PLATFORM</sequenceingcenter>

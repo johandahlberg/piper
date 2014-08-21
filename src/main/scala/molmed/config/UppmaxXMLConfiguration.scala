@@ -27,7 +27,7 @@ trait UppmaxXMLConfiguration extends Uppmaxable {
    */
   def loadUppmaxConfigFromXML(setupXML: File = this.setupXML, testMode: Boolean = false): UppmaxConfig = {
 
-    setupReader = new SetupXMLReader(setupXML)
+    setupReader = SetupXMLReader(setupXML)
     projId = setupReader.getUppmaxProjectId()
     uppmaxQoSFlag = setupReader.getUppmaxQoSFlag()
     projectName = setupReader.getProjectName()
