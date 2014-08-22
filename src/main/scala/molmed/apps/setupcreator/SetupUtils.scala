@@ -25,7 +25,7 @@ object SetupUtils {
    * sample info.
    */
   private def platformInfo(sampleInfo: Sthlm2UUSNP.SampleInfo): String = {
-    sampleInfo.flowCellId + "." + sampleInfo.lane
+    sampleInfo.flowCellId + "." + sampleInfo.sampleName + "." + sampleInfo.lane
   }
 
   /**
