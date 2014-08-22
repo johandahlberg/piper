@@ -20,6 +20,10 @@ object SetupUtils {
     project
   }
 
+  /**
+   * Construct the platform id (unique sample identifier) from the
+   * sample info.
+   */
   private def platformInfo(sampleInfo: Sthlm2UUSNP.SampleInfo): String = {
     sampleInfo.flowCellId + "." + sampleInfo.lane
   }
@@ -119,29 +123,29 @@ object SetupUtils {
      * hierarchy and add fastq file leaves from the SampleInfo instances.
      * It will create and add any other nodes along the way that has
      * not already been created.
-     * 
+     *
      * Since the xjc generated xml elements are not immutable by nature
      * this method will do some stuff, like adding to lists, which will actually
-     * change the state of the project. Be aware that this is happening and 
+     * change the state of the project. Be aware that this is happening and
      * check for side effects.
-     * 
+     *
      * @param x 		A part of the project hierarchy. Since this is not
      * 				    enforced by a class bound, don't send the wrong stuff
      *         		    in here!
      * @param project 	The current project to add to.
      * @param sampleInfo A sample
-     * @return A project with the the info in sampleInfo added to it.  
-     * 
+     * @return A project with the the info in sampleInfo added to it.
+     *
      */
     def constructHelper(
       x: Any,
       project: Project,
       sampleInfo: Sthlm2UUSNP.SampleInfo): Project = {
-      
+
       /**
        * See if there is a matching element in the collection
        * and create one if there is not.
-       * 
+       *
        * @param list
        * @param sampleInfo
        * @param predicate
@@ -162,7 +166,12 @@ object SetupUtils {
       }
 
       /**
-       * 
+       * Add the element x if it's not already in the list.
+       * @param list
+       * @param x
+       * @param sampleInfo
+       * @param predicate
+       * @returns The list with the element added if it was not already there.
        */
       def addIfNotThere[B](
         list: java.util.List[B],
@@ -188,7 +197,7 @@ object SetupUtils {
             fastqFile.setPath(sampleInfo.fastq.getAbsolutePath())
             fastqFile
           })
-          
+
           project
         }
         case x: Library => {
@@ -211,7 +220,7 @@ object SetupUtils {
               })
 
           addIfNotThere(platformUnits, platformUnit, sampleInfo, predicate)
-          
+
           constructHelper(platformUnit, project, sampleInfo)
         }
         case x: Sample => {
@@ -367,7 +376,9 @@ object SetupUtils {
             matchData.map(m => m.group(3).toInt).toSeq
           require(
             lane.size == 1,
-            "Lane list size not 1, something went wrong.")
+            "Lane list size not 1, something went wrong." +
+              "Lane list was: " + lane.toList +
+              "file was:" + fastqFile.getName())
           lane(0)
         }
 
@@ -434,7 +445,7 @@ object SetupUtils {
   }
 
   /**
-   * Writes the project to stdout
+   * Writes the project to stdout. Useful for debugging.
    * @param project		The project to write
    * @param outputFile	The file to write to.
    */
