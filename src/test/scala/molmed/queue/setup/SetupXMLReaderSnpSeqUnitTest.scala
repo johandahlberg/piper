@@ -147,5 +147,15 @@ class SetupXMLReaderSnpSeqUnitTest {
         val actual: Option[String] = setupXMLReader.getUppmaxQoSFlag()
         assert(actual.equals(expected))
     }
+    
+    @Test
+    def testCorrectSwitchingBetweenNewAndOldFormat() = {
+      val newReader = SetupXMLReader(new File(baseTest.pathToSetupFile))
+      assert(newReader.isInstanceOf[SetupXMLReader])
+      
+      val oldReader = SetupXMLReader(new File(baseTest.pathToLegacySetupFile))
+      assert(oldReader.isInstanceOf[LegacySetupXMLReader])
+      
+    }
 
 }
