@@ -47,9 +47,9 @@ class LegacySetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
 
   private val runFolderList = project.getInputs().getRunfolder().toList
 
-  private val runFolderReportToSampleListMap: Map[String, java.util.List[molmed.xml.setup.legacy.Samplefolder]] =
+  private val runFolderReportToSampleListMap: Map[File, java.util.List[molmed.xml.setup.legacy.Samplefolder]] =
     runFolderList.map(runFolder => {
-      (runFolder.getReport(), runFolder.getSamplefolder())
+      (new File(runFolder.getReport()), runFolder.getSamplefolder())
     }).toMap
 
   // ----------------------------------
@@ -89,17 +89,13 @@ class LegacySetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
        * Checks a map of run folders and their associated sample folders for
        * samples and creates a list of Sample instances taking lanes etc into account.
        */
-      def getSamplesFromAllRunFolders(sampleName: String, runFolderToSampleFolderMap: Map[String, java.util.List[Samplefolder]]): List[Sample] = {
+      def getSamplesFromAllRunFolders(sampleName: String, runFolderToSampleFolderMap: Map[File, java.util.List[Samplefolder]]): List[Sample] = {
         runFolderToSampleFolderMap.flatMap(tupple => {
 
           val report = tupple._1
           val sampleFolderList = tupple._2.filter(s => s.getName().equalsIgnoreCase(sampleName))
 
-          val reportReader = report match {
-            case r: String if r.endsWith(".xml") => new IlluminaXMLReportReader(new File(r))
-            case r: String if r.endsWith(".tsv") => new FlatFileReportReader(new File(r))
-            case _                               => throw new Exception("Invalid file type of report: " + report + " only supports .xml and .tsv")
-          }
+          val reportReader = ReportReader(report)
 
           val sampleList: Seq[Sample] = sampleFolderList.flatMap(sampleFolder => {
 

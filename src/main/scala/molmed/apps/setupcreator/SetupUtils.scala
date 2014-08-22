@@ -2,13 +2,13 @@ package molmed.apps.setupcreator
 
 import java.io.File
 import java.io.FileOutputStream
-
-import scala.collection.JavaConversions.asScalaBuffer
-import scala.collection.JavaConversions.seqAsJavaList
-
+import scala.collection.JavaConversions._
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.Marshaller
-import molmed.xml.setup.legacy._
+import molmed.xml.setup._
+import molmed.apps.Sthlm2UUSNP
+import molmed.queue.setup.IlluminaXMLReportReader
+import molmed.queue.setup.ReportReader
 
 object SetupUtils {
 
@@ -20,6 +20,59 @@ object SetupUtils {
     project
   }
 
+  private def platformInfo(sampleInfo: Sthlm2UUSNP.SampleInfo): String = {
+    sampleInfo.flowCellId + "." + sampleInfo.lane
+  }
+
+  /**
+   * Does this file match the assumed UUSNP format?
+   * @file file
+   */
+  def matchesUUSnp(file: File): Boolean = {
+    val sampleDir = file.getParentFile()
+    val runfolderDir = sampleDir.getParentFile()
+
+    sampleDir.getName().startsWith("Sample_") &&
+      runfolderDir.listFiles().exists(p =>
+        p.getName() == "report.xml" || p.getName() == "report.tsv")
+  }
+
+  /**
+   * Does this file match the assumed IGN format?
+   * Lazy - just check if the folder name begins with something
+   * looking like a date.
+   * @file file
+   */
+  def matchesIGN(file: File): Boolean = {
+    val runfolderDir = file.getParentFile()
+    runfolderDir.getName().matches("^\\d{6}_.*")
+  }
+
+  /**
+   * Splits a set of files into a tupple with files matching UUSNP first
+   * and files matching IGN last.
+   */
+  def splitByFormatType(files: Set[File]): (Set[File], Set[File]) = {
+
+    //@TODO This approach will not work as it might only find one of the sets!
+
+    val mappedToType =
+      files.groupBy(file => {
+        require(matchesIGN(file) || matchesUUSnp(file),
+          "Didn't match any of the required formats.")
+        matchesUUSnp(file)
+      }).withDefaultValue(Set())
+
+    val groups = mappedToType.keys.toSeq
+
+    assert(groups.size <= 2,
+      "Found more than two groups in" +
+        " split. That shouldn't happen! Groups were: " +
+        groups)
+
+    (mappedToType(true), mappedToType(false))
+  }
+
   /**
    * Set the meta data for a project
    * @param project	The project to a apply the meta data to.
@@ -28,20 +81,23 @@ object SetupUtils {
    * @param sequencingCenter
    * @param uppmaxProjectId
    * @param uppmaxQoSFlag
+   * @param reference
    * @return The project modified with the meta data.
    */
   def setMetaData(project: Project)(projectName: String,
                                     seqencingPlatform: String,
                                     sequencingCenter: String,
                                     uppmaxProjectId: String,
-                                    uppmaxQoSFlag: String): Project = {
+                                    uppmaxQoSFlag: String,
+                                    reference: File): Project = {
     val projectMetaData = new Metadata()
 
     projectMetaData.setName(projectName)
-    projectMetaData.setPlatfrom(seqencingPlatform)
+    projectMetaData.setPlatform(seqencingPlatform)
     projectMetaData.setSequenceingcenter(sequencingCenter)
     projectMetaData.setUppmaxprojectid(uppmaxProjectId)
     projectMetaData.setUppmaxqos(uppmaxQoSFlag)
+    projectMetaData.setReference(reference.getAbsolutePath())
     project.setMetadata(projectMetaData)
 
     project.setInputs(new Inputs)
@@ -49,124 +105,315 @@ object SetupUtils {
   }
 
   /**
-   * From a Seq of sample paths, this will create a project structure including
-   * all the samples referred to.
-   * @param project		the project to add the samples to
-   * @param samplePaths	paths to all sample directoris the you which to use.
-   * @param reference	the reference to add.
-   * @return
+   * Once the smapleInfoSet has been parsed, this class can be used
+   * to create the xml hierarchy and add it to the project.
+   * @param project The project to write to
+   * @param sampleInfoSet The set of all samples
    */
-  def setupRunfolderStructureFromSamplePaths(project: Project)(samplePaths: Set[File], reference: File): Project = {
+  private def constructProjectHierarchy(
+    project: Project,
+    sampleInfoSet: Set[Sthlm2UUSNP.SampleInfo]): Project = {
 
-    require(samplePaths.forall(p => p.isDirectory()),
-      "You supplied file instead of a directory to the sample path")
-    require(samplePaths.forall(p => p.getName().startsWith("Sample_")),
-      "Are you sure that you provided a sample folder as input." +
-        " The name of the sample folder must start with Sample_<the rest of" +
-        "the name>.")
-    require(reference.exists(), "Reference " + reference.getAbsolutePath() + " supplied did not exist.")
+    /**
+     * Helper method which recursively will go down through the project
+     * hierarchy and add fastq file leaves from the SampleInfo instances.
+     * It will create and add any other nodes along the way that has
+     * not already been created.
+     * 
+     * Since the xjc generated xml elements are not immutable by nature
+     * this method will do some stuff, like adding to lists, which will actually
+     * change the state of the project. Be aware that this is happening and 
+     * check for side effects.
+     * 
+     * @param x 		A part of the project hierarchy. Since this is not
+     * 				    enforced by a class bound, don't send the wrong stuff
+     *         		    in here!
+     * @param project 	The current project to add to.
+     * @param sampleInfo A sample
+     * @return A project with the the info in sampleInfo added to it.  
+     * 
+     */
+    def constructHelper(
+      x: Any,
+      project: Project,
+      sampleInfo: Sthlm2UUSNP.SampleInfo): Project = {
+      
+      /**
+       * See if there is a matching element in the collection
+       * and create one if there is not.
+       * 
+       * @param list
+       * @param sampleInfo
+       * @param predicate
+       * @param constructNewA
+       * @return The matching element
+       */
+      def findMatchingInCollection[A](
+        list: java.util.List[A],
+        sampleInfo: Sthlm2UUSNP.SampleInfo,
+        predicate: (A, Sthlm2UUSNP.SampleInfo) => Boolean,
+        constructNewA: (Sthlm2UUSNP.SampleInfo => A)): A = {
 
-    val modifiedProject = samplePaths.
-      foldLeft(project)((project, sampleDir) => {
-        val runFolderDir = sampleDir.getParentFile()
-        val projectWithRunfolder = setRunfolders(project)(Seq(runFolderDir))
+        list.find(x => predicate(x, sampleInfo)).
+          getOrElse({
+            constructNewA(sampleInfo)
+          })
 
-        val runFolderList = projectWithRunfolder.getInputs().getRunfolder()
-
-        def runfolderParentFile(runfolder: Runfolder) =
-          new File(runfolder.getReport()).getParentFile()
-
-        for {
-          runfolder <- runFolderList
-          if runfolderParentFile(runfolder) == sampleDir.getParentFile()
-        } {
-          val sampleFolder = runfolder.getSamplefolder()
-          // This is now done as a side effect - which is not pretty, but
-          // hopefully it will work.
-          addSampleFolder(sampleFolder, Seq(sampleDir), reference)
-        }
-
-        projectWithRunfolder
-      })
-
-    modifiedProject
-  }
-
-  /**
-   * Will look for a matching report file (with a tsv or xml) file ending in
-   * the directories provided by runFolderPaths.
-   *
-   * @param project			The project to add the runfolders to.
-   * @param runFolderPaths	Paths to the run folders to add
-   * @return the project with runfolders set.
-   */
-  def setRunfolders(project: Project)(runFolderPaths: Seq[File]): Project = {
-
-    val runFolderList = project.getInputs().getRunfolder()
-
-    runFolderList.addAll(runFolderPaths.map(path => {
-
-      def lookForReport(dir: File): String = {
-
-        require(dir.isDirectory(), dir + " was not a directory.")
-
-        val reportFile: File = dir.listFiles().
-          find(report => report.getName() == "report.xml" || report.getName() == "report.tsv").
-          getOrElse(throw new Error("Could not find report.xml in " + dir.getPath()))
-
-        reportFile.getAbsolutePath()
       }
 
-      val runFolder = new Runfolder()
-      runFolder.setReport(lookForReport(path))
-      runFolder
+      /**
+       * 
+       */
+      def addIfNotThere[B](
+        list: java.util.List[B],
+        x: B,
+        sampleInfo: Sthlm2UUSNP.SampleInfo,
+        predicate: (B, Sthlm2UUSNP.SampleInfo) => Boolean): java.util.List[B] = {
 
-    }))
+        if (!list.exists(p => predicate(p, sampleInfo))) {
+          list.add(x)
+          list
+        } else
+          list
 
-    project
-  }
+      }
 
-  private def addSampleFolder(sampleFolderList: Seq[Samplefolder], sampleFolders: Seq[File], reference: File) = {
+      x match {
+        case x: Platformunit => {
 
-    val sampleFolderInstances = sampleFolders.map(sampleFolder => {
-      val sample = new Samplefolder
-      sample.setName(sampleFolder.getName().replace("Sample_", ""))
-      sample.setPath(sampleFolder.getAbsolutePath())
-      sample.setReference(reference.getAbsolutePath())
-      sample
+          val fastqFiles = x.getFastqfile()
+
+          fastqFiles.add({
+            val fastqFile = new Fastqfile
+            fastqFile.setPath(sampleInfo.fastq.getAbsolutePath())
+            fastqFile
+          })
+          
+          project
+        }
+        case x: Library => {
+
+          val platformUnits = x.getPlatformunit()
+
+          def predicate =
+            (p: Platformunit, sampleInfo: Sthlm2UUSNP.SampleInfo) =>
+              p.getUnitinfo() == platformInfo(sampleInfo)
+
+          val platformUnit =
+            findMatchingInCollection(
+              platformUnits,
+              sampleInfo,
+              predicate,
+              (sampleInfo: Sthlm2UUSNP.SampleInfo) => {
+                val pu = new Platformunit
+                pu.setUnitinfo(platformInfo(sampleInfo))
+                pu
+              })
+
+          addIfNotThere(platformUnits, platformUnit, sampleInfo, predicate)
+          
+          constructHelper(platformUnit, project, sampleInfo)
+        }
+        case x: Sample => {
+          val libraries = x.getLibrary()
+
+          def predicate =
+            (p: Library, sampleInfo: Sthlm2UUSNP.SampleInfo) =>
+              p.getLibraryname() == sampleInfo.library
+
+          val library =
+            findMatchingInCollection(
+              libraries,
+              sampleInfo,
+              predicate,
+              (sampleInfo: Sthlm2UUSNP.SampleInfo) => {
+                val l = new Library
+                l.setLibraryname(sampleInfo.library)
+                l
+              })
+
+          addIfNotThere(libraries, library, sampleInfo, predicate)
+
+          constructHelper(library, project, sampleInfo)
+        }
+        case x: Inputs => {
+          val samples = x.getSample()
+
+          def predicate =
+            (p: Sample, sampleInfo: Sthlm2UUSNP.SampleInfo) =>
+              p.getSamplename() == sampleInfo.sampleName
+
+          val sample =
+            findMatchingInCollection(
+              samples,
+              sampleInfo,
+              predicate,
+              (s: Sthlm2UUSNP.SampleInfo) =>
+                {
+                  val s = new Sample
+                  s.setSamplename(sampleInfo.sampleName)
+                  s
+                })
+
+          addIfNotThere(samples, sample, sampleInfo, predicate)
+
+          constructHelper(sample, project, sampleInfo)
+        }
+        case x: Project => {
+          val inputs = x.getInputs()
+          constructHelper(inputs, project, sampleInfo)
+        }
+      }
+
+    }
+
+    sampleInfoSet.foldLeft(project)((project, sampleInfo) => {
+      constructHelper(project, project, sampleInfo)
     })
 
-    sampleFolderList.addAll(sampleFolderInstances)
   }
 
   /**
-   * Setup the samples based on the runfolders already added to the project
-   * by the setReports. This will look in the directories generated which
-   * contain the report files and get all samples from those.
-   * @param	project		project to add the reference to
-   * @param reference	reference to add.
-   * @return the project with all samples set up.
+   * This will parse a list of FASTQ files assuming the ign formatting (see
+   * below) and create a project xml.
+   * This is the assumed folder structure of a IGN project:
+   *
+   * Project
+   * └── Sample
+   *     └── Library Prep
+   *         └── Sequencing Run
+   *             ├── P1142_101_NoIndex_L002_R1_001.fastq.gz
+   *             └── P1142_101_NoIndex_L002_R1_001.fastq.gz
+   *
+   *
+   * @param The project to add the info to.
+   * @param fileList a list of FASTQ files
+   * @return a Project instance
    */
-  def setReferenceForSamples(project: Project)(reference: File): Project = {
+  def createXMLFromIGNHierarchy(project: Project)(fileList: Set[File]): Project = {
 
-    val runFolderList = project.getInputs().getRunfolder()
+    def parseInfoFromFile(file: File): Sthlm2UUSNP.SampleInfo = {
 
-    runFolderList.map(runFolder => {
+      val runfolder = file.getParentFile()
+      val libraryFolder = runfolder.getParentFile()
+      val sampleFolder = libraryFolder.getParentFile()
 
-      val sampleFolderList = runFolder.getSamplefolder()
-      val runFolderPath = (new File(runFolder.getReport)).getParentFile()
+      Sthlm2UUSNP.parseSampleInfoFromFileHierarchy(
+        file, runfolder, libraryFolder)
+    }
 
-      val sampleFolders =
-        runFolderPath.
-          listFiles().
-          filter(s => s.getName().
-            startsWith("Sample_")).
-          toList
+    val fileInfo = fileList.map(file => parseInfoFromFile(file))
+    //createXMLFromFileInfo(project, fileInfo)
+    constructProjectHierarchy(project, fileInfo)
+  }
 
-      addSampleFolder(sampleFolderList, sampleFolders, reference)
+  /**
+   * This will parse a list of FASTQ files assuming the uu snp formatting (see
+   * below) and create a project xml.
+   *
+   * This is the assumed folder structure of a UU project:
+   *
+   * Project-code/
+   * ├── 140403_SN866_0281_BC3U9JACXX
+   * │   ├── checksums.md5
+   * │   ├── Plots
+   * │   ├── README
+   * │   ├── report.html
+   * │   ├── report.xml
+   * │   ├── report.xsl
+   * │   ├── Sample_1
+   * │   ├── Sample_2
+   * ├── 140416_D00118_0139_BC41ENACXX
+   * │   ├── checksums.md5
+   * │   ├── Plots
+   * │   ├── README
+   * │   ├── report.html
+   * │   ├── report.xml
+   * │   ├── report.xsl
+   * │   ├── Sample_1
+   * │   ├── Sample_2
+   *
+   * Please note that since the library information is not available in the
+   * UUSNP folder structure, but is part of the report.xml, this function
+   * will try to find any matching report.xml files and parse those for the
+   * library information
+   *
+   * @param project The project to add the info to
+   * @param fileList a list of FASTQ files
+   * @return a Project instance
+   */
+  def createXMLFromUUHierarchy(project: Project)(fileList: Set[File]): Project = {
+
+    val filesGroupedByRunfolderOrigin = fileList.groupBy(file => {
+      val sampleDir = file.getParentFile()
+      val runfolder = sampleDir.getParentFile()
+      runfolder
     })
 
-    project
+    val fileInfo =
+      for {
+        (runfolder, fastqFiles) <- filesGroupedByRunfolderOrigin
+        fastqFile <- fastqFiles
+      } yield {
+
+        val fastqFileRegexp =
+          """^(\w+)_(\w+(?:-\w+)?)_L(\d+)_R(\d)_(\d+)\.fastq\.gz$""".r
+
+        val sampleName =
+          fastqFile.getParentFile().getName().replaceFirst("Sample_", "")
+
+        val lane = {
+          val lane = fastqFileRegexp.findAllIn(fastqFile.getName()).
+            matchData.map(m => m.group(3).toInt).toSeq
+          require(
+            lane.size == 1,
+            "Lane list size not 1, something went wrong.")
+          lane(0)
+        }
+
+        val library = {
+          val reportReader =
+            ReportReader(
+              new File(runfolder.getAbsolutePath() + "/report.xml"))
+          reportReader.getReadLibrary(sampleName, lane)
+        }
+
+        val runfolderNameSplitByUnderscore = runfolder.getName().split("_")
+        val date = runfolderNameSplitByUnderscore(0)
+        val flowCellId =
+          runfolderNameSplitByUnderscore(runfolderNameSplitByUnderscore.size - 1)
+
+        val index = {
+          val index = fastqFileRegexp.findAllIn(fastqFile.getName()).
+            matchData.map(m => m.group(2)).toSeq
+          require(
+            index.size == 1,
+            "index list size not 1, something went wrong.")
+          index(0)
+        }
+
+        val read = {
+          val read = fastqFileRegexp.findAllIn(fastqFile.getName()).
+            matchData.map(m => m.group(4).toInt).toSeq
+          require(
+            read.size == 1,
+            "read list size not 1, something went wrong.")
+          read(0)
+        }
+
+        new Sthlm2UUSNP.SampleInfo(
+          sampleName,
+          library,
+          lane,
+          date,
+          flowCellId,
+          index,
+          fastqFile,
+          read)
+      }
+
+    //createXMLFromFileInfo(project, fileInfo.toSet)
+    constructProjectHierarchy(project, fileInfo.toSet)
   }
 
   /**
@@ -186,4 +433,20 @@ object SetupUtils {
 
   }
 
+  /**
+   * Writes the project to stdout
+   * @param project		The project to write
+   * @param outputFile	The file to write to.
+   */
+  def writeToStdOut(project: Project) = {
+    // The xml marshaller is used to create the xml instance
+    val context = JAXBContext.newInstance(classOf[Project])
+    val marshaller = context.createMarshaller()
+    marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
+
+    val os = new FileOutputStream(new File("/dev/stdout"))
+    marshaller.marshal(project, os)
+    os.close()
+
+  }
 }

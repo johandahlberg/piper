@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="setup.xml.molmed" xmlns="setup.xml.molmed"
+	elementFormDefault="qualified">
+
+	<xs:element name="project">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="metadata" maxOccurs="1" />
+				<xs:element ref="inputs" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="metadata">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="name" type="xs:string" />
+				<xs:element name="sequenceingcenter" type="xs:string" />
+				<xs:element name="platform" type="xs:string" />
+				<xs:element name="uppmaxprojectid" type="xs:string" />
+				<xs:element name="uppmaxqos" type="xs:string" />
+				<xs:element name="reference" type="xs:string" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="inputs">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="sample" maxOccurs="unbounded" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+
+	<xs:element name="sample">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="samplename" type="xs:string" />
+				<xs:element ref="library" maxOccurs="unbounded" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="library">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="libraryname" type="xs:string" />
+				<xs:element ref="platformunit" maxOccurs="unbounded" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="platformunit">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="unitinfo" type="xs:string" />
+				<xs:element ref="fastqfile" maxOccurs="unbounded" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="fastqfile">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="path" type="xs:string" />				
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+</xs:schema>
