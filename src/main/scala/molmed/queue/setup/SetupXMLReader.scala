@@ -40,7 +40,7 @@ class SetupXMLReader(setupXML: File) extends SetupXMLReaderAPI {
    * assumed for all samples in a project.
    */
   def getReference(sampleName: String): java.io.File =
-    new File(project.getMetadata().getReference())
+    new File(project.getMetadata().getReference()).getAbsoluteFile()
 
   def getSamples(): Map[String, Seq[molmed.queue.setup.SampleAPI]] = {
 

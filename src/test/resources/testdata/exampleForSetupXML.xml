@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<project xmlns="setup.xml.molmed">
+    <metadata>
+        <name>TestProject</name>
+        <sequenceingcenter>SNP_SEQ_PLATFORM</sequenceingcenter>
+        <platform>Illumina</platform>
+        <uppmaxprojectid>a2009002</uppmaxprojectid>
+        <uppmaxqos>seqver</uppmaxqos>
+	<reference>src/test/resources/testdata/exampleFASTA.fasta</reference>
+    </metadata>
+    <inputs>
+        <sample>
+            <samplename>1</samplename>
+            <library>
+                <libraryname>CEP_C13-NA11992</libraryname>
+                <platformunit>
+                    <unitinfo>C0HNDACXX.1.1</unitinfo>
+                    <fastqfile>
+			    <path>src/test/resources/testdata/smallTestFastqDataFolder/Sample_1/exampleFASTQ_L001_R1_file.fastq</path>
+                    </fastqfile>
+                    <fastqfile>
+			    <path>src/test/resources/testdata/smallTestFastqDataFolder/Sample_1/exampleFASTQ_L001_R2_file.fastq</path>
+                    </fastqfile>
+                </platformunit>
+            </library>
+        </sample>
+    </inputs>
+</project>

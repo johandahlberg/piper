@@ -9,13 +9,13 @@ import scala.collection.Seq
 import molmed.queue.setup.stubs.IlluminaXMLReportReaderStub
 import java.io.PrintWriter
 
-class LegacySetupXMLReaderSnpSeqUnitTest {
+class SetupXMLReaderSnpSeqUnitTest {
 
     /*
      * Note the these tests are dependent on the report.xml file, so if that is changed the tests need to be updated.
      */
     val baseTest = SnpSeqBaseTest
-    val setupFile: File = new File(baseTest.pathToLegacySetupFile)
+    val setupFile: File = new File(baseTest.pathToSetupFile)
     val setupXMLReader = SetupXMLReader(setupFile)
     val sampleName = "1"
     val runFolderName = "src/test/resources/testdata/smallTestFastqDataFolder/report.xml"
@@ -23,7 +23,7 @@ class LegacySetupXMLReaderSnpSeqUnitTest {
     @BeforeMethod
     def beforeTest() {
         val baseTest = SnpSeqBaseTest
-        val setupFile: File = new File(baseTest.pathToLegacySetupFile)
+        val setupFile: File = new File(baseTest.pathToSetupFile)
         val setupXMLReader = SetupXMLReader(setupFile)
         val sampleName = "1"
     }
@@ -131,7 +131,7 @@ class LegacySetupXMLReaderSnpSeqUnitTest {
     def TestGetReference() = {
         val expected: File = new File("src/test/resources/testdata/exampleFASTA.fasta").getAbsoluteFile()
         val actual: File = setupXMLReader.getReference(sampleName)
-        assert(expected == actual)
+        assert(expected == actual, "actual=" + actual + " expected=" + expected)
     }
 
     @Test

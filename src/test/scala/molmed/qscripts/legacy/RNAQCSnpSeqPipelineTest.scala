@@ -35,7 +35,7 @@ class RNAQCSnpSeqPipelineTest {
     spec.args = Array(
       pathToScript,
       " -i " + snpSeqBaseTest.pathToRNAtestBam,
-      " --xml_input " + snpSeqBaseTest.pathSetupFile,
+      " --xml_input " + snpSeqBaseTest.pathToLegacySetupFile,
       " --reference " + snpSeqBaseTest.hg19,
       " --transcripts " + snpSeqBaseTest.hg19annotations,
       " --rna_seqc " + snpSeqBaseTest.pathToRNASeQC,
