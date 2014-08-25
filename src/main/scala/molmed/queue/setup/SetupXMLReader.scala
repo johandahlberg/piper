@@ -126,7 +126,7 @@ object SetupXMLReader {
       val source = Source.fromFile(file)
       val lines = source.getLines
       val result =
-        lines.exists(s => s == "<project xmlns=\"legacy.setup.xml.molmed\">")
+        lines.exists(s => s.contains( "<runfolder>"))
       source.close()
       result
     }
