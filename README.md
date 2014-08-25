@@ -58,10 +58,10 @@ There are a number of workflows currently supported by Piper (See below). For mo
 Setup for run
 -------------
 
-All workflows start with an xml file, for example: `pipelineSetup.xml`. This contains information about the raw data (run folders) that you want to run in the project. This is created using the `setupFileCreator` command. This can be run either in an interactive mode or by passing all parameters via the commandline.
+All workflows start with an xml file, for example: `pipelineSetup.xml`. This contains information about the raw data (run folders) that you want to run in the project. This is created using the `setupFileCreator` command.
 
 ** Directory structures and report files**
-Piper depends on a special folder structure to be parse metadata about the samples. This structure looks like this:
+Piper depends on one of two specifications for folder structure to be parse metadata about the samples. The first structure looks like this (and is the one used by projects at the SNP&SEQ technology platform in Uppsala):
 
     Top level
     |---Runfolder1
@@ -89,30 +89,83 @@ As evident from this, the structure of each runfolder needs to have a file named
         MySecondSample  1       SomeOtherLib    9767892AVF
 
 
-**Running interactively**
-To run `setupFileCreator` interactively follow these steps:
+The other allowed format is the Illumina Genome Network (IGN) file structure as it has been defined by the NGI.
 
-* Before running this make sure that your run folders are located (or linked) from a common folder (e.g. the runfolders directory under your project), then run this: 
-* Run:
-    setupFileCreator --interactive --output pipelineSetup.xml
-* Answer the questions.
-
-and answer the questions. This will create your setup file, which should look something like this:
-
-    <Project Name="TestProject" SequencingCenter="UU-SNP"
-        Platform="Illumina" UppmaxProjectId="a2009002">
-	
-	    <RunFolder Report="src/test/resources/testdata/runFoldersForMultipleSample/runfolder1/report.xml">
-		    <SampleFolder Name="1" Path="src/test/resources/testdata/runFoldersForMultipleSample/runfolder2/Sample_1" Reference="src/test/resources/testdata/exampleFASTA.fasta"></SampleFolder>
-	    </RunFolder>
-		
-	    <RunFolder Report="src/test/resources/testdata/runFoldersForMultipleSample/runfolder2/report.xml">
-		    <SampleFolder Name="1" Path="src/test/resources/testdata/runFoldersForMultipleSample/runfolder2/Sample_1" Reference="src/test/resources/testdata/exampleFASTA.fasta"></SampleFolder>
-	    </RunFolder>
-    </Project>
+    Project top level
+    |---Sample
+        |---Library
+            |---Runfolder
+               |--- <project>_<sample_name>_<index>_<lane>_xxx.fastq.gz
 
 **Running non-interactively**
-Run `setupFileCreator` without any arguments. This will show you the list of parameters that you need to set. This option is supplied to make it easier to automize the setup and run process of Piper for continuous large scale projects.
+Run `setupFileCreator` without any arguments. This will show you the list of parameters that you need to set. This will produce a setup file on the following format:
+
+```
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<project xmlns="setup.xml.molmed">
+    <metadata>
+        <name>NA-001</name>
+        <sequenceingcenter>NGI</sequenceingcenter>
+        <platform>Illumina</platform>
+        <uppmaxprojectid>a2009002</uppmaxprojectid>
+        <uppmaxqos></uppmaxqos>
+        <reference>/home/MOLMED/johda411/workspace/piper/src/test/resources/testdata/exampleFASTA.fasta</reference>
+    </metadata>
+    <inputs>
+        <sample>
+            <samplename>F15</samplename>
+            <library>
+                <libraryname>SX396_MA140710.1</libraryname>
+                <platformunit>
+                    <unitinfo>000000000-AA3LB.1</unitinfo>
+                    <fastqfile>
+                        <path>/home/MOLMED/johda411/workspace/piper/140812_M00485_0148_000000000-AA3LB/Projects/MD-0274/140812_M00485_0148_000000000-AA3LB/Sample_F15/F15_CCGAAGTA_L001_R1_001.fastq.gz</path>
+                    </fastqfile>
+                    <fastqfile>
+                        <path>/home/MOLMED/johda411/workspace/piper/140812_M00485_0148_000000000-AA3LB/Projects/MD-0274/140812_M00485_0148_000000000-AA3LB/Sample_F15/F15_CCGAAGTA_L001_R2_001.fastq.gz</path>
+                    </fastqfile>
+                </platformunit>
+            </library>
+        </sample>
+        <sample>
+            <samplename>E14</samplename>
+            <library>
+                <libraryname>SX396_MA140710.1</libraryname>
+                <platformunit>
+                    <unitinfo>000000000-AA3LB.1</unitinfo>
+                    <fastqfile>
+                        <path>/home/MOLMED/johda411/workspace/piper/140812_M00485_0148_000000000-AA3LB/Projects/MD-0274/140812_M00485_0148_000000000-AA3LB/Sample_E14/E14_AGTCACTA_L001_R2_001.fastq.gz</path>
+                    </fastqfile>
+                    <fastqfile>
+                        <path>/home/MOLMED/johda411/workspace/piper/140812_M00485_0148_000000000-AA3LB/Projects/MD-0274/140812_M00485_0148_000000000-AA3LB/Sample_E14/E14_AGTCACTA_L001_R1_001.fastq.gz</path>
+                    </fastqfile>
+                </platformunit>
+            </library>
+        </sample>
+        <sample>
+            <samplename>P1171_104</samplename>
+            <library>
+                <libraryname>A</libraryname>
+                <platformunit>
+                    <unitinfo>AC41A2ANXX.2</unitinfo>
+                    <fastqfile>
+                        <path>/home/MOLMED/johda411/workspace/piper/src/test/resources/testdata/Sthlm2UUTests/sthlm_runfolder_root/P1171_104/A/140702_AC41A2ANXX/P1171_104_ATTCAGAA-GGCTCTGA_L002_R1_001.fastq.gz</path>
+                    </fastqfile>
+                </platformunit>
+                <platformunit>
+                    <unitinfo>AC41A2ANXX.1</unitinfo>
+                    <fastqfile>
+                        <path>/home/MOLMED/johda411/workspace/piper/src/test/resources/testdata/Sthlm2UUTests/sthlm_runfolder_root/P1171_104/A/140702_AC41A2ANXX/P1171_104_ATTCAGAA-GGCTCTGA_L001_R1_001.fastq.gz</path>
+                    </fastqfile>
+                    <fastqfile>
+                        <path>/home/MOLMED/johda411/workspace/piper/src/test/resources/testdata/Sthlm2UUTests/sthlm_runfolder_root/P1171_104/A/140702_AC41A2ANXX/P1171_104_ATTCAGAA-GGCTCTGA_L001_R2_001.fastq.gz</path>
+                    </fastqfile>
+                </platformunit>
+            </library>
+        </sample>
+    </inputs>
+</project>
+```
 
 Running
 -------
