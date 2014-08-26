@@ -83,9 +83,6 @@ class RNACounts
    * **************************************************************************
    */
 
-  @Argument(doc = "Annotations of known transcripts in GTF 2.2 or GFF 3 format.", fullName = "annotations", shortName = "a", required = false)
-  var annotations: Option[File] = None
-
   @Argument(doc = "GTF file with transcripts to ignore, e.g. rRNA, mitochondrial transcripts etc.", fullName = "mask", shortName = "m", required = false)
   var maskFile: Option[File] = None
 
@@ -182,7 +179,7 @@ class RNACounts
     val sampleMap: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
     //Setup cufflink
-    val cufflinksUtils = new CufflinksUtils(projectName, annotations, libraryType, uppmaxConfig)
+    val cufflinksUtils = new CufflinksUtils(projectName, transcripts, libraryType, uppmaxConfig)
     //Setup TopHat alignment
     val tophatUtils = new TophatAligmentUtils(tophatPath, tophatThreads,
       projectName, uppmaxConfig)
@@ -204,9 +201,9 @@ class RNACounts
         //Align fastq file(s)
         val bamFile: File =
           if (runCutadapt)
-            tophatUtils.align(this, this.libraryType, this.annotations, getOutputDirBAM, sampleNameCounter, generalUtils.cutSamplesUsingCuteAdapt(this, this.cutadaptPath, sample, getOutputDirBAM, syncPath), this.fusionSearch)
+            tophatUtils.align(this, this.libraryType, this.transcripts, getOutputDirBAM, sampleNameCounter, generalUtils.cutSamplesUsingCuteAdapt(this, this.cutadaptPath, sample, getOutputDirBAM, syncPath), this.fusionSearch)
           else
-            tophatUtils.align(this, this.libraryType, this.annotations, getOutputDirBAM, sampleNameCounter, sample, this.fusionSearch)
+            tophatUtils.align(this, this.libraryType, this.transcripts, getOutputDirBAM, sampleNameCounter, sample, this.fusionSearch)
 
         cohortList :+= bamFile
 
