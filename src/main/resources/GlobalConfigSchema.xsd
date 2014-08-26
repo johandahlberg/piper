@@ -26,6 +26,7 @@
 			<xs:sequence>
 				<xs:element name="name" type="xs:string" />
 				<xs:element name="path" type="xs:string" />
+				<xs:element name="version" type="xs:string" />
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
@@ -44,6 +45,7 @@
 			<xs:sequence>
 				<xs:element name="name" type="xs:string" />
 				<xs:element name="path" type="xs:string" />
+				<xs:element name="version" type="xs:string" />
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>

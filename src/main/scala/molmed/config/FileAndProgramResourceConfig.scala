@@ -14,8 +14,8 @@ import molmed.xml.globalconfig.Program
  *  a xml file conforming to the GlobalConfigSchema.xsd specification (see:
  *  src/main/resources/).
  */
-trait FileAndProgramResourceConfig {
-
+trait FileAndProgramResourceConfig { 
+  
   @Input(doc = "XML configuration file containing system configuration. E.g. paths to resources and programs etc. " +
     "Any thing specified in this file will be overriden if this is specifically set on the commandline.",
     fullName = "global_config", shortName = "gc", required = false)
