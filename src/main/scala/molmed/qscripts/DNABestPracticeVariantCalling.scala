@@ -339,7 +339,7 @@ class DNABestPracticeVariantCalling extends QScript
 
     // Get default paths to resources from global config xml
     if (this.globalConfig.isDefined)
-      this.setResourcesFromConfigXML(this.globalConfig, notHuman)
+      this.configureResourcesFromConfigXML(this.globalConfig, notHuman)
 
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
 

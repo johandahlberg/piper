@@ -2,12 +2,22 @@ package molmed.report
 
 import java.io.File
 import java.util.jar.JarFile
+import molmed.config.FileVersionUtilities._
+import molmed.config.ResourceNames
+import java.io.BufferedReader
 
 /**
  * Generate reports from Piper, containing information on which Piper version
  * was used, which resources were used, etc.
  */
 object ReportGenerator {
+
+  private def getJarsOnClassPath(): Array[File] = {
+    val classPath = System.getProperty("java.class.path").split(":")
+    val jars = classPath.
+      map(x => new File(x))
+    jars
+  }
 
   /**
    * Parses the class path searching for the piper jar and checks it's version
@@ -20,14 +30,11 @@ object ReportGenerator {
    * @return the current piper version
    */
   def getPiperVersion(): String = {
+    val jars = getJarsOnClassPath()
+    val pipersJars = jars.filter(s => s.getName().startsWith("piper_")).toSeq
 
-    val classPath = System.getProperty("java.class.path").split(":")
-    val jars = classPath.
-      map(x => new File(x)).
-      filter(s => s.getName().startsWith("piper_")).toSeq
-
-    if (jars.size == 1) {
-      val jarFile = new JarFile(jars(0).getAbsolutePath())
+    if (pipersJars.size == 1) {
+      val jarFile = new JarFile(pipersJars(0).getAbsolutePath())
 
       val manifest = jarFile.getManifest()
       val attributes = manifest.getMainAttributes()
@@ -39,19 +46,50 @@ object ReportGenerator {
 
   }
 
+  def getGATKVersion(): String = {
+    val jars = getJarsOnClassPath()
+    val gatkJars =
+      jars.filter(s => s.getName().contains("GenomeAnalysisTK.jar"))
+
+    if (gatkJars.size == 1) {
+      val jarFile = new JarFile(gatkJars(0).getAbsolutePath())
+
+      val properties = jarFile.getEntry("GATKText.properties")
+      val version =
+        if (properties == null)
+          "Unknown"
+        else {
+          val inputStream = jarFile.getInputStream(properties)
+
+          val reader = scala.io.Source.fromInputStream(inputStream)
+          val versionLine =
+            reader.getLines.find(p =>
+              p.startsWith("org.broadinstitute.gatk.engine.CommandLineGATK.version="))
+          val versionFromFile = versionLine.getOrElse("Unknown").split("=")(1)
+
+          reader.close
+          inputStream.close()
+
+          versionFromFile
+        }
+      version
+    } else
+      "Unknown"
+  }
+
   /**
    * Construct the report for the DNABestPracticeVariantCallingReport
    * qscript and write it to file.
    * @param file File to write output to.
    * @return the file that was created and written to.
    */
-  def constructDNABestPracticeVariantCallingReport(file: File): File = {
+  def constructDNABestPracticeVariantCallingReport(resourceMap: ResourceMap, file: File): File = {
 
     val piperVersion = getPiperVersion()
-    val bwaVersion = "vervberv"
-    val samtoolsVersion = "rbtbrtbtrbtrb"
-    val qualimapVersion = "fbrtbrtbtr"
-    val gatkVersion = "vtrrtbrtb"
+    val bwaVersion = fileVersionFromKey(resourceMap, ResourceNames.BWA)
+    val samtoolsVersion = fileVersionFromKey(resourceMap, ResourceNames.SAMTOOLS)
+    val qualimapVersion = fileVersionFromKey(resourceMap, ResourceNames.QUALIMAP)
+    val gatkVersion = getGATKVersion()
 
     val reference = "vernveärovnärevn"
     val gatkBundleVersion = "wq161w6dq"

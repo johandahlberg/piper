@@ -177,7 +177,7 @@ class RNACounts
 
     // Get default paths to resources from global config xml
     if (this.globalConfig.isDefined)
-      this.setResourcesFromConfigXML(this.globalConfig)
+      this.configureResourcesFromConfigXML(this.globalConfig)
 
     val sampleMap: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)

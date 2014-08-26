@@ -7,6 +7,7 @@ import java.io.StringReader
 import scala.collection.JavaConversions._
 import molmed.xml.globalconfig.Resource
 import molmed.xml.globalconfig.Program
+import molmed.config.FileVersionUtilities._
 
 /**
  * Contains arguments for loading file resources (e.g. dbSNP). Also contains the
@@ -14,8 +15,8 @@ import molmed.xml.globalconfig.Program
  *  a xml file conforming to the GlobalConfigSchema.xsd specification (see:
  *  src/main/resources/).
  */
-trait FileAndProgramResourceConfig { 
-  
+trait FileAndProgramResourceConfig {
+
   @Input(doc = "XML configuration file containing system configuration. E.g. paths to resources and programs etc. " +
     "Any thing specified in this file will be overriden if this is specifically set on the commandline.",
     fullName = "global_config", shortName = "gc", required = false)
@@ -82,20 +83,21 @@ trait FileAndProgramResourceConfig {
    * @param	xmlFile	A xml file conforming to the specification in GlobalConfigSchema.xsd
    * @param	notHuman If the studied organism is not human, don't default load
    * 			     resource files.
-   * @returns Unit
+   * @returns A map from a resource key to a versioned file.
    */
-  def setResourcesFromConfigXML(
+  def configureResourcesFromConfigXML(
     xmlFile: File,
-    notHuman: Boolean = false): Unit = {
+    notHuman: Boolean = false): ResourceMap = {
 
     /**
      * This trait is used to make sure that both programs
      * and file resources can be managed by the same code
      * downstream once they've been extended with this trait.
      */
-    trait NameAndPath {
+    trait NameVersionAndPath {
       def getName(): String
       def getPath(): String
+      def getVersion(): String
     }
 
     /**
@@ -104,9 +106,11 @@ trait FileAndProgramResourceConfig {
      * @param 	list	A list of resources which have both name and path
      * @return A map with resource names as keys and file resources as values
      */
-    def transformToNamePathMap[T](list: Seq[T with NameAndPath]): Map[String, Option[Seq[File]]] = {
+    def transformToNamePathMap[T](list: Seq[T with NameVersionAndPath]): ResourceMap = {
       list.groupBy(x => x.getName()).
-        mapValues(x => Some(x.map(f => new File(f.getPath)).toSeq)).
+        mapValues(x =>
+          Some(x.map(f =>
+            new VersionedFile(new File(f.getPath), Some(f.getVersion()))).toSeq)).
         withDefaultValue(None)
     }
 
@@ -119,13 +123,30 @@ trait FileAndProgramResourceConfig {
      * @throws AssertionError if there is multiple hits for this key.
      * @returns The file related to the key.
      */
-    def getFileFromKey(map: Map[String, Option[Seq[File]]], key: String): File = {
+    def getFileFromKey(map: ResourceMap, key: String): File = {
       val value = map(key).
         getOrElse(
           throw new IllegalArgumentException("Couldn't find: \"" + key + " \" key in " + xmlFile + "."))
 
       assert(value.length == 1, "Tried to get a single path for key: \"" + key + "\" but found multiple hits.")
       value.head
+    }
+
+    /**
+     * Extract the file version from the specified resource key.
+     * @param map	from the resource name to the versioned file relating to that resource.
+     * @param key	the key to look for
+     * @throws IllegalArgumentException if one tries to look for a key that is no present.
+     * @throws AssertionError if there is multiple hits for this key.
+     * @returns The version related to the key.
+     */
+    def getVersionFromKey(map: ResourceMap, key: String): Option[String] = {
+      val value = map(key).
+        getOrElse(
+          throw new IllegalArgumentException("Couldn't find: \"" + key + " \" key in " + xmlFile + "."))
+
+      assert(value.length == 1, "Tried to get a single path for key: \"" + key + "\" but found multiple hits.")
+      value.head.version
     }
 
     /**
@@ -136,7 +157,7 @@ trait FileAndProgramResourceConfig {
      * @throws AssertionError if there is multiple hits for this key.
      * @returns The file related to the key.
      */
-    def getFileSeqFromKey(map: Map[String, Option[Seq[File]]], key: String): Seq[File] = {
+    def getFileSeqFromKey(map: ResourceMap, key: String): Seq[VersionedFile] = {
       val value = map(key).
         getOrElse(
           throw new IllegalArgumentException("Couldn't find: \"" + key + " \" key in " + xmlFile + "."))
@@ -150,34 +171,37 @@ trait FileAndProgramResourceConfig {
      * @param	config	The GlobalConfig instance containing all paths.
      * @retuns Unit
      */
-    def setFileResources(config: GlobalConfig): Unit = {
+    def setFileResources(config: GlobalConfig): ResourceMap = {
 
       val resources = config.getResources().getResource().map(f => {
-        val res = new Resource with NameAndPath
+        val res = new Resource with NameVersionAndPath
         res.setName(f.getName())
         res.setPath(f.getPath())
+        res.setVersion(f.getVersion())
         res
       })
 
       val resourceNameToPathsMap = transformToNamePathMap(resources)
 
       if (this.dbSNP == null)
-        this.dbSNP = getFileFromKey(resourceNameToPathsMap, "dbsnp")
+        this.dbSNP = getFileFromKey(resourceNameToPathsMap, ResourceNames.DB_SNP)
 
       if (this.indels.isEmpty)
-        this.indels = getFileSeqFromKey(resourceNameToPathsMap, "indels")
+        this.indels = getFileSeqFromKey(resourceNameToPathsMap, ResourceNames.INDELS)
 
       if (this.hapmap == null)
-        this.hapmap = getFileFromKey(resourceNameToPathsMap, "hapmap")
+        this.hapmap = getFileFromKey(resourceNameToPathsMap, ResourceNames.HAPMAP)
 
       if (this.omni == null)
-        this.omni = getFileFromKey(resourceNameToPathsMap, "omni")
+        this.omni = getFileFromKey(resourceNameToPathsMap, ResourceNames.OMNI)
 
       if (this.mills == null)
-        this.mills = getFileFromKey(resourceNameToPathsMap, "mills")
+        this.mills = getFileFromKey(resourceNameToPathsMap, ResourceNames.MILLS)
 
       if (this.thousandGenomes == null)
-        this.thousandGenomes = getFileFromKey(resourceNameToPathsMap, "thousandGenomes")
+        this.thousandGenomes = getFileFromKey(resourceNameToPathsMap, ResourceNames.THOUSAND_GENOMES)
+
+      resourceNameToPathsMap
     }
 
     /**
@@ -185,40 +209,43 @@ trait FileAndProgramResourceConfig {
      *
      * @param config the new program resources
      */
-    def setProgramResources(config: GlobalConfig): Unit = {
+    def setProgramResources(config: GlobalConfig): ResourceMap = {
 
       val programs = config.getPrograms().getProgram().map(f => {
-        val prog = new Program with NameAndPath
+        val prog = new Program with NameVersionAndPath
         prog.setName(f.getName())
         prog.setPath(f.getPath())
+        prog.setVersion(f.getVersion())
         prog
       })
 
       val programNameToPathsMap = transformToNamePathMap(programs)
 
       if (this.bwaPath == null)
-        this.bwaPath = getFileFromKey(programNameToPathsMap, "bwa")
+        this.bwaPath = getFileFromKey(programNameToPathsMap, ResourceNames.BWA)
 
       if (this.samtoolsPath == null)
-        this.samtoolsPath = getFileFromKey(programNameToPathsMap, "samtools")
+        this.samtoolsPath = getFileFromKey(programNameToPathsMap, ResourceNames.SAMTOOLS)
 
       if (this.qualimapPath == null)
-        this.qualimapPath = getFileFromKey(programNameToPathsMap, "qualimap")
+        this.qualimapPath = getFileFromKey(programNameToPathsMap, ResourceNames.QUALIMAP)
 
       if (this.pathToRNASeQC == null)
-        this.pathToRNASeQC = getFileFromKey(programNameToPathsMap, "RNA-SeQC")
+        this.pathToRNASeQC = getFileFromKey(programNameToPathsMap, ResourceNames.RNA_SEQC)
 
       if (this.syncPath == null)
-        this.syncPath = getFileFromKey(programNameToPathsMap, "fixemptyreads")
+        this.syncPath = getFileFromKey(programNameToPathsMap, ResourceNames.FIX_EMPTY_READS)
 
       if (this.cufflinksPath == null)
-        this.cufflinksPath = getFileFromKey(programNameToPathsMap, "cufflinks")
+        this.cufflinksPath = getFileFromKey(programNameToPathsMap, ResourceNames.CUFFLINKS)
 
       if (this.cutadaptPath == null)
-        this.cutadaptPath = getFileFromKey(programNameToPathsMap, "cutadapt")
+        this.cutadaptPath = getFileFromKey(programNameToPathsMap, ResourceNames.CUTADAPT)
 
       if (this.tophatPath == null)
-        this.tophatPath = getFileFromKey(programNameToPathsMap, "tophat")
+        this.tophatPath = getFileFromKey(programNameToPathsMap, ResourceNames.TOPHAP)
+
+      programNameToPathsMap
 
     }
 
@@ -228,9 +255,14 @@ trait FileAndProgramResourceConfig {
     val config = unmarshaller.unmarshal(reader).asInstanceOf[GlobalConfig]
     reader.close()
 
-    if (!notHuman)
-      setFileResources(config)
-    setProgramResources(config)
+    val fileResources =
+      if (!notHuman)
+        setFileResources(config)
+      else
+        Map()
+    val programResources = setProgramResources(config)
+
+    fileResources ++ programResources
 
   }
 
