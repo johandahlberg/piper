@@ -260,15 +260,17 @@ trait FileAndProgramResourceConfig {
       reader.close()
 
       val fileResources =
-        if (!doNotLoadDefaultResourceFiles)
-          setFileResources(config)
-        else
+        if (doNotLoadDefaultResourceFiles)
           Map()
+        else
+          setFileResources(config)
+
       val programResources = setProgramResources(config)
 
       fileResources ++ programResources
-    }
-    Map().withDefaultValue(None)
+      
+    } else
+      Map().withDefaultValue(None)
 
   }
 
