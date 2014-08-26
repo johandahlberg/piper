@@ -84,10 +84,11 @@ trait FileAndProgramResourceConfig {
    * @param	doNotLoadDefaultResourceFiles Skip loading the default resource files.
    * 									  Will only get resource file explicitly from the
    *                                      commandline.
-   * @returns A map from a resource key to a versioned file.
+   * @returns A map from a resource key to a versioned file. This will be empty
+   * if the xmlFile was not defined
    */
   def configureResourcesFromConfigXML(
-    xmlFile: File,
+    xmlFile: Option[File],
     doNotLoadDefaultResourceFiles: Boolean = false): ResourceMap = {
 
     /**
@@ -250,20 +251,24 @@ trait FileAndProgramResourceConfig {
 
     }
 
-    val context = JAXBContext.newInstance(classOf[GlobalConfig])
-    val unmarshaller = context.createUnmarshaller()
-    val reader = new StringReader(scala.io.Source.fromFile(xmlFile).mkString)
-    val config = unmarshaller.unmarshal(reader).asInstanceOf[GlobalConfig]
-    reader.close()
+    if (xmlFile.isDefined) {
 
-    val fileResources =
-      if (!doNotLoadDefaultResourceFiles)
-        setFileResources(config)
-      else
-        Map()
-    val programResources = setProgramResources(config)
+      val context = JAXBContext.newInstance(classOf[GlobalConfig])
+      val unmarshaller = context.createUnmarshaller()
+      val reader = new StringReader(scala.io.Source.fromFile(xmlFile.get).mkString)
+      val config = unmarshaller.unmarshal(reader).asInstanceOf[GlobalConfig]
+      reader.close()
 
-    fileResources ++ programResources
+      val fileResources =
+        if (!doNotLoadDefaultResourceFiles)
+          setFileResources(config)
+        else
+          Map()
+      val programResources = setProgramResources(config)
+
+      fileResources ++ programResources
+    }
+    Map()
 
   }
 

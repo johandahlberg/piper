@@ -37,7 +37,7 @@ object ReportGenerator {
    *
    * @return the current piper version
    */
-  def getPiperVersion(): String = {
+  private def getPiperVersion(): String = {
     val jars = getJarsOnClassPath()
     val pipersJars = jars.filter(s => s.getName().startsWith("piper_")).toSeq
 
@@ -60,7 +60,7 @@ object ReportGenerator {
    * "org.broadinstitute.gatk.engine.CommandLineGATK.version" in
    * the "GATKText.properties" file and used that as the version of GATK.
    */
-  def getGATKVersion(): String = {
+  private def getGATKVersion(): String = {
     val jars = getJarsOnClassPath()
     val gatkJars =
       jars.filter(s => s.getName().contains("GenomeAnalysisTK.jar"))

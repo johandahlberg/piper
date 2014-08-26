@@ -10,6 +10,7 @@ object DeliveryUtils {
     @Input var processedBamFiles: Seq[File],
     @Input var qualityControlFiles: Seq[File],
     @Input var variantCallFiles: Seq[File],
+    @Input var reportFile: File,
     @Output var deliveryDirectory: File)
       extends InProcessFunction {
 
@@ -62,6 +63,7 @@ object DeliveryUtils {
       val realQualityControlDirs = qualityControlFiles.map(
         file => new File(file.getPath().replace(".log", "")))
 
+      createHardLinksForFiles(Seq(reportFile), deliveryDirectory, false)
       createHardLinksForSamples(samples, rawDir)
       createHardLinksForFiles(processedBamFiles, alignedDir)
       createHardLinksForFiles(realQualityControlDirs, qualityControlOutputDir, withWildCard = true)

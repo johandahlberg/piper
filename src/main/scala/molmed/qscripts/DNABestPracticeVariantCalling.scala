@@ -22,6 +22,8 @@ import org.broadinstitute.gatk.queue.function.InProcessFunction
 import molmed.utils.DeliveryUtils
 import molmed.config.FileAndProgramResourceConfig
 import org.broadinstitute.gatk.utils.commandline.Hidden
+import molmed.report.ReportGenerator
+import molmed.config.FileVersionUtilities.ResourceMap
 
 /**
  *
@@ -285,12 +287,30 @@ class DNABestPracticeVariantCalling extends QScript
     processedBamFile: Seq[File],
     qualityControlDir: Seq[File],
     variantCallFiles: Seq[File],
+    reportFile: File,
     deliveryDirectory: File): Unit = {
 
     add(DeliveryUtils.SetupDeliveryStructure(
       samples, processedBamFile,
       qualityControlDir, variantCallFiles,
+      reportFile,
       deliveryDirectory))
+  }
+
+  /**
+   * Generate the report file containing the versions of input files used
+   * and similar information.
+   * @param resourceMap
+   * @param reference
+   * @param reportFile
+   * @return The report file that has been written to.
+   */
+  def createReport(resourceMap: ResourceMap, reference: File, reportFile: File): File = {
+    ReportGenerator.
+      constructDNABestPracticeVariantCallingReport(
+        resourceMap,
+        reference,
+        reportFile)
   }
 
   /**
@@ -327,6 +347,11 @@ class DNABestPracticeVariantCalling extends QScript
     variantCallsOutputDir.mkdirs()
     val miscOutputDir: File = new File(outputDir + "/07_misc")
     miscOutputDir.mkdirs()
+    val logs: File = new File(outputDir + "/logs")
+    logs.mkdirs()
+
+    // The file to which to write the program versions etc. 
+    val reportFile = new File(logs + "/version_report.txt")
 
     /**
      * Setup of resources to use
@@ -337,8 +362,8 @@ class DNABestPracticeVariantCalling extends QScript
     val reference = samples.head._2(0).getReference()
 
     // Get default paths to resources from global config xml
-    if (this.globalConfig.isDefined)
-      this.configureResourcesFromConfigXML(this.globalConfig, notHuman)
+    val resourceMap =
+        this.configureResourcesFromConfigXML(this.globalConfig, notHuman)
 
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
 
@@ -347,6 +372,10 @@ class DNABestPracticeVariantCalling extends QScript
         intervals,
         dbSNP, Some(indels), hapmap, omni, mills, thousandGenomes,
         notHuman)
+
+    // Drop the version report (this will be overwritten each time the 
+    // qscript is run.
+    createReport(resourceMap, reference, reportFile)
 
     /**
      * Define a number of partial functions which will then be chained
@@ -434,7 +463,13 @@ class DNABestPracticeVariantCalling extends QScript
         val finalQC = qualityControl(processedBams, finalAlignmentQCOutputDir)
         val variantCallFiles = variantCalling(processedBams)
 
-        runCreateDelivery(fastqs, processedBams, finalQC, variantCallFiles, deliveryDir)
+        runCreateDelivery(
+            fastqs,
+            processedBams,
+            finalQC, 
+            variantCallFiles,
+            reportFile,
+            deliveryDir)
       }
 
     }
