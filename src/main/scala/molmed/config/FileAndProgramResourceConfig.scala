@@ -81,13 +81,14 @@ trait FileAndProgramResourceConfig {
    * Will load file resources from XML file. Any values set via the
    * commandline will not be overriden by this.
    * @param	xmlFile	A xml file conforming to the specification in GlobalConfigSchema.xsd
-   * @param	notHuman If the studied organism is not human, don't default load
-   * 			     resource files.
+   * @param	doNotLoadDefaultResourceFiles Skip loading the default resource files.
+   * 									  Will only get resource file explicitly from the
+   *                                      commandline.
    * @returns A map from a resource key to a versioned file.
    */
   def configureResourcesFromConfigXML(
     xmlFile: File,
-    notHuman: Boolean = false): ResourceMap = {
+    doNotLoadDefaultResourceFiles: Boolean = false): ResourceMap = {
 
     /**
      * This trait is used to make sure that both programs
@@ -184,22 +185,22 @@ trait FileAndProgramResourceConfig {
       val resourceNameToPathsMap = transformToNamePathMap(resources)
 
       if (this.dbSNP == null)
-        this.dbSNP = getFileFromKey(resourceNameToPathsMap, ResourceNames.DB_SNP)
+        this.dbSNP = getFileFromKey(resourceNameToPathsMap, Constants.DB_SNP)
 
       if (this.indels.isEmpty)
-        this.indels = getFileSeqFromKey(resourceNameToPathsMap, ResourceNames.INDELS)
+        this.indels = getFileSeqFromKey(resourceNameToPathsMap, Constants.INDELS)
 
       if (this.hapmap == null)
-        this.hapmap = getFileFromKey(resourceNameToPathsMap, ResourceNames.HAPMAP)
+        this.hapmap = getFileFromKey(resourceNameToPathsMap, Constants.HAPMAP)
 
       if (this.omni == null)
-        this.omni = getFileFromKey(resourceNameToPathsMap, ResourceNames.OMNI)
+        this.omni = getFileFromKey(resourceNameToPathsMap, Constants.OMNI)
 
       if (this.mills == null)
-        this.mills = getFileFromKey(resourceNameToPathsMap, ResourceNames.MILLS)
+        this.mills = getFileFromKey(resourceNameToPathsMap, Constants.MILLS)
 
       if (this.thousandGenomes == null)
-        this.thousandGenomes = getFileFromKey(resourceNameToPathsMap, ResourceNames.THOUSAND_GENOMES)
+        this.thousandGenomes = getFileFromKey(resourceNameToPathsMap, Constants.THOUSAND_GENOMES)
 
       resourceNameToPathsMap
     }
@@ -222,28 +223,28 @@ trait FileAndProgramResourceConfig {
       val programNameToPathsMap = transformToNamePathMap(programs)
 
       if (this.bwaPath == null)
-        this.bwaPath = getFileFromKey(programNameToPathsMap, ResourceNames.BWA)
+        this.bwaPath = getFileFromKey(programNameToPathsMap, Constants.BWA)
 
       if (this.samtoolsPath == null)
-        this.samtoolsPath = getFileFromKey(programNameToPathsMap, ResourceNames.SAMTOOLS)
+        this.samtoolsPath = getFileFromKey(programNameToPathsMap, Constants.SAMTOOLS)
 
       if (this.qualimapPath == null)
-        this.qualimapPath = getFileFromKey(programNameToPathsMap, ResourceNames.QUALIMAP)
+        this.qualimapPath = getFileFromKey(programNameToPathsMap, Constants.QUALIMAP)
 
       if (this.pathToRNASeQC == null)
-        this.pathToRNASeQC = getFileFromKey(programNameToPathsMap, ResourceNames.RNA_SEQC)
+        this.pathToRNASeQC = getFileFromKey(programNameToPathsMap, Constants.RNA_SEQC)
 
       if (this.syncPath == null)
-        this.syncPath = getFileFromKey(programNameToPathsMap, ResourceNames.FIX_EMPTY_READS)
+        this.syncPath = getFileFromKey(programNameToPathsMap, Constants.FIX_EMPTY_READS)
 
       if (this.cufflinksPath == null)
-        this.cufflinksPath = getFileFromKey(programNameToPathsMap, ResourceNames.CUFFLINKS)
+        this.cufflinksPath = getFileFromKey(programNameToPathsMap, Constants.CUFFLINKS)
 
       if (this.cutadaptPath == null)
-        this.cutadaptPath = getFileFromKey(programNameToPathsMap, ResourceNames.CUTADAPT)
+        this.cutadaptPath = getFileFromKey(programNameToPathsMap, Constants.CUTADAPT)
 
       if (this.tophatPath == null)
-        this.tophatPath = getFileFromKey(programNameToPathsMap, ResourceNames.TOPHAP)
+        this.tophatPath = getFileFromKey(programNameToPathsMap, Constants.TOPHAP)
 
       programNameToPathsMap
 
@@ -256,7 +257,7 @@ trait FileAndProgramResourceConfig {
     reader.close()
 
     val fileResources =
-      if (!notHuman)
+      if (!doNotLoadDefaultResourceFiles)
         setFileResources(config)
       else
         Map()

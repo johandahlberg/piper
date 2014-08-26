@@ -8,7 +8,7 @@ package molmed.config
  * names are consistent across all classes. Use this object to make sure that
  * this is so!
  */
-object ResourceNames {
+object Constants {
 
   val BWA = "bwa"
   val SAMTOOLS = "samtools"
@@ -25,4 +25,6 @@ object ResourceNames {
   val OMNI = "omni"
   val MILLS = "mills"
   val THOUSAND_GENOMES = "thousandGenomes"
+
+  val unknown = "unknown"
 }

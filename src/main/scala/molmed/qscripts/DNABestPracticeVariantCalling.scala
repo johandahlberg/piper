@@ -19,7 +19,6 @@ import molmed.utils.VariantCallerOption
 import molmed.utils.VariantCallingConfig
 import molmed.utils.VariantCallingUtils
 import org.broadinstitute.gatk.queue.function.InProcessFunction
-import java.io.PrintWriter
 import molmed.utils.DeliveryUtils
 import molmed.config.FileAndProgramResourceConfig
 import org.broadinstitute.gatk.utils.commandline.Hidden

@@ -11,19 +11,24 @@ object FileVersionUtilities {
    */
   case class VersionedFile(
     file: File,
-    version: Option[String] = Some("Unknown"))
+    version: Option[String] = Some(Constants.unknown))
 
   implicit def versionedFile2File(x: VersionedFile): File =
     x.file
 
   implicit def seqOfVersionedFile2SeqOfFile(x: Seq[VersionedFile]): Seq[File] =
-    x.map(y => versionedFile2File(y))      
-    
-    
+    x.map(y => versionedFile2File(y))
+
   def fileVersionFromKey(map: ResourceMap, key: String): String = {
-    val versions = map(key).get.flatMap(x => x.version).toSeq
-    assert(versions.size == 1, "Didn't find strictyly one version. Found: " +
-        versions)
-    versions.head
-  }  
+    val versions = multipleFileVersionsFromKey(map, key)
+    if (versions.size == 1)
+      versions.head.version.getOrElse(Constants.unknown)
+    else
+      Constants.unknown
+  }
+
+  def multipleFileVersionsFromKey(map: ResourceMap, key: String): Seq[VersionedFile] = {
+    val versions = map(key).getOrElse(Seq())
+    versions
+  }
 }
