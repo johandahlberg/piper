@@ -20,12 +20,13 @@ import molmed.utils.UppmaxJob
 import molmed.config.UppmaxXMLConfiguration
 import molmed.utils.Uppmaxable
 import molmed.config.FileAndProgramResourceConfig
+import molmed.report.ReportGenerator
 
 class RNACounts
     extends QScript
     with UppmaxXMLConfiguration
     with FileAndProgramResourceConfig {
-  
+
   qscript =>
 
   /**
@@ -173,8 +174,11 @@ class RNACounts
     val uppmaxConfig = loadUppmaxConfigFromXML()
 
     // Get default paths to resources from global config xml
-    if (this.globalConfig.isDefined)
-      this.configureResourcesFromConfigXML(this.globalConfig)
+    // We don't need the default DNA resource files.
+    val resourceMap =
+      this.configureResourcesFromConfigXML(
+        this.globalConfig,
+        doNotLoadDefaultResourceFiles = true)
 
     val sampleMap: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
@@ -183,6 +187,16 @@ class RNACounts
     //Setup TopHat alignment
     val tophatUtils = new TophatAligmentUtils(tophatPath, tophatThreads,
       projectName, uppmaxConfig)
+
+    // Assumes same reference is used for all samples
+    // which should be true when using the new setup format
+    val reference = sampleMap.head._2.head.getReference
+
+    // Create the version report
+    // @TODO Assumes that pipeline_output is the set output path
+    // this should be fixed with a general base path in the future.
+    val reportFile = new File("pipeline_output/logs/version_report.txt")
+    ReportGenerator.constructRNACountsReport(resourceMap, reference, transcripts, maskFile, reportFile)
 
     var qcPlacehodlerList: Seq[File] = Seq()
     var cohortList: Seq[File] = Seq()
