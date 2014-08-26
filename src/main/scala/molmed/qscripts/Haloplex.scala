@@ -41,11 +41,14 @@ import molmed.utils.BwaAln
 import molmed.utils.BedToIntervalUtils
 import org.broadinstitute.gatk.engine.downsampling.DownsampleType
 import org.broadinstitute.gatk.utils.commandline.Hidden
+import molmed.report.ReportGenerator
+import molmed.config.FileAndProgramResourceConfig
 
 /**
  * Haloplex best practice analysis from fastqs to variant calls.
  */
-class Haloplex extends QScript with UppmaxXMLConfiguration {
+class Haloplex extends QScript
+    with UppmaxXMLConfiguration with FileAndProgramResourceConfig {
 
   qscript =>
 
@@ -73,15 +76,6 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
    * Optional Parameters
    * **************************************************************************
    */
-
-  @Input(doc = "The path to the binary of bwa (usually BAM files have already been mapped - but if you want to remap this is the option)", fullName = "path_to_bwa", shortName = "bwa", required = false)
-  var bwaPath: File = _
-
-  @Input(doc = "The path to the binary of samtools", fullName = "path_to_samtools", shortName = "samtools", required = false)
-  var samtoolsPath: File = "samtools"
-
-  @Input(doc = "The path to the binary of butadapt", fullName = "path_to_cutadapt", shortName = "cutadapt", required = false)
-  var cutadaptPath: File = _
 
   @Argument(doc = "Output path for the processed BAM files.", fullName = "output_directory", shortName = "outputDir", required = false)
   var outputDir: String = ""
@@ -200,7 +194,18 @@ class Haloplex extends QScript with UppmaxXMLConfiguration {
     // Get and setup input files
     val uppmaxConfig = loadUppmaxConfigFromXML()
     val haloplexUtils = new HaloplexUtils(uppmaxConfig)
-    val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()
+    val samples: Map[String, Seq[SampleAPI]] = setupReader.getSamples()   
+
+    // Assume that the same reference is used for all samples
+    val reference = samples.head._2.head.getReference
+    
+    // Get default paths to resources from global config xml
+    val resourceMap =
+      this.configureResourcesFromConfigXML(this.globalConfig, false)
+
+    // Create the version report
+    val reportFile = new File(getOutputDir + "logs/version_report.txt")
+    ReportGenerator.constructHaloplexReport(resourceMap, resources, reference, reportFile)
 
     // Run cutadapt    
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
