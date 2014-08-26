@@ -267,7 +267,7 @@ trait FileAndProgramResourceConfig {
 
       val programResources = setProgramResources(config)
 
-      fileResources ++ programResources
+      (fileResources ++ programResources).withDefaultValue(None)
       
     } else
       Map().withDefaultValue(None)
