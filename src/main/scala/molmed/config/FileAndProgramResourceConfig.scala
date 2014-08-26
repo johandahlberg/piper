@@ -268,7 +268,7 @@ trait FileAndProgramResourceConfig {
 
       fileResources ++ programResources
     }
-    Map()
+    Map().withDefaultValue(None)
 
   }
 
