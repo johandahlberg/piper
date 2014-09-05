@@ -98,10 +98,6 @@ class Haloplex extends QScript
   @Argument(doc = "Downsample BQSR to x coverage (can get stuck in high coverage regions).", fullName = "downsample_bsqr", shortName = "dbsqr", required = false)
   var downsampleBQSR: Int = -1
 
-  @Hidden
-  @Input(doc = "Path to the sync script", fullName = "path_to_sync", shortName = "sync", required = false)
-  var pathToSyncScript: File = "resources/FixEmptyReads.pl"
-
   /**
    * Private variables
    */
