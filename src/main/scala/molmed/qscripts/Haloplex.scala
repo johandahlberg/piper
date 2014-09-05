@@ -200,7 +200,7 @@ class Haloplex extends QScript
       this.configureResourcesFromConfigXML(this.globalConfig, false)
 
     // Create the version report
-    val reportFile = new File(getOutputDir + "logs/version_report.txt")
+    val reportFile = new File(getOutputDir + "/logs/version_report.txt")
     ReportGenerator.constructHaloplexReport(resourceMap, resources, reference, reportFile)
 
     // Run cutadapt    
