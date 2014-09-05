@@ -78,7 +78,7 @@ mkdir -p ${LOGS}
 
 piper -S ${SCRIPTS_DIR}/Haloplex.scala \
 	     --xml_input ${PIPELINE_SETUP} \
-     	      --global_config ${_THIS_SCRIPT_LOCATION}/uppmax_global_config.xml \		      
+     	     --global_config ${_THIS_SCRIPT_LOCATION}/uppmax_global_config.xml \
 	     --resources ${GATK_BUNDLE_B37} \
 	     -intervals ${INTERVALS} \
 	     --amplicons ${AMPLICONS} \
