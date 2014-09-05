@@ -139,12 +139,12 @@ class Haloplex extends QScript
         platformUnitOutputDir.mkdirs()
 
         val mate1SyncedFastq = new File(platformUnitOutputDir + "/" + constructTrimmedName(sample.getFastqs.mate1.getName()))
-        add(new generalUtils.cutadapt(readpairContainer.mate1, mate1SyncedFastq, adaptor1, cutadaptPath, pathToSyncScript))
+        add(new generalUtils.cutadapt(readpairContainer.mate1, mate1SyncedFastq, adaptor1, cutadaptPath, syncPath))
 
         val mate2SyncedFastq =
           if (readpairContainer.isMatePaired) {
             val mate2SyncedFastq = new File(platformUnitOutputDir + "/" + constructTrimmedName(sample.getFastqs.mate2.getName()))
-            add(new generalUtils.cutadapt(readpairContainer.mate2, mate2SyncedFastq, adaptor2, cutadaptPath, pathToSyncScript))
+            add(new generalUtils.cutadapt(readpairContainer.mate2, mate2SyncedFastq, adaptor2, cutadaptPath, syncPath))
             mate2SyncedFastq
           } else null
 
