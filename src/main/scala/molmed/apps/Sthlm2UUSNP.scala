@@ -154,7 +154,7 @@ object Sthlm2UUSNP extends App {
 
     val fileName = file.getName()
     val fastqFileRegexp =
-      """^(\w+_\w+)_(\w+(?:-\w+)?)_L(\d+)_R(\d)_(\d+)\.fastq\.gz$""".r
+      """^(.*)_(\w+(?:-\w+)?)_L(\d+)_R(\d)_(\d+)\.fastq\.gz$""".r
 
     val infoAboutSamples = fastqFileRegexp.findAllIn(fileName).
       matchData.map(m => {
