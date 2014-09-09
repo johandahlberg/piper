@@ -21,7 +21,8 @@ object PiperBuild extends Build {
           packMain := Map(
             "piper" -> "org.broadinstitute.gatk.queue.QCommandLine",
             "setupFileCreator" -> "molmed.apps.setupcreator.SetupFileCreator",
-            "sthlm2UUSNP" -> "molmed.apps.Sthlm2UUSNP"))
+            "sthlm2UUSNP" -> "molmed.apps.Sthlm2UUSNP",
+            "reportParser" -> "molmed.apps.ReportParser"))
           ++ dependencies)
     .configs(PipelineTestRun)
     .settings(inConfig(PipelineTestRun)(Defaults.testTasks): _*)
