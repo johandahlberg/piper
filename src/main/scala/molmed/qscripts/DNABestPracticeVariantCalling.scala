@@ -103,9 +103,6 @@ class DNABestPracticeVariantCalling extends QScript
   @Argument(doc = "Downsample fraction of coverage in variant calling. [0.0 - 1.0]", fullName = "downsample_to_fraction", shortName = "dtf", required = false)
   var downsampleFraction: Double = -1
 
-  @Argument(doc = "Remove the raw merged alignment files.", fullName = "remove_raw_merged_alignments", shortName = "rrma", required = false)
-  var removeMergedAlignments: Boolean = false
-
   @Argument(doc = "Indicate if the libraries was prepared using a PCR free library or not.", fullName = "pcr_free_libraries", shortName = "pcrfree", required = false)
   var pcrFreeLibrary: Boolean = false
 
@@ -113,7 +110,7 @@ class DNABestPracticeVariantCalling extends QScript
   var variantCaller: String = "HaplotypeCaller"
 
   @Argument(doc = "Do the aligments and initial quality control.", fullName = "alignment_and_qc", shortName = "doaqc", required = false)
-  var doAlignmentAndQualityControl: Boolean = true
+  var doAlignmentAndQualityControl: Boolean = false
 
   @Argument(doc = "Merge the samples based on their names.", fullName = "merge_alignments", shortName = "dma", required = false)
   var doMergeSamples: Boolean = false
@@ -180,7 +177,11 @@ class DNABestPracticeVariantCalling extends QScript
     val alignmentUtils = new BwaAlignmentUtils(this, bwaPath, nbrOfThreads, samtoolsPath, projectName, uppmaxConfig)
     val sampleNamesAndalignedBamFiles = samples.values.flatten.map(sample =>
       (sample.getSampleName,
-        alignmentUtils.align(sample, alignmentOutputDir, asIntermidate = !doAlignmentAndQualityControl, aligner)))
+        alignmentUtils.align(
+          sample,
+          alignmentOutputDir,
+          asIntermidate = doMergeSamples || doDataProcessing || doVariantCalling || doGenerateDelivery,
+          aligner)))
     val sampleNamesToBamMap = sampleNamesAndalignedBamFiles.groupBy(f => f._1).mapValues(f => f.map(x => x._2).toSeq)
     sampleNamesToBamMap
 
@@ -195,7 +196,7 @@ class DNABestPracticeVariantCalling extends QScript
 
     val mergeFilesUtils = new MergeFilesUtils(this, projectName, uppmaxConfig)
     val mergedBamFiles = mergeFilesUtils.mergeFilesBySampleName(sampleNamesToBamMap,
-      mergedAligmentOutputDir, asIntermediate = removeMergedAlignments)
+      mergedAligmentOutputDir, asIntermediate = doDataProcessing || doVariantCalling || doGenerateDelivery)
     mergedBamFiles
 
   }
@@ -363,7 +364,7 @@ class DNABestPracticeVariantCalling extends QScript
 
     // Get default paths to resources from global config xml
     val resourceMap =
-        this.configureResourcesFromConfigXML(this.globalConfig, notHuman)
+      this.configureResourcesFromConfigXML(this.globalConfig, notHuman)
 
     val generalUtils = new GeneralUtils(projectName, uppmaxConfig)
 
@@ -464,12 +465,12 @@ class DNABestPracticeVariantCalling extends QScript
         val variantCallFiles = variantCalling(processedBams)
 
         runCreateDelivery(
-            fastqs,
-            processedBams,
-            finalQC, 
-            variantCallFiles,
-            reportFile,
-            deliveryDir)
+          fastqs,
+          processedBams,
+          finalQC,
+          variantCallFiles,
+          reportFile,
+          deliveryDir)
       }
 
     }
