@@ -52,6 +52,9 @@ class DNABestPracticeVariantCalling extends QScript
   @Input(doc = "a baits file in Picard interval format format. Used to calculate HSMetrics for exomes.", fullName = "baits_file", shortName = "baits", required = false)
   var baits: File = _
 
+  @Input(doc = "a file with genotyping results (in vcf format). This is optional and is used to check genotype concordance.", fullName = "genotypes", shortName = "gt", required = false)
+  var snpGenotypes: File = _
+
   @Input(doc = "an intervals file to be used by qualimap. (In BED/GFF format)", fullName = "bed_interval_file", shortName = "bed_intervals", required = false)
   var bedIntervals: File = _
 
@@ -207,12 +210,32 @@ class DNABestPracticeVariantCalling extends QScript
   def runQualityControl(
     bamFiles: Seq[File],
     intervalsToUse: Option[File],
+    snpGenotypes: Option[File],
     reference: File,
     aligmentQCOutputDir: File,
-    generalUtils: GeneralUtils): Seq[File] = {
+    generalUtils: GeneralUtils,
+    gatkOptions: GATKConfig,
+    uppmaxConfig: UppmaxConfig): Seq[File] = {
 
     val qualityControlUtils = new AlignmentQCUtils(qscript, projectName, generalUtils, qualimapPath)
     val baseQCOutputFiles = qualityControlUtils.aligmentQC(bamFiles, aligmentQCOutputDir, bedIntervals)
+
+    if (snpGenotypes.isDefined) {
+      val genotypeConcordanceOutputDir = aligmentQCOutputDir + "/genotype_concordance/"
+      genotypeConcordanceOutputDir.mkdirs()
+      qualityControlUtils.checkGenotypeConcordance(
+        bams = bamFiles,
+        outputBase = genotypeConcordanceOutputDir,
+        comparisonVcf = snpGenotypes.get,
+        qscript = this,
+        gatkOptions = gatkOptions,
+        projectName = this.projectName,
+        uppmaxConfig = uppmaxConfig,
+        isLowPass = this.isLowPass,
+        isExome = this.isExome,
+        testMode = this.testMode,
+        minimumBaseQuality = this.minimumBaseQuality)
+    }
 
     /**
      * For exomes, calculate hybrid selection metrics.
@@ -395,8 +418,14 @@ class DNABestPracticeVariantCalling extends QScript
         mergedAligmentOutputDir)
 
     val qualityControl = runQualityControl(
-      _: Seq[File], intervals, reference,
-      _: File, generalUtils)
+      _: Seq[File],
+      intervals,
+      snpGenotypes,
+      reference,
+      _: File,
+      generalUtils,
+      gatkOptions,
+      uppmaxConfig)
 
     val dataProcessing = runDataProcessing(
       _: Seq[File], processedAligmentsOutputDir,

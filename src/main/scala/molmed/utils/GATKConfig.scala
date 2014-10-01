@@ -16,5 +16,5 @@ case class GATKConfig(
   omni: Option[File] = None,
   mills: Option[File] = None,
   thousandGenomes: Option[File] = None,
-  notHuman: Boolean = false
-  )
+  notHuman: Boolean = false,
+  snpGenotypingVcf: Option[File] = None)

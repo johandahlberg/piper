@@ -114,7 +114,8 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
           gatkOptions.reference,
           Seq(bam),
           gatkOptions.intervalFile,
-          config.isLowPass, config.isExome, 1))
+          config.isLowPass, config.isExome, 1,
+          snpGenotypingVcf = gatkOptions.snpGenotypingVcf))
 
       case (true, true) =>
         config.bams.map(bam => new VariantCallingTarget(config.outputDir,
@@ -122,7 +123,8 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
           gatkOptions.reference,
           Seq(bam),
           gatkOptions.intervalFile,
-          config.isLowPass, false, 1))
+          config.isLowPass, false, 1,
+          snpGenotypingVcf = gatkOptions.snpGenotypingVcf))
 
       case (false, true) =>
         Seq(new VariantCallingTarget(config.outputDir,
@@ -130,7 +132,8 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
           gatkOptions.reference,
           config.bams,
           gatkOptions.intervalFile,
-          config.isLowPass, false, config.bams.size))
+          config.isLowPass, false, config.bams.size,
+          snpGenotypingVcf = gatkOptions.snpGenotypingVcf))
 
       case (false, false) =>
         Seq(new VariantCallingTarget(config.outputDir,
@@ -138,7 +141,8 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
           gatkOptions.reference,
           config.bams,
           gatkOptions.intervalFile,
-          config.isLowPass, config.isExome, config.bams.size))
+          config.isLowPass, config.isExome, config.bams.size,
+          snpGenotypingVcf = gatkOptions.snpGenotypingVcf))
     }
 
     // Make sure resource files are available if recalibration is to be performed
@@ -207,7 +211,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     // Make sure we emit a GVCF
     // @TODO make this optional
     this.emitRefConfidence =
-      org.broadinstitute.gatk.tools.walkers.haplotypecaller.ReferenceConfidenceMode.GVCF     
+      org.broadinstitute.gatk.tools.walkers.haplotypecaller.ReferenceConfidenceMode.GVCF
 
     this.variant_index_type =
       org.broadinstitute.gatk.utils.variant.GATKVCFIndexType.LINEAR
@@ -460,6 +464,8 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     // TODO Setup resonable comparisson file
     //if (t.reference == b37 || t.reference == hg19) this.comp :+= new TaggedFile( omni_b37, "omni" )
     this.eval :+= t.recalibratedSnpVCF
+    if (t.snpGenotypingVcf.isDefined)
+      this.eval :+= t.snpGenotypingVcf.get
     this.out = t.evalFile
     override def jobRunnerJobName = projectName.get + "_VEs"
   }

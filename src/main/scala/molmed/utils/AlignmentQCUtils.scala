@@ -42,4 +42,51 @@ class AlignmentQCUtils(
 
     outputFiles
   }
+
+  /**
+   * Check genotype concordance compared to input vcf file
+   *
+   * @param bams			bam files to run qc on
+   * @param outputBase		The path to write the output files to (a lot of different
+   *                    	files with different names starting with that name will be created.
+   * @param comparisonVcf    The genotypes to compare to
+   * @return The resulting evaluation files
+   *
+   */
+  def checkGenotypeConcordance(
+    bams: Seq[File],
+    outputBase: File,
+    comparisonVcf: File,
+    qscript: QScript,
+    gatkOptions: GATKConfig,
+    projectName: Option[String],
+    uppmaxConfig: UppmaxConfig,
+    isLowPass: Boolean,
+    isExome: Boolean,
+    testMode: Boolean,
+    minimumBaseQuality: Option[Int]): Seq[File] = {
+
+    val gatkOptionsWithGenotypingSnp = gatkOptions.copy(snpGenotypingVcf = Some(comparisonVcf))
+    
+    val variantCallingUtils = new VariantCallingUtils(gatkOptionsWithGenotypingSnp, projectName, uppmaxConfig)
+    val variantCallingConfig = new VariantCallingConfig(
+      qscript = qscript,
+      variantCaller = Some(GATKUnifiedGenotyper),
+      bams = bams,
+      outputDir = outputBase,
+      runSeparatly = true,
+      isLowPass = isLowPass,
+      isExome = isExome,
+      noRecal = true,
+      noIndels = true,
+      testMode = testMode,
+      minimumBaseQuality = minimumBaseQuality,
+      noBAQ = true)
+
+    val variantsAndEvalFile = variantCallingUtils.performVariantCalling(variantCallingConfig)
+    variantsAndEvalFile.filter(p => p.getName().endsWith("snp.eval"))
+
+    //@TODO
+    ???
+  }
 }

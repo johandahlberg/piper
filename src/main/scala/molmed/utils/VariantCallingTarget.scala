@@ -12,7 +12,8 @@ class VariantCallingTarget(outputDir: File,
                            val intervals: Option[File],
                            val isLowpass: Boolean,
                            val isExome: Boolean,
-                           val nSamples: Int) {
+                           val nSamples: Int,
+                           val snpGenotypingVcf: Option[File] = None) {
 
   val name = outputDir + "/" + baseName
   val clusterFile = new File(name + ".clusters")
@@ -21,8 +22,8 @@ class VariantCallingTarget(outputDir: File,
   val rawIndelVCF = new File(name + ".raw.indel.vcf")
   val rawCombinedVariants = new File(name + ".raw.vcf")
   val filteredIndelVCF = new File(name + ".filtered.indel.vcf")
-  val recalibratedSnpVCF = new File(name + ".snp.recalibrated.snp.vcf")
-  val recalibratedIndelVCF = new File(name + ".indel.recalibrated.vcf")
+  val recalibratedSnpVCF = new File(name + ".recalibrated.snp.vcf")
+  val recalibratedIndelVCF = new File(name + ".recalibrated.indel.vcf")
   val tranchesSnpFile = new File(name + ".snp.tranches")
   val tranchesIndelFile = new File(name + ".indel.tranches")
   val vqsrSnpRscript: File = new File(name + ".snp.vqsr.r")
