@@ -41,6 +41,10 @@ object SetupFileCreator extends App {
       c.copy(sequencingCenter = Some(x))
     } text ("This is a required argument.")
 
+    opt[String]('q', "qos") optional () valueName ("A optional quality of service (QoS) flag to forward to the cluster.") action { (x, c) =>
+      c.copy(uppmaxQoSFlag = Some(x))
+    } text ("This is a optional argument.")
+
     opt[String]('a', "uppnex_project_id") optional () valueName ("The uppnex project id to charge the core hours to.") action { (x, c) =>
       c.copy(uppmaxProjectId = Some(x))
     } text ("This is a required argument.")
@@ -85,12 +89,12 @@ object SetupFileCreator extends App {
     val (uuFiles, ignFiles) =
       SetupUtils.splitByFormatType(config.fastqFiles.get)
 
-    val projectWithUUSamplesAdded = 
+    val projectWithUUSamplesAdded =
       SetupUtils.createXMLFromUUHierarchy(projectWithMetaData)(uuFiles)
-      
-    val projectWithIGNSamplesAdded = 
+
+    val projectWithIGNSamplesAdded =
       SetupUtils.createXMLFromIGNHierarchy(projectWithUUSamplesAdded)(ignFiles)
-      
+
     SetupUtils.writeToFile(projectWithIGNSamplesAdded, config.outputFile.get)
 
     println("Successfully created: " + config.outputFile.get + ".")
