@@ -85,8 +85,5 @@ class AlignmentQCUtils(
 
     val variantsAndEvalFile = variantCallingUtils.performVariantCalling(variantCallingConfig)
     variantsAndEvalFile.filter(p => p.getName().endsWith("snp.eval"))
-
-    //@TODO
-    ???
   }
 }
