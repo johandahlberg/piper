@@ -33,7 +33,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
           config.qscript.add(new IndelRecalibration(target))
           config.qscript.add(new IndelCut(target))
         }
-        config.qscript.add(new IndelEvaluation(target))
+        config.qscript.add(new IndelEvaluation(target, config.noRecal))
       }
       // SNP calling, recalibration and evaluation
       config.qscript.add(new UnifiedGenotyperSnpCall(
@@ -46,7 +46,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
         config.qscript.add(new SnpCut(target))
       }
 
-      config.qscript.add(new SnpEvaluation(target))
+      config.qscript.add(new SnpEvaluation(target, config.noRecal))
 
       Seq(target.rawSnpVCF, target.rawIndelVCF, target.evalFile, target.evalIndelFile)
     }
@@ -95,12 +95,13 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
       if (!config.noRecal) {
         config.qscript.add(new SnpRecalibration(target))
         config.qscript.add(new SnpCut(target))
-        config.qscript.add(new SnpEvaluation(target))
 
         config.qscript.add(new IndelRecalibration(target))
         config.qscript.add(new IndelCut(target))
-        config.qscript.add(new IndelEvaluation(target))
       }
+      
+      config.qscript.add(new SnpEvaluation(target, config.noRecal))
+      config.qscript.add(new IndelEvaluation(target, config.noRecal))
 
       Seq(target.rawCombinedVariants, target.evalFile, target.evalIndelFile)
 
@@ -461,8 +462,9 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
   }
 
   // 5a.) SNP Evaluation (OPTIONAL) based on the cut vcf
-  class SnpEvaluation(t: VariantCallingTarget) extends EvalBase(t) {
-    this.eval :+= t.recalibratedSnpVCF
+  class SnpEvaluation(t: VariantCallingTarget, noRecal: Boolean) extends EvalBase(t) {
+    if (!noRecal)
+      this.eval :+= t.recalibratedSnpVCF
     this.eval :+= t.rawSnpVCF
     if (t.snpGenotypingVcf.isDefined)
       this.eval :+= t.snpGenotypingVcf.get
@@ -471,8 +473,9 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
   }
 
   // 5b.) Indel Evaluation (OPTIONAL)
-  class IndelEvaluation(t: VariantCallingTarget) extends EvalBase(t) {
-    this.eval :+= t.recalibratedIndelVCF
+  class IndelEvaluation(t: VariantCallingTarget, noRecal: Boolean) extends EvalBase(t) {
+    if (!noRecal)
+      this.eval :+= t.recalibratedIndelVCF
     this.eval :+= t.rawIndelVCF
 
     this.noEV = true
