@@ -32,8 +32,8 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
         if (!config.noRecal) {
           config.qscript.add(new IndelRecalibration(target))
           config.qscript.add(new IndelCut(target))
-          config.qscript.add(new IndelEvaluation(target))
         }
+        config.qscript.add(new IndelEvaluation(target))
       }
       // SNP calling, recalibration and evaluation
       config.qscript.add(new UnifiedGenotyperSnpCall(
@@ -44,8 +44,9 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
       if (!config.noRecal) {
         config.qscript.add(new SnpRecalibration(target))
         config.qscript.add(new SnpCut(target))
-        config.qscript.add(new SnpEvaluation(target))
       }
+
+      config.qscript.add(new SnpEvaluation(target))
 
       Seq(target.rawSnpVCF, target.rawIndelVCF, target.evalFile, target.evalIndelFile)
     }
@@ -461,9 +462,8 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
   // 5a.) SNP Evaluation (OPTIONAL) based on the cut vcf
   class SnpEvaluation(t: VariantCallingTarget) extends EvalBase(t) {
-    // TODO Setup resonable comparisson file
-    //if (t.reference == b37 || t.reference == hg19) this.comp :+= new TaggedFile( omni_b37, "omni" )
     this.eval :+= t.recalibratedSnpVCF
+    this.eval :+= t.rawSnpVCF
     if (t.snpGenotypingVcf.isDefined)
       this.eval :+= t.snpGenotypingVcf.get
     this.out = t.evalFile
@@ -473,12 +473,9 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
   // 5b.) Indel Evaluation (OPTIONAL)
   class IndelEvaluation(t: VariantCallingTarget) extends EvalBase(t) {
     this.eval :+= t.recalibratedIndelVCF
+    this.eval :+= t.rawIndelVCF
 
-    // TODO Setup resonable comparisson file
-    //this.comp :+= new TaggedFile(indelGoldStandardCallset, "indelGS" )
     this.noEV = true
-    //TODO Check, if no eval modules are assigned, the standard ones are used.
-    //this.evalModule = List("CompOverlap", "CountVariants", "TiTvVariantEvaluator", "ValidationReport", "IndelStatistics")
     this.out = t.evalIndelFile
     override def jobRunnerJobName = projectName.get + "_VEi"
   }
