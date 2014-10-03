@@ -467,7 +467,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
       this.eval :+= t.recalibratedSnpVCF
     this.eval :+= t.rawSnpVCF
     if (t.snpGenotypingVcf.isDefined)
-      this.eval :+= t.snpGenotypingVcf.get
+      this.comp :+= t.snpGenotypingVcf.get
     this.out = t.evalFile
     override def jobRunnerJobName = projectName.get + "_VEs"
   }
