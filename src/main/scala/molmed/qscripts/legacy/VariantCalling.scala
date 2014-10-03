@@ -137,7 +137,7 @@ class VariantCalling extends QScript with UppmaxXMLConfiguration {
           if (!noRecal) {
             add(new variantCallingUtils.IndelRecalibration(target))
             add(new variantCallingUtils.IndelCut(target))
-            add(new variantCallingUtils.IndelEvaluation(target))
+            add(new variantCallingUtils.IndelEvaluation(target, noRecal))
           }
         }
         // SNP calling, recalibration and evaluation
@@ -145,7 +145,7 @@ class VariantCalling extends QScript with UppmaxXMLConfiguration {
         if (!noRecal) {
           add(new variantCallingUtils.SnpRecalibration(target))
           add(new variantCallingUtils.SnpCut(target))
-          add(new variantCallingUtils.SnpEvaluation(target))
+          add(new variantCallingUtils.SnpEvaluation(target, noRecal))
         }
       }
     }
