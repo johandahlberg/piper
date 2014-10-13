@@ -514,7 +514,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     override def jobRunnerJobName = projectName.get + "_VEi"
   }
 
-  class SNPGenotypeConcordance(t: VariantCallingTarget) extends GenotypeConcordance {
+  class SNPGenotypeConcordance(t: VariantCallingTarget) extends GenotypeConcordance with CommandLineGATKArgs with OneCoreJob {
     this.eval = t.rawSnpVCF
     this.comp = TaggedFile(t.snpGenotypingVcf.get, "chip_genotypes")
     this.out = t.genotypeConcordance
