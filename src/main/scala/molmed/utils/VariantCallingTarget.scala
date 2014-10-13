@@ -32,4 +32,6 @@ class VariantCallingTarget(outputDir: File,
   val recalIndelFile = new File(name + ".indel.tranches.recal")
   val evalFile = new File(name + ".snp.eval")
   val evalIndelFile = new File(name + ".indel.eval")
+  val genotypeConcordance = new File(name + ".genotypeconcordance.txt")
+  
 }

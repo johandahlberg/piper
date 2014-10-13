@@ -83,7 +83,7 @@ class AlignmentQCUtils(
       minimumBaseQuality = minimumBaseQuality,
       noBAQ = true)
 
-    val variantsAndEvalFile = variantCallingUtils.performVariantCalling(variantCallingConfig)
-    variantsAndEvalFile.filter(p => p.getName().endsWith("snp.eval"))
+    val concordanceFiles = variantCallingUtils.checkGenotypeConcordance(variantCallingConfig)
+    concordanceFiles
   }
 }

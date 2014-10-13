@@ -11,6 +11,7 @@ import org.broadinstitute.gatk.queue.QScript
 import org.broadinstitute.gatk.queue.extensions.gatk.HaplotypeCaller
 import org.broadinstitute.gatk.queue.extensions.gatk.GenotypeGVCFs
 import org.broadinstitute.gatk.queue.extensions.gatk.SelectVariants
+import org.broadinstitute.gatk.queue.extensions.gatk.GenotypeConcordance
 
 /**
  * Wrapping case classed and functions for doing variant calling using the GATK.
@@ -18,6 +19,36 @@ import org.broadinstitute.gatk.queue.extensions.gatk.SelectVariants
  * Contains code both to use the Unified genotyper and the Haplotype caller.
  */
 class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], uppmaxConfig: UppmaxConfig) extends GATKUtils(gatkOptions, projectName, uppmaxConfig) {
+
+  def checkGenotypeConcordance(config: VariantCallingConfig): Seq[File] = {
+
+    val targets =
+      config.bams.map(bam => new VariantCallingTarget(config.outputDir,
+        bam.getName(),
+        gatkOptions.reference,
+        Seq(bam),
+        gatkOptions.intervalFile,
+        config.isLowPass, config.isExome, 1,
+        snpGenotypingVcf = gatkOptions.snpGenotypingVcf))
+
+    for (target <- targets) yield {
+
+      config.qscript.add(
+        new UnifiedGenotyperSnpCall(
+          target,
+          config.testMode,
+          config.downsampleFraction,
+          config.minimumBaseQuality,
+          config.deletions,
+          config.noBAQ))
+
+      config.qscript.add(
+        new SNPGenotypeConcordance(target))
+
+      target.genotypeConcordance
+    }
+
+  }
 
   def performVariantCalling(config: VariantCallingConfig): Seq[File] = {
 
@@ -99,7 +130,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
         config.qscript.add(new IndelRecalibration(target))
         config.qscript.add(new IndelCut(target))
       }
-      
+
       config.qscript.add(new SnpEvaluation(target, config.noRecal))
       config.qscript.add(new IndelEvaluation(target, config.noRecal))
 
@@ -481,6 +512,12 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     this.noEV = true
     this.out = t.evalIndelFile
     override def jobRunnerJobName = projectName.get + "_VEi"
+  }
+
+  class SNPGenotypeConcordance(t: VariantCallingTarget) extends GenotypeConcordance {
+    this.eval = t.rawSnpVCF
+    this.comp = TaggedFile(t.snpGenotypingVcf.get, "chip_genotypes")
+    this.out = t.genotypeConcordance
   }
 
 }

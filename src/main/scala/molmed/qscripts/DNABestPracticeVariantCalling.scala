@@ -213,6 +213,7 @@ class DNABestPracticeVariantCalling extends QScript
     snpGenotypes: Option[File],
     reference: File,
     aligmentQCOutputDir: File,
+    genotypeConcordanceOutputDir: File,
     generalUtils: GeneralUtils,
     gatkOptions: GATKConfig,
     uppmaxConfig: UppmaxConfig): Seq[File] = {
@@ -221,8 +222,6 @@ class DNABestPracticeVariantCalling extends QScript
     val baseQCOutputFiles = qualityControlUtils.aligmentQC(bamFiles, aligmentQCOutputDir, bedIntervals)
 
     if (snpGenotypes.isDefined) {
-      val genotypeConcordanceOutputDir = aligmentQCOutputDir + "/genotype_concordance/"
-      genotypeConcordanceOutputDir.mkdirs()
       qualityControlUtils.checkGenotypeConcordance(
         bams = bamFiles,
         outputBase = genotypeConcordanceOutputDir,
@@ -361,15 +360,17 @@ class DNABestPracticeVariantCalling extends QScript
     alignmentOutputDir.mkdirs()
     val preliminaryAlignmentQCOutputDir: File = new File(outputDir + "/02_preliminary_alignment_qc")
     preliminaryAlignmentQCOutputDir.mkdirs()
-    val mergedAligmentOutputDir: File = new File(outputDir + "/03_merged_aligments")
+    val genotypeConcordanceOutputDir: File = new File(outputDir + "/03_genotype_concordance")
+    genotypeConcordanceOutputDir.mkdirs()
+    val mergedAligmentOutputDir: File = new File(outputDir + "/04_merged_aligments")
     mergedAligmentOutputDir.mkdirs()
-    val processedAligmentsOutputDir: File = new File(outputDir + "/04_processed_alignments")
+    val processedAligmentsOutputDir: File = new File(outputDir + "/05_processed_alignments")
     processedAligmentsOutputDir.mkdirs()
-    val finalAlignmentQCOutputDir: File = new File(outputDir + "/05_final_alignment_qc")
+    val finalAlignmentQCOutputDir: File = new File(outputDir + "/06_final_alignment_qc")
     finalAlignmentQCOutputDir.mkdirs()
-    val variantCallsOutputDir: File = new File(outputDir + "/06_variant_calls")
+    val variantCallsOutputDir: File = new File(outputDir + "/07_variant_calls")
     variantCallsOutputDir.mkdirs()
-    val miscOutputDir: File = new File(outputDir + "/07_misc")
+    val miscOutputDir: File = new File(outputDir + "/08_misc")
     miscOutputDir.mkdirs()
     val logs: File = new File(outputDir + "/logs")
     logs.mkdirs()
@@ -423,6 +424,7 @@ class DNABestPracticeVariantCalling extends QScript
       snpGenotypes,
       reference,
       _: File,
+      genotypeConcordanceOutputDir,
       generalUtils,
       gatkOptions,
       uppmaxConfig)
