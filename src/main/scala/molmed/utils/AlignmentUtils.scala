@@ -182,9 +182,9 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
       }
       case Some(BwaMem) => {
         if (fastqs.isMatePaired) {
-          qscript.add(bwa_mem(fastqs.mate1, Some(fastqs.mate2), alignedBamFile, readGroupInfo, reference, intermediate = isIntermediateAlignment))
+          qscript.add(bwa_mem(fastqs.mate1, Some(fastqs.mate2), alignedBamFile, readGroupInfo, reference, bwaThreads, intermediate = isIntermediateAlignment))
         } else {
-          qscript.add(bwa_mem(fastqs.mate1, None, alignedBamFile, readGroupInfo, reference, intermediate = isIntermediateAlignment))
+          qscript.add(bwa_mem(fastqs.mate1, None, alignedBamFile, readGroupInfo, reference, bwaThreads, intermediate = isIntermediateAlignment))
         }
       }
       case None => throw new Exception("No Aligner was set in performAlignment(...)!")

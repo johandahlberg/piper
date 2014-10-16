@@ -229,8 +229,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     if (!t.intervals.isEmpty) this.intervals :+= t.intervals.get
     this.scatterCount = gatkOptions.scatterGatherCount.get
 
-    //@TODO figure out if this is reasonable or not!
-    this.nct = Some(16)
+    this.nct = gatkOptions.nbrOfThreads
 
     this.stand_call_conf = Some(30.0)
     this.stand_emit_conf = Some(10.0)
