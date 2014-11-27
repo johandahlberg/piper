@@ -32,7 +32,7 @@ class GATKUtils(gatkOptions: GATKConfig, projectName: Option[String], uppmaxConf
 
   case class target(inBams: Seq[File], outIntervals: File, @Argument cleanModelEnum: ConsensusDeterminationModel) extends RealignerTargetCreator with CommandLineGATKArgs with TwoCoreJob {
 
-    this.num_threads = Option(2)
+    this.num_threads = gatkOptions.nbrOfThreads
 
     if (cleanModelEnum != ConsensusDeterminationModel.KNOWNS_ONLY)
       this.input_file = inBams
