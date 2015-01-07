@@ -4,6 +4,7 @@ import java.io.File
 import htsjdk.samtools.SAMFileHeader
 import htsjdk.samtools.SAMFileReader
 import scala.collection.JavaConversions._
+import htsjdk.samtools.SamReaderFactory
 
 /**
  * Contains functions to extract read group information from a bam file.
@@ -11,13 +12,15 @@ import scala.collection.JavaConversions._
 object ReadGroupUtils {
 
   /**
+   * Get the SAMFileHeader from a bam/sam file.
    * @param bam		a bam file
    * @return the SAMFileHeader
    */
   def getSamHeaderFromFile(bam: File): SAMFileHeader = {
-    val samFileReader = new SAMFileReader(bam)
-    val samHeader = samFileReader.getFileHeader()
-    samHeader
+
+    val samReaderFactory = SamReaderFactory.makeDefault()
+    val samReader = samReaderFactory.open(bam)
+    samReader.getFileHeader
   }
 
   /**

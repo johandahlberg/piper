@@ -28,7 +28,6 @@ import molmed.utils.Resources
 import molmed.utils.GeneralUtils._
 import htsjdk.samtools.SAMFileHeader
 import htsjdk.samtools.SAMFileHeader.SortOrder
-import htsjdk.samtools.SAMFileReader
 import htsjdk.samtools.SAMTextHeaderCodec
 import molmed.utils.ReadGroupUtils._
 import molmed.utils.Uppmaxable

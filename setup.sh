@@ -44,7 +44,7 @@ download_and_install_gatk()
   cd $GATK_INSTALL_DIR
 
   # Validated gatk-version
-  git checkout 323f22f852c90a6cf53ece5e72c165b1166ad8c7
+  git checkout eee94ec81f721044557f590c62aeea6880afd927
   check_errs $? "git checkout FAILED"
 
   mvn package
