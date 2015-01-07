@@ -2,15 +2,13 @@ package molmed.utils
 
 import java.io.File
 import java.io.PrintWriter
-
 import scala.collection.JavaConversions.seqAsJavaList
 import scala.io.Source
-
 import org.broadinstitute.gatk.queue.function.InProcessFunction
-
 import htsjdk.samtools.SAMFileHeader
 import htsjdk.samtools.SAMFileReader
 import htsjdk.samtools.SAMTextHeaderCodec
+import htsjdk.samtools.SamReaderFactory
 
 object BedToIntervalUtils {
 
@@ -47,14 +45,9 @@ object BedToIntervalUtils {
           split.length)
     }
 
-    def writeIntervals(bed: File, intervalFile: File, bam: File, formatFrom: Array[String] => String): Unit = {
+    def writeIntervals(bed: File, intervalFile: File, bam: File, formatFrom: Array[String] => String): Unit = {     
 
-      def getSamHeader(bam: File): SAMFileHeader = {
-        val samReader = new SAMFileReader(bam)
-        samReader.getFileHeader
-      }
-
-      val header = getSamHeader(bam)
+      val header = ReadGroupUtils.getSamHeaderFromFile(bam)
       header.setProgramRecords(List())
       header.setReadGroups(List())
 
