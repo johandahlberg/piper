@@ -17,12 +17,14 @@ class AlignmentQCUtils(
    * @param outputBase		The path to write the output files to (a lot of different
    *                    	files with different names starting with that name will be created.
    * @param intervalFile    BED or GFF formatted interval file
+   * @param isHuman    		Decide if gc content (and possibly other things) should be compared to expected distribution for human.
    * @return The base name for the qc files.
    *
    */
   def aligmentQC(
     bams: Seq[File],
     outputBase: File,
+    isHuman: Boolean,
     intervalFile: Option[File] = None): Seq[File] = {
 
     // Run QC for each of them and output to a separate dir for each sample.
@@ -36,6 +38,7 @@ class AlignmentQCUtils(
             baseName,
             logFile,
             pathToQualimap,
+            isHuman,
             intervalFile))
         logFile
       }

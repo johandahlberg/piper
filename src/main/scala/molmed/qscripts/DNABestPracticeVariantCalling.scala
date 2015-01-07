@@ -219,7 +219,7 @@ class DNABestPracticeVariantCalling extends QScript
     uppmaxConfig: UppmaxConfig): Seq[File] = {
 
     val qualityControlUtils = new AlignmentQCUtils(qscript, projectName, generalUtils, qualimapPath)
-    val baseQCOutputFiles = qualityControlUtils.aligmentQC(bamFiles, aligmentQCOutputDir, bedIntervals)
+    val baseQCOutputFiles = qualityControlUtils.aligmentQC(bamFiles, aligmentQCOutputDir, !notHuman, bedIntervals)
 
     if (snpGenotypes.isDefined) {
       qualityControlUtils.checkGenotypeConcordance(

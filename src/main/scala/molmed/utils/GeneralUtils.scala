@@ -235,6 +235,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
    * @param outputBase 		the folder where the output files will end up
    * @param logFile 		the path to output the log file to
    * @param pathToQualimap  path to the qualimap program
+   * @param isHuman			indicate if gc-content should be compared to human distribution or not.
    * @param intervalFile	Optional interval file in BED or GFF format to
    * 						output statistics for targeted regions.
    */
@@ -243,6 +244,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     @Output outputBase: File,
     @Output logFile: File,
     @Argument pathToQualimap: File,
+    @Argument isHuman: Boolean,
     @Argument(required = false) intervalFile: Option[File] = None)
       extends EightCoreJob {
 
@@ -255,6 +257,12 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
       else
         ""
 
+    def compareGCString = 
+      if(isHuman)
+        "--genome-gc-distr HUMAN"
+      else 
+        ""
+        
     override def commandLine =
       pathToQualimap + " " +
         " --java-mem-size=64G " +

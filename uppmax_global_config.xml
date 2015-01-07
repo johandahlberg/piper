@@ -13,8 +13,8 @@
         </program>
         <program>
             <name>qualimap</name>
-	    <path>/proj/a2009002/piper_resources/programs/qualimap_v1.0/qualimap</path>
-	    <version>v1.0</version>
+	    <path>/proj/a2009002/piper_resources/programs/qualimap_v2.0/qualimap</path>
+	    <version>v2.0</version>
         </program>
 	<program>
             <name>RNA-SeQC</name>
