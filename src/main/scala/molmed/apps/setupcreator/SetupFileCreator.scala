@@ -67,11 +67,16 @@ object SetupFileCreator extends App {
 
     if (allFieldsAreSet)
       createSetupFile(config)
-    else
+    else {
       parser.showUsage
+      System.exit(1)
+    }
+      
+      
 
   } getOrElse {
     // arguments are bad, usage message will have been displayed
+    System.exit(1)
   }
 
   def createSetupFile(config: Config): Unit = {
