@@ -45,6 +45,11 @@
             <name>fixemptyreads</name>
 	    <path>/data/programs/FixEmptyReads.pl</path>
 	    <version>1.0</version>
+          </program>
+        <program>
+            <name>snpEff</name>
+            <path>/data/programs/snpEff/snpEff</path>
+	    <version>4.0</version>
         </program>
     </programs>
     <resources>

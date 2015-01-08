@@ -46,6 +46,11 @@
 	    <path>/proj/a2014205/piper_resources/programs/FixEmptyReads.pl</path>
 	    <version>1.0</version>
         </program>
+        <program>
+            <name>snpEff</name>
+            <path>/sw/apps/bioinfo/snpEff/4.0/nestor/scripts/snpEff</path>
+	    <version>4.0</version>
+        </program>
     </programs>
     <resources>
         <resource>
