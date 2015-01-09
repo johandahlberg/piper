@@ -84,7 +84,8 @@ class AlignmentQCUtils(
       noIndels = true,
       testMode = testMode,
       minimumBaseQuality = minimumBaseQuality,
-      noBAQ = true)
+      noBAQ = true,
+      skipAnnotation = true)
 
     val concordanceFiles = variantCallingUtils.checkGenotypeConcordance(variantCallingConfig)
     concordanceFiles

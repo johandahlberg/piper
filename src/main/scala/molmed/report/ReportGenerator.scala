@@ -164,6 +164,7 @@ Piper is a pipeline system developed and maintained at the National Genomics Inf
     val samtoolsVersion = fileVersionFromKey(resourceMap, Constants.SAMTOOLS)
     val qualimapVersion = fileVersionFromKey(resourceMap, Constants.QUALIMAP)
     val gatkVersion = getGATKVersion()
+    val snpEffVersion = fileVersionFromKey(resourceMap, Constants.SNP_EFF)
 
     val referenceName = reference.getName()
     val dbSNPVersion = fileVersionFromKey(resourceMap, Constants.DB_SNP)
@@ -183,13 +184,14 @@ Piper is a pipeline system developed and maintained at the National Genomics Inf
 README
 ******
 
-Data has been aligned to to the reference using bwa. The raw alignments have then been deduplicated, recalibrated and cleaned using GATK. Quality control information was gathered using Qualimap. Finally SNVs and indels have been called using the HaplotypeCaller. The pipeline used was Piper, see below for more information.
+Data has been aligned to to the reference using bwa. The raw alignments have then been deduplicated, recalibrated and cleaned using GATK. Quality control information was gathered using Qualimap. SNVs and indels have been called using the HaplotypeCaller. These variants were then funcionally annotated using snpEff. The pipeline used was Piper, see below for more information.
 
 The versions of programs and references used:
 piper: $piperVersion
 bwa: $bwaVersion
 samtools: $samtoolsVersion
-qualimap: $qualimapVersion     
+qualimap: $qualimapVersion
+snpEff: $snpEffVersion
 gatk: $gatkVersion
 
 reference: $referenceName

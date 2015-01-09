@@ -97,6 +97,9 @@ class DNABestPracticeVariantCalling extends QScript
   @Argument(fullName = "skip_recalibration", shortName = "noRecal", doc = "Skip recalibration of variants", required = false)
   var noRecal: Boolean = false
 
+  @Argument(fullName = "skip_annotation", shortName = "noAnnotation", doc = "Skip the snpEff annotation step", required = false)
+  var skipAnnotation: Boolean = false
+
   @Argument(shortName = "mbq", doc = "The minimum Phred-Scaled quality score threshold to be considered a good base in variant calling", required = false)
   var minimumBaseQuality: Int = -1
 
@@ -297,7 +300,11 @@ class DNABestPracticeVariantCalling extends QScript
       minimumBaseQuality,
       deletions,
       noBAQ,
-      Some(pcrFreeLibrary))
+      Some(pcrFreeLibrary),
+      snpEffPath,
+      snpEffConfigPath,
+      Some(snpEffReference),
+      skipAnnotation)
 
     variantCallingUtils.performVariantCalling(variantCallingConfig)
   }

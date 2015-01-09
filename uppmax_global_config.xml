@@ -87,6 +87,10 @@
             <name>thousandGenomes</name>
             <path>/proj/a2014205/piper_references/gatk_bundle/2.8/b37/1000G_phase1.snps.high_confidence.b37.vcf</path>
 	    <version>gatk-bundle/2.8</version>
+          </resource>
+        <resource>
+            <name>snpEffReference</name>
+	    <version>GRCh37.75</version>
         </resource>
     </resources>
 </globalConfig>

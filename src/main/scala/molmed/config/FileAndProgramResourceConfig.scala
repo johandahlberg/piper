@@ -41,8 +41,11 @@ trait FileAndProgramResourceConfig {
   @Input(doc = "Mills indel file to use with variant recalibration", fullName = "mills", shortName = "mi", required = false)
   var mills: File = _
 
-  @Input(doc = "1000 Genomes high confidence SNP  file to use with variant recalibration", fullName = "thousandGenomes", shortName = "tg", required = false)
+  @Input(doc = "1000 Genomes high confidence SNP file to use with variant recalibration", fullName = "thousandGenomes", shortName = "tg", required = false)
   var thousandGenomes: File = _
+
+  @Argument(doc = "snpEff reference to use", fullName = "snpEff_reference", shortName = "snpEffRef", required = false)
+  var snpEffReference: String = _
 
   /**
    * Paths to programs
@@ -71,6 +74,13 @@ trait FileAndProgramResourceConfig {
 
   @Input(doc = "The path to the binary of tophat", fullName = "path_to_tophat", shortName = "tophat", required = false)
   var tophatPath: File = _
+
+  @Input(doc = "The path to the start-up script of snpEff", fullName = "path_to_snpeff", shortName = "snpEff", required = false)
+  var snpEffPath: File = _
+
+  // Please not that this has no override in the xml file, but has to be overriden from the commandline if this is necessary.
+  @Argument(doc = "The path to snpEff config", fullName = "path_to_snpeff_config", shortName = "snpEffConf", required = false)
+  var snpEffConfigPath: File = _
 
   /**
    * Implicitly convert any File to Option File, as necessary.
@@ -203,6 +213,9 @@ trait FileAndProgramResourceConfig {
       if (this.thousandGenomes == null)
         this.thousandGenomes = getFileFromKey(resourceNameToPathsMap, Constants.THOUSAND_GENOMES)
 
+      if (this.snpEffReference == null)
+        this.snpEffReference = getVersionFromKey(resourceNameToPathsMap, Constants.SNP_EFF_REFERENCE).get
+
       resourceNameToPathsMap
     }
 
@@ -247,6 +260,9 @@ trait FileAndProgramResourceConfig {
       if (this.tophatPath == null)
         this.tophatPath = getFileFromKey(programNameToPathsMap, Constants.TOPHAP)
 
+      if (this.snpEffPath == null)
+        this.snpEffPath = getFileFromKey(programNameToPathsMap, Constants.SNP_EFF)
+
       programNameToPathsMap
 
     }
@@ -268,7 +284,7 @@ trait FileAndProgramResourceConfig {
       val programResources = setProgramResources(config)
 
       (fileResources ++ programResources).withDefaultValue(None)
-      
+
     } else
       Map().withDefaultValue(None)
 

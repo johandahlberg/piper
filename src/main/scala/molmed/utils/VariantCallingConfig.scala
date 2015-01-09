@@ -29,6 +29,10 @@ case object GATKHaplotypeCaller extends VariantCallerOption
  * @param deletions			maximum number of deletions at site to call snp (Default: None)
  * @param noBAQ				skip BAQ calculations
  * @param pcrFree				Indicated if the library was prepared using PCR or not (Default: None).
+ * @param snpEffPath		Path to the startup script of snpEff
+ * @param snpEffConfigPath  Path to snpEff config file
+ * @param snpEffReference   The snpEff reference to use. E.g. "GRCh37.75"
+ * @param skipAnnotation   Skip the annotation process
  */
 case class VariantCallingConfig(qscript: QScript,
 								variantCaller: Option[VariantCallerOption] = Some(GATKHaplotypeCaller),
@@ -44,4 +48,8 @@ case class VariantCallingConfig(qscript: QScript,
                                 minimumBaseQuality: Option[Int] = None,
                                 deletions: Option[Double] = None,
                                 noBAQ: Boolean,
-                                pcrFree: Option[Boolean] = None)
+                                pcrFree: Option[Boolean] = None,
+                                snpEffPath: Option[File] = None,
+                                snpEffConfigPath: Option[File] = None,
+                                snpEffReference: Option[String] = None,
+                                skipAnnotation: Boolean)

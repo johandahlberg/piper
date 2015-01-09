@@ -12,6 +12,7 @@ import org.broadinstitute.gatk.queue.extensions.gatk.HaplotypeCaller
 import org.broadinstitute.gatk.queue.extensions.gatk.GenotypeGVCFs
 import org.broadinstitute.gatk.queue.extensions.gatk.SelectVariants
 import org.broadinstitute.gatk.queue.extensions.gatk.GenotypeConcordance
+import org.broadinstitute.gatk.queue.function.CommandLineFunction
 
 /**
  * Wrapping case classed and functions for doing variant calling using the GATK.
@@ -50,93 +51,111 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
   }
 
-  def performVariantCalling(config: VariantCallingConfig): Seq[File] = {
+  /**
+   * Utility function for performing the variant calling workflow associated
+   * with the HaploTypeCaller
+   */
+  def variantCallUsingHaplotypeCaller(
+    target: VariantCallingTarget,
+    config: VariantCallingConfig): Seq[File] = {
 
-    /**
-     * Utility function for performing the variant calling workflow associated
-     * with the UnifiedGenotyper
-     */
-    def variantCallUsingUnifiedGenotyper(target: VariantCallingTarget): Seq[File] = {
-      if (!config.noIndels) {
-        // Indel calling, recalibration and evaulation
-        config.qscript.add(new UnifiedGenotyperIndelCall(target, config.testMode, config.downsampleFraction))
-        if (!config.noRecal) {
-          config.qscript.add(new IndelRecalibration(target))
-          config.qscript.add(new IndelCut(target))
-        }
-        config.qscript.add(new IndelEvaluation(target, config.noRecal))
-      }
-      // SNP calling, recalibration and evaluation
-      config.qscript.add(new UnifiedGenotyperSnpCall(
-        target, config.testMode,
-        config.downsampleFraction, config.minimumBaseQuality,
-        config.deletions, config.noBAQ))
+    // Call variants separately and merge into one vcf file
+    // if the pipeline is set to run a combined analysis.
+    if (target.nSamples > 1) {
+      val gVcfFiles =
+        target.bamList.map(bam => {
 
-      if (!config.noRecal) {
-        config.qscript.add(new SnpRecalibration(target))
-        config.qscript.add(new SnpCut(target))
-      }
+          val modifiedTarget =
+            new VariantCallingTarget(config.outputDir,
+              bam.getName(),
+              gatkOptions.reference,
+              Seq(bam),
+              gatkOptions.intervalFile,
+              config.isLowPass, config.isExome, 1)
 
-      config.qscript.add(new SnpEvaluation(target, config.noRecal))
-
-      Seq(target.rawSnpVCF, target.rawIndelVCF, target.evalFile, target.evalIndelFile)
+          config.qscript.add(new HaplotypeCallerBase(modifiedTarget, config.testMode, config.downsampleFraction, config.pcrFree))
+          modifiedTarget.gVCFFile
+        })
+      config.qscript.add(new GenotypeGVCF(gVcfFiles, target, config.testMode))
+    } else {
+      // If the pipeline is setup to run each sample individually, 
+      // output one final vcf file per sample.
+      config.qscript.add(new HaplotypeCallerBase(target, config.testMode, config.downsampleFraction, config.pcrFree))
+      config.qscript.add(new GenotypeGVCF(Seq(target.gVCFFile), target, config.testMode))
     }
 
-    /**
-     * Utility function for performing the variant calling workflow associated
-     * with the HaploTypeCaller
-     */
-    def variantCallUsingHaplotypeCaller(target: VariantCallingTarget): Seq[File] = {
+    config.qscript.add(new SelectVariantType(target, SNPs, config.testMode))
+    config.qscript.add(new SelectVariantType(target, INDELs, config.testMode))
 
-      // Call variants separately and merge into one vcf file
-      // if the pipeline is set to run a combined analysis.
-      val variantCallFiles: File =
-        if (target.nSamples > 1) {
-          val gVcfFiles =
-            target.bamList.map(bam => {
+    // Perform recalibration      
+    if (!config.noRecal) {
+      config.qscript.add(new SnpRecalibration(target))
+      config.qscript.add(new SnpCut(target))
 
-              val modifiedTarget =
-                new VariantCallingTarget(config.outputDir,
-                  bam.getName(),
-                  gatkOptions.reference,
-                  Seq(bam),
-                  gatkOptions.intervalFile,
-                  config.isLowPass, config.isExome, 1)
+      config.qscript.add(new IndelRecalibration(target))
+      config.qscript.add(new IndelCut(target))
+    }
 
-              config.qscript.add(new HaplotypeCallerBase(modifiedTarget, config.testMode, config.downsampleFraction, config.pcrFree))
-              modifiedTarget.gVCFFile
-            })
-          config.qscript.add(new GenotypeGVCF(gVcfFiles, target, config.testMode))
-          target.rawCombinedVariants
+    config.qscript.add(new SnpEvaluation(target, config.noRecal))
+    config.qscript.add(new IndelEvaluation(target, config.noRecal))
 
-        } else {
-          // If the pipeline is setup to run each sample individually, 
-          // output one final vcf file per sample.
-          config.qscript.add(new HaplotypeCallerBase(target, config.testMode, config.downsampleFraction, config.pcrFree))
-          config.qscript.add(new GenotypeGVCF(Seq(target.gVCFFile), target, config.testMode))
-          target.rawCombinedVariants
-        }
+    Seq(target.rawCombinedVariants, target.evalFile, target.evalIndelFile)
 
-      config.qscript.add(new SelectVariantType(target, SNPs, config.testMode))
-      config.qscript.add(new SelectVariantType(target, INDELs, config.testMode))
+  }
 
-      // @TODO Figure out if this actually needs to be done now!
-      // Or if we can skip this for NGI/1KSG
-      // Perform recalibration      
+  /**
+   * Utility function for performing the variant calling workflow associated
+   * with the UnifiedGenotyper
+   */
+  def variantCallUsingUnifiedGenotyper(
+    target: VariantCallingTarget,
+    config: VariantCallingConfig): Seq[File] = {
+    if (!config.noIndels) {
+      // Indel calling, recalibration and evaulation
+      config.qscript.add(new UnifiedGenotyperIndelCall(target, config.testMode, config.downsampleFraction))
       if (!config.noRecal) {
-        config.qscript.add(new SnpRecalibration(target))
-        config.qscript.add(new SnpCut(target))
-
         config.qscript.add(new IndelRecalibration(target))
         config.qscript.add(new IndelCut(target))
       }
-
-      config.qscript.add(new SnpEvaluation(target, config.noRecal))
       config.qscript.add(new IndelEvaluation(target, config.noRecal))
-
-      Seq(target.rawCombinedVariants, target.evalFile, target.evalIndelFile)
-
     }
+    // SNP calling, recalibration and evaluation
+    config.qscript.add(new UnifiedGenotyperSnpCall(
+      target, config.testMode,
+      config.downsampleFraction, config.minimumBaseQuality,
+      config.deletions, config.noBAQ))
+
+    if (!config.noRecal) {
+      config.qscript.add(new SnpRecalibration(target))
+      config.qscript.add(new SnpCut(target))
+    }
+
+    config.qscript.add(new SnpEvaluation(target, config.noRecal))
+
+    Seq(target.rawSnpVCF, target.rawIndelVCF, target.evalFile, target.evalIndelFile)
+  }
+
+  /**
+   * Annotated a bunch of vcf files using SnpEff - assumes all input files have
+   * a vcf file ending.
+   * @param variantFiles The variant files to annotate
+   * @return The annotated versions of the files.
+   */
+  def annotateUsingSnpEff(config: VariantCallingConfig, variantFiles: Seq[File]): Seq[File] = {
+    for (file <- variantFiles) yield {
+      val annotatedFile = GeneralUtils.swapExt(file, ".vcf", ".annotated.vcf")
+      config.qscript.add(
+        new SnpEff(file, annotatedFile, config))
+      annotatedFile
+    }
+  }
+
+  /**
+   * Main entry point for performing variant calling
+   * @param config The setup for the variant calling (including the bam files to perform calling on).
+   * @return The variants (and variant evaluation files need for the run).
+   */
+  def performVariantCalling(config: VariantCallingConfig): Seq[File] = {
 
     // Establish if all samples should be run separately of if they should be
     // run together.
@@ -194,15 +213,18 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
     }
 
-    val variantFiles: Seq[File] =
+    val unannotatedVariantFiles: Seq[File] =
       targets.flatMap(target => {
         config.variantCaller match {
-          case Some(GATKUnifiedGenotyper) => variantCallUsingUnifiedGenotyper(target)
-          case Some(GATKHaplotypeCaller)  => variantCallUsingHaplotypeCaller(target)
+          case Some(GATKUnifiedGenotyper) => variantCallUsingUnifiedGenotyper(target, config)
+          case Some(GATKHaplotypeCaller)  => variantCallUsingHaplotypeCaller(target, config)
         }
       })
 
-    variantFiles
+    if (config.skipAnnotation)
+      unannotatedVariantFiles
+    else
+      annotateUsingSnpEff(config, unannotatedVariantFiles)
   }
 
   def bai(bam: File): File = new File(bam + ".bai")
@@ -517,6 +539,26 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     this.eval = t.rawSnpVCF
     this.comp = TaggedFile(t.snpGenotypingVcf.get, "chip_genotypes")
     this.out = t.genotypeConcordance
+  }
+
+  case class SnpEff(@Input input: File, @Output output: File, @Argument config: VariantCallingConfig) extends CommandLineFunction with OneCoreJob {
+
+    // If the path to the snpEffConfig has not been defined then assume that it
+    // lies one level down from the snpEff bash-wrapper script.
+    val snpEffConfig =
+      if (config.snpEffConfigPath.isDefined)
+        config.snpEffConfigPath.get.getAbsolutePath()
+      else
+        config.snpEffPath.get.getAbsolutePath() + "../snpEff.config"
+
+    // TODO Remove this once everything is in place.
+    // /sw/apps/bioinfo/snpEff/4.0/milou/scripts/snpEff -v -c /sw/apps/bioinfo/snpEff/4.0/nestor/snpEff.config -stats test_summary.html -csvStats GRCh37.75 ../piper_benchmarks_different_core_numbers/pipeline_output/pipeline_output_10_cores_1/07_variant_calls/benchmark.raw.vcf > test.annotation.vcf    
+    override def commandLine =
+      config.snpEffPath.get.getAbsolutePath() + " " +
+        " -c " + snpEffConfig + " " +
+        config.snpEffReference + " " +
+        input.getAbsolutePath() + " > " +
+        output.getAbsolutePath()
   }
 
 }

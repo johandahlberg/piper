@@ -18,6 +18,7 @@ object Constants {
   val CUFFLINKS = "cufflinks"
   val CUTADAPT = "cutadapt"
   val TOPHAP = "tophat"
+  val SNP_EFF = "snpEff"
 
   val DB_SNP = "dbsnp"
   val INDELS = "indels"
@@ -25,6 +26,8 @@ object Constants {
   val OMNI = "omni"
   val MILLS = "mills"
   val THOUSAND_GENOMES = "thousandGenomes"
+  val SNP_EFF_REFERENCE = "snpEffReference"  
+    
 
   val unknown = "unknown"
 }
