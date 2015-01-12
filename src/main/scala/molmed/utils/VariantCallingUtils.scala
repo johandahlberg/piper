@@ -543,10 +543,10 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     this.out = t.genotypeConcordance
   }
 
-  case class SnpEff(@Input input: File, @Output output: File, @Argument config: VariantCallingConfig) extends CommandLineFunction with OneCoreJob {
+  case class SnpEff(@Input input: File, @Output output: File, config: VariantCallingConfig) extends CommandLineFunction with OneCoreJob {
 
     // If the path to the snpEffConfig has not been defined then assume that it
-    // lies one level down from the snpEff bash-wrapper script.
+    // lays one level down from the snpEff bash-wrapper script.
     val snpEffConfig =
       if (config.snpEffConfigPath.isDefined)
         config.snpEffConfigPath.get.getAbsolutePath()
