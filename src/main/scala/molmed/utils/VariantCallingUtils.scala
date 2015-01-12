@@ -213,7 +213,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
     }
 
-    val unannotatedVariantFiles: Seq[File] =
+    val variantAndEvalFiles: Seq[File] =
       targets.flatMap(target => {
         config.variantCaller match {
           case Some(GATKUnifiedGenotyper) => variantCallUsingUnifiedGenotyper(target, config)
@@ -221,10 +221,12 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
         }
       })
 
+    val unannotatedVariantFiles = variantAndEvalFiles.filter(_.getName().endsWith(".vcf"))
+      
     if (config.skipAnnotation)
-      unannotatedVariantFiles
+      variantAndEvalFiles
     else
-      annotateUsingSnpEff(config, unannotatedVariantFiles)
+      annotateUsingSnpEff(config, unannotatedVariantFiles) ++ variantAndEvalFiles
   }
 
   def bai(bam: File): File = new File(bam + ".bai")
