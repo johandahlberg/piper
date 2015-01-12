@@ -550,12 +550,11 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
         config.snpEffConfigPath.get.getAbsolutePath()
       else
         config.snpEffPath.get.getAbsolutePath() + "../snpEff.config"
-
-    // TODO Remove this once everything is in place.
-    // /sw/apps/bioinfo/snpEff/4.0/milou/scripts/snpEff -v -c /sw/apps/bioinfo/snpEff/4.0/nestor/snpEff.config -stats test_summary.html -csvStats GRCh37.75 ../piper_benchmarks_different_core_numbers/pipeline_output/pipeline_output_10_cores_1/07_variant_calls/benchmark.raw.vcf > test.annotation.vcf    
+    
     override def commandLine =
       config.snpEffPath.get.getAbsolutePath() + " " +
         " -c " + snpEffConfig + " " +
+        " -csvStats " +
         config.snpEffReference + " " +
         input.getAbsolutePath() + " > " +
         output.getAbsolutePath()
