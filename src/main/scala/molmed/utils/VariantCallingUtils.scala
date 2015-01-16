@@ -557,7 +557,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
       config.snpEffPath.get.getAbsolutePath() + " " +
         " -c " + snpEffConfig + " " +
         " -csvStats " +
-        config.snpEffReference + " " +
+        config.snpEffReference.get + " " +
         input.getAbsolutePath() + " > " +
         output.getAbsolutePath()
   }
