@@ -561,8 +561,9 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     
     override def commandLine =
       config.snpEffPath.get.getAbsolutePath() + " " +
-        " -c " + snpEffConfig + " " +
+        " -c " + snpEffConfig + " " +        
         " -csvStats " +
+        " -stats " +  output.getAbsolutePath() + ".snpEff.summary.csv " +
         config.snpEffReference.get + " " +
         input.getAbsolutePath() + " > " +
         output.getAbsolutePath()
