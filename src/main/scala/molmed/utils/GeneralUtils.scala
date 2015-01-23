@@ -270,6 +270,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
         " -bam " + bam.getAbsolutePath() +
         gffString +
         " --paint-chromosome-limits " +
+        " " + compareGCString + " " + 
         " -outdir " + outputBase.getAbsolutePath() + "/" +
         " -nt 8" +
         " &> " + logFile.getAbsolutePath()
