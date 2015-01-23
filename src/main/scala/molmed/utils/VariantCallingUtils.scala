@@ -551,7 +551,8 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
       if (config.snpEffConfigPath.isDefined)
         config.snpEffConfigPath.get.getAbsolutePath()
       else
-        config.snpEffPath.get.getAbsolutePath() + "../snpEff.config"
+        config.snpEffPath.get.getAbsolutePath().stripSuffix("snpEff") +
+        "/../snpEff.config"
     
     override def commandLine =
       config.snpEffPath.get.getAbsolutePath() + " " +
