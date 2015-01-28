@@ -91,6 +91,7 @@
         <resource>
              <name>snpEffReference</name>
              <version>GRCh37.75</version>
+             <path>/not/applicable</path>
          </resource>
     </resources>
 </globalConfig>

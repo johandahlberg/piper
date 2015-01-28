@@ -89,8 +89,9 @@
 	    <version>gatk-bundle/2.8</version>
           </resource>
         <resource>
-            <name>snpEffReference</name>
-	    <version>GRCh37.75</version>
+          <name>snpEffReference</name>
+          <path>/not/applicable</path>
+	  <version>GRCh37.75</version>
         </resource>
     </resources>
 </globalConfig>
