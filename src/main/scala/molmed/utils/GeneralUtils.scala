@@ -2,13 +2,13 @@ package molmed.utils
 
 import java.io.File
 import java.io.PrintWriter
-import scala.annotation.elidable
-import scala.annotation.elidable.ASSERTION
+
 import scala.collection.immutable.Stream.consWrapper
 import scala.io.Source
 import scala.sys.process.Process
+
+import org.broadinstitute.gatk.queue.QScript
 import org.broadinstitute.gatk.queue.extensions.picard.CalculateHsMetrics
-import org.broadinstitute.gatk.queue.extensions.picard.MarkDuplicates
 import org.broadinstitute.gatk.queue.extensions.picard.MergeSamFiles
 import org.broadinstitute.gatk.queue.extensions.picard.RevertSam
 import org.broadinstitute.gatk.queue.extensions.picard.SamToFastq
@@ -16,18 +16,17 @@ import org.broadinstitute.gatk.queue.extensions.picard.SortSam
 import org.broadinstitute.gatk.queue.extensions.picard.ValidateSamFile
 import org.broadinstitute.gatk.queue.function.InProcessFunction
 import org.broadinstitute.gatk.queue.function.ListWriterFunction
+import org.broadinstitute.gatk.queue.util.StringFileConversions
+
+import htsjdk.samtools.SAMFileHeader.SortOrder
 import molmed.queue.extensions.RNAQC.RNASeQC
 import molmed.queue.extensions.picard.BuildBamIndex
 import molmed.queue.extensions.picard.CollectTargetedPcrMetrics
 import molmed.queue.extensions.picard.FixMateInformation
-import molmed.utils.ReadGroupUtils.getSampleNameFromReadGroups
-import htsjdk.samtools.SAMFileHeader.SortOrder
-import org.broadinstitute.gatk.queue.extensions.picard.CalculateHsMetrics
-import molmed.queue.setup.SampleAPI
+import molmed.queue.extensions.picard.MarkDuplicates
 import molmed.queue.setup.ReadPairContainer
 import molmed.queue.setup.Sample
-import org.broadinstitute.gatk.queue.util.StringFileConversions
-import org.broadinstitute.gatk.queue.QScript
+import molmed.queue.setup.SampleAPI
 
 /**
  * Assorted commandline wappers, mostly for file doing small things link indexing files. See case classes to figure out
@@ -257,12 +256,12 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
       else
         ""
 
-    def compareGCString = 
-      if(isHuman)
+    def compareGCString =
+      if (isHuman)
         "--genome-gc-distr HUMAN"
-      else 
+      else
         ""
-        
+
     override def commandLine =
       pathToQualimap + " " +
         " --java-mem-size=64G " +
@@ -270,7 +269,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
         " -bam " + bam.getAbsolutePath() +
         gffString +
         " --paint-chromosome-limits " +
-        " " + compareGCString + " " + 
+        " " + compareGCString + " " +
         " -outdir " + outputBase.getAbsolutePath() + "/" +
         " -nt 8" +
         " &> " + logFile.getAbsolutePath()
