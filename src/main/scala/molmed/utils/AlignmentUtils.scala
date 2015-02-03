@@ -286,7 +286,11 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
     else
       " " + mate1 + " "
 
+      
+    // Enabling pipefail should make sure that this gets a non-zero
+    // exit status should any of the programs in the pipe fail.
     def commandLine =
+      "set -o pipefail; " + 
       bwaPath + " mem -M -t " + nbrOfThreads + " " +
         " -R " + readGroupInfo + " " +
         ref + mateString +
