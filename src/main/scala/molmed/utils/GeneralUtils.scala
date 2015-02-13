@@ -52,6 +52,18 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
   }
 
   /**
+   * Get only reads from a bam file mapping to the specified region
+   * 
+   * @param bam         The bam to get the reads from
+   * @param outputBam   The bam file to output the reads to
+   * @param region      The region to select (e.g. chr1) note that this must match region in file.
+   */
+  case class samtoolGetRegion(@Input bam: File, @Output outputBam: File, @Argument region: String) extends OneCoreJob {
+    def commandLine = "samtools view -b " +  region + " " + bam + " > " + outputBam
+    override def jobRunnerJobName = projectName.get + "_samtools_get_region"
+  }
+
+  /**
    * Joins the bam file specified to a single bam file.
    */
   case class joinBams(@Input inBams: Seq[File], @Output outBam: File, asIntermediate: Boolean = false) extends MergeSamFiles with TwoCoreJob {
