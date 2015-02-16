@@ -64,7 +64,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
       @Output outputBam: File, 
       @Argument region: String, 
       @Argument asIntermediate: Boolean) extends OneCoreJob {
-    def commandLine = "samtools view -b " +  region + " " + bam + " > " + outputBam
+    def commandLine = "samtools view -b " + bam + " " + region + " > " + outputBam
     override def jobRunnerJobName = projectName.get + "_samtools_get_region"
     this.isIntermediate = asIntermediate
   }

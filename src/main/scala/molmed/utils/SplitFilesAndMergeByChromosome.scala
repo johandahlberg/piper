@@ -31,7 +31,7 @@ object SplitFilesAndMergeByChromosome {
     val sequenceDictionary =
       sequenceDicReader.getLines().
       filter { x => x.startsWith("@SQ") }.
-      map {x => x.split("\\s+")(1).split(":")(1)}.toSeq    
+      map {x => x.split("\\s+")(1).split(":")(1)}.toList    
 
     sequenceDicReader.close()
     
