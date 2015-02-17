@@ -11,6 +11,7 @@ object SplitFilesAndMergeByChromosome {
    * sequence dictionary.
    * @param qscript The QScript to run the splitting in.
    * @param bamFile
+   * @param waysToSplit how many ways to split the file.
    * @param sequenceDictionary
    * @param generalUtils
    * @param asIntermediate
@@ -19,7 +20,8 @@ object SplitFilesAndMergeByChromosome {
   def splitByChromosome(
       qscript: QScript, 
       bamFile: File, 
-      sequenceDictionaryFile: File, 
+      sequenceDictionaryFile: File,
+      waysToSplit: Int,
       generalUtils: GeneralUtils,
       asIntermediate: Boolean): Seq[File] = {
 
@@ -33,20 +35,34 @@ object SplitFilesAndMergeByChromosome {
       filter { x => x.startsWith("@SQ") }.
       map {x => x.split("\\s+")(1).split(":")(1)}.toList    
 
+    val sequenceDictSplitted = sequenceDictionary.grouped(sequenceDictionary.length / waysToSplit)  
+      
     sequenceDicReader.close()
     
     // Split to separate files for each chromosome.
-    for (chromosome <- sequenceDictionary) yield {
+    val files = 
+    for (chromosomes <- sequenceDictSplitted) yield {
+      
+      val samtoolsRegionString = chromosomes.mkString(" ")
+      val firstChromosome = chromosomes.head
+      val lastChromosome = chromosomes.last      
+      
       val outputBamFile =
-        GeneralUtils.swapExt(bamFile, ".bam", "_" + chromosome + ".bam")
+        GeneralUtils.swapExt(
+            bamFile,
+            ".bam",
+            "_" + firstChromosome + "-" + lastChromosome + ".bam")
+            
       qscript.add(
           generalUtils.samtoolGetRegion(
               bamFile, 
               outputBamFile, 
-              chromosome, 
+              samtoolsRegionString, 
               asIntermediate))
       outputBamFile
     }
+      
+    files.toList
   }
   
   /** 

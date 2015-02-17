@@ -150,8 +150,10 @@ class ParallelShellJobRunner(val function: CommandLineFunction) extends CommandL
    * @return if the jobRunner has updated it's status or not.
    */
   def updateJobStatus(): Boolean = {
+    logger.debug("Trying to get the job status...")
     if (finalExitStatus.isCompleted) {
       val completedExitStatus = finalExitStatus.future.value.get.get
+      logger.debug("Job completed and exit status was: " + completedExitStatus)
       exitStatusUpdateJobRunnerStatus(completedExitStatus)
       true
     } else {
