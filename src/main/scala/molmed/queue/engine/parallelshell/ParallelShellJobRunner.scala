@@ -86,10 +86,7 @@ class ParallelShellJobRunner(val function: CommandLineFunction) extends CommandL
         
     // Run the command line process in a future.
     val exectutedFuture =
-      future {
-        val status = controller.exec(processSettings).getExitValue
-        status
-      }
+      future { controller.execAndCheck(processSettings).getExitValue }
 
     // Register a callback on the completion of the future, making sure that
     // the status of the job is updated accordingly. 
