@@ -40,17 +40,18 @@ import org.broadinstitute.gatk.queue.util.Logging
  * Use this with care as it might not be the most efficient way to run things.
  * However, for some scenarios, such as running multiple single threaded
  * programs concurrently it can be quite useful.
- * 
- * All this code is based on the normal shell runner in GATK Queue and all 
+ *
+ * All this code is based on the normal shell runner in GATK Queue and all
  * credits for everything except the concurrency part goes to the GATK team.
- * 
+ *
  * @author Johan Dahlberg
- * 
+ *
  * @param function Command to run.
  */
 class ParallelShellJobRunner(val function: CommandLineFunction) extends CommandLineJobRunner with Logging {
+
   // Controller on the thread that started the job
-  private var controller: ProcessController = null
+  val controller: ThreadSafeProcessController = new ThreadSafeProcessController()
 
   // Once the application exits this promise will be fulfilled.
   val finalExitStatus = Promise[Int]()
@@ -82,11 +83,10 @@ class ParallelShellJobRunner(val function: CommandLineFunction) extends CommandL
     getRunInfo.startTime = new Date()
     getRunInfo.exechosts = Utils.resolveHostname()
     updateStatus(RunnerStatus.RUNNING)
-    controller = new ProcessController()
-        
+
     // Run the command line process in a future.
     val exectutedFuture =
-      future { controller.execAndCheck(processSettings).getExitValue }
+      future { controller.exec(processSettings) }
 
     // Register a callback on the completion of the future, making sure that
     // the status of the job is updated accordingly. 
@@ -110,7 +110,6 @@ class ParallelShellJobRunner(val function: CommandLineFunction) extends CommandL
         }
       }
     }
-
   }
 
   /**
@@ -118,15 +117,11 @@ class ParallelShellJobRunner(val function: CommandLineFunction) extends CommandL
    * stop the controller from the originating thread
    */
   def tryStop() = {
-    // Assumes that after being set the job may be
-    // reassigned but will not be reset back to null
-    if (controller != null) {
-      try {
-        controller.tryDestroy()
-      } catch {
-        case e: Exception =>
-          logger.error("Unable to kill shell job: " + function.description, e)
-      }
+    try {
+      controller.tryDestroy()
+    } catch {
+      case e: Exception =>
+        logger.error("Unable to kill shell job: " + function.description, e)
     }
   }
 
@@ -154,8 +149,10 @@ class ParallelShellJobRunner(val function: CommandLineFunction) extends CommandL
       exitStatusUpdateJobRunnerStatus(completedExitStatus)
       true
     } else {
+      // Make sure the status is update here, otherwise Queue will think
+      // it's lots control over the job and kill it after 5 minutes.
+      updateStatus(status)
       false
     }
   }
-
 }

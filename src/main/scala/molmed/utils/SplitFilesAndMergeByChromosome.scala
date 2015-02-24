@@ -6,6 +6,26 @@ import org.broadinstitute.gatk.queue.QScript
 
 object SplitFilesAndMergeByChromosome {
 
+  private def groupByLengthOfChromosome(
+      nbrOfGroups: Int, 
+      chrAndLength: Map[Long, String]): List[List[String]] = {
+    
+    val totalSizeOfGenome = chrAndLength.keys.reduce(_ + _)
+    val groupSize = totalSizeOfGenome.toFloat / nbrOfGroups
+    val sizeGroups = 
+      groupSize to groupSize * nbrOfGroups  
+      
+      //chrAndLength.keys.reduce(_ + _) / nbrOfGroups
+    
+//    chrAndLength.groupBy(x => {
+//      x.
+//      
+//    })
+    
+    ???
+  } 
+    
+  
   /**
    * Split the input bam file by the chromosomes defined in the accompanying
    * sequence dictionary.
@@ -29,13 +49,19 @@ object SplitFilesAndMergeByChromosome {
 
     // Sequence dicts have the following format:
     // @SQ  SN:chr1 LN:100000 UR:file:/humgen/gsa-scr1/hanna/src/StingWorking/exampleFASTA.fasta  M5:b52f0a0422e9544b50ac1f9d2775dc23
-    // The part that we want is the "chr1"
-    val sequenceDictionary =
+    // The part that we want is the "chr1" and the length LN
+    val lenghtsAndChromosomes =
       sequenceDicReader.getLines().
       filter { x => x.startsWith("@SQ") }.
-      map {x => x.split("\\s+")(1).split(":")(1)}.toList    
-
-    val sequenceDictSplitted = sequenceDictionary.grouped(sequenceDictionary.length / waysToSplit)  
+      map {x => 
+        (x.split("\\s+")(2).split(":")(1).toLong,
+            x.split("\\s+")(1).split(":")(1)
+         )}.toMap            
+      
+     val sequenceDictSplitted = 
+       groupByLengthOfChromosome(waysToSplit, lenghtsAndChromosomes)   
+         
+    //val sequenceDictSplitted = sequenceDictionaryWithLengths.grouped(sequenceDictionaryWithLengths.length / waysToSplit)  
       
     sequenceDicReader.close()
     
