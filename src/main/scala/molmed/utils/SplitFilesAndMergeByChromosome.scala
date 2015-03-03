@@ -9,7 +9,7 @@ object SplitFilesAndMergeByChromosome {
   /**
    * Group a series of chromosomes and their lengths by the lengths in an as
    * fare way as possible.
-   * 
+   *
    * @param nbrOfGroups
    * @param lengthAndChr
    * @return A sequence of sequences containing approximatly equally sized
@@ -102,6 +102,7 @@ object SplitFilesAndMergeByChromosome {
 
         val outputBamFile =
           GeneralUtils.swapExt(
+            bamFile.getParentFile(),
             bamFile,
             ".bam",
             "_" + firstChromosome + "-" + lastChromosome + ".bam")
