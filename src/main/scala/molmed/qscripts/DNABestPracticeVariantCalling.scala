@@ -302,13 +302,15 @@ class DNABestPracticeVariantCalling extends QScript
     uppmaxConfig: UppmaxConfig,
     reference: File): Seq[File] = {
 
-    val gatkDataProcessingUtils = new GATKDataProcessingUtils(
-      this, gatkOptions, generalUtils, projectName, uppmaxConfig)
-
     /**
      * Used internally to handle splitting, processing and merging.
      */
     def runDataProcessingOnSplitByChromosomeAndMerge = {
+
+      val updateGATKOptions = gatkOptions.copy(nbrOfThreads = 16 / groupsToSplitTo)
+      
+      val gatkDataProcessingUtils = new GATKDataProcessingUtils(
+        this, gatkOptions, generalUtils, projectName, uppmaxConfig)
 
       val splitsBams = runChromosomeSplitting(bams, groupsToSplitTo, generalUtils, reference)
 
@@ -344,6 +346,9 @@ class DNABestPracticeVariantCalling extends QScript
     if (useExplicitChromosomeSplit) {
       runDataProcessingOnSplitByChromosomeAndMerge
     } else {
+      val gatkDataProcessingUtils = new GATKDataProcessingUtils(
+        this, gatkOptions, generalUtils, projectName, uppmaxConfig)
+
       gatkDataProcessingUtils.dataProcessing(
         bams, processedAligmentsOutputDir, cleaningModel,
         skipDeduplication = false, testMode)
@@ -363,7 +368,7 @@ class DNABestPracticeVariantCalling extends QScript
 
     val updatedGatkOptions =
       if (useExplicitChromosomeSplit)
-        gatkOptions.copy(scatterGatherCount = 2)
+        gatkOptions.copy(scatterGatherCount = 2, nbrOfThreads = 8)
       else
         gatkOptions
 
