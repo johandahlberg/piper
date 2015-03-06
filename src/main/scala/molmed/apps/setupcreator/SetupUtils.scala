@@ -366,7 +366,7 @@ object SetupUtils {
       } yield {
 
         val fastqFileRegexp =
-          """^(\w+)_(\w+(?:-\w+)?)_L(\d+)_R(\d)_(\d+)\.fastq\.gz$""".r
+          """^([A-Za-z0-9-]+)(\w+(?:-\w+)?)_L(\d+)_R(\d)(\d+).fastq.gz$""".r
 
         val sampleName =
           fastqFile.getParentFile().getName().replaceFirst("Sample_", "")
