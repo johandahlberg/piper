@@ -361,7 +361,13 @@ class DNABestPracticeVariantCalling extends QScript
 
     val variantCallerToUse: Option[VariantCallerOption] = decideVariantCallerType(variantCaller)
 
-    val variantCallingUtils = new VariantCallingUtils(gatkOptions, projectName, uppmaxConfig)
+    val updatedGatkOptions =
+      if (useExplicitChromosomeSplit)
+        gatkOptions.copy(scatterGatherCount = 2)
+      else
+        gatkOptions
+
+    val variantCallingUtils = new VariantCallingUtils(updatedGatkOptions, projectName, uppmaxConfig)
     val variantCallingConfig = new VariantCallingConfig(
       qscript = this,
       variantCaller = variantCallerToUse,
