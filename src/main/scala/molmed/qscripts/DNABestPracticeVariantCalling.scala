@@ -368,7 +368,7 @@ class DNABestPracticeVariantCalling extends QScript
 
     val updatedGatkOptions =
       if (useExplicitChromosomeSplit)
-        gatkOptions.copy(scatterGatherCount = 2, nbrOfThreads = 8)
+        gatkOptions.copy(scatterGatherCount = 4, nbrOfThreads = 4)
       else
         gatkOptions
 
