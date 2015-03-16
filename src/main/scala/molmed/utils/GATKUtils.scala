@@ -88,7 +88,7 @@ class GATKUtils(gatkOptions: GATKConfig, projectName: Option[String], uppmaxConf
 
   }
 
-  case class recal(inBam: File, inRecalFile: File, outBam: File, asIntermediate: Boolean = false) extends PrintReads with CommandLineGATKArgs with EightCoreJob {
+  case class recal(inBam: File, inRecalFile: File, outBam: File, asIntermediate: Boolean = false) extends PrintReads with CommandLineGATKArgs with FourCoreJob {
 
     this.isIntermediate = asIntermediate
 
