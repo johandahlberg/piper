@@ -98,7 +98,7 @@ object SetupUtils {
 
     projectMetaData.setName(projectName)
     projectMetaData.setPlatform(seqencingPlatform)
-    projectMetaData.setSequenceingcenter(sequencingCenter)
+    projectMetaData.setSequencingcenter(sequencingCenter)
     projectMetaData.setUppmaxprojectid(uppmaxProjectId)
     projectMetaData.setUppmaxqos(uppmaxQoSFlag)
     projectMetaData.setReference(reference.getAbsolutePath())

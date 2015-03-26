@@ -17,7 +17,7 @@
 		<xs:complexType>
 			<xs:sequence>
 				<xs:element name="name" type="xs:string" />
-				<xs:element name="sequenceingcenter" type="xs:string" />
+				<xs:element name="sequencingcenter" type="xs:string" />
 				<xs:element name="platform" type="xs:string" />
 				<xs:element name="uppmaxprojectid" type="xs:string" />
 				<xs:element name="uppmaxqos" type="xs:string" />
