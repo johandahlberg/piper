@@ -434,8 +434,8 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
     this.input :+= t.rawSnpVCF
 
-    //  From best practice: -an DP -an QD -an FS -an MQRankSum -an ReadPosRankSum
-    this.use_annotation ++= List("QD", "FS", "MQRankSum", "ReadPosRankSum")
+    //  From best practice: -an QD -an MQ -an MQRankSum -an ReadPosRankSum -an FS -an SOR -an DP -an InbreedingCoeff
+    this.use_annotation ++= List("QD", "MQ", "MQRankSum", "ReadPosRankSum", "FS", "SOR", "DP", "InbreedingCoeff")
 
     // Whole genome case
     if (!t.isExome) {
@@ -470,8 +470,8 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     this.input :+= t.rawIndelVCF
     this.resource :+= new TaggedFile(gatkOptions.mills.get, "known=true,training=true,truth=true,prior=12.0")
 
-    // From best practice: -an DP -an FS -an ReadPosRankSum -an MQRankSum
-    this.use_annotation ++= List("ReadPosRankSum", "FS", "DP", "MQRankSum")
+    // From best practice: -an QD -an DP -an FS -an SOR -an ReadPosRankSum -an MQRankSum -an InbreedingCoeff
+    this.use_annotation ++= List("QD", "DP", "FS", "SOR", "ReadPosRankSum", "MQRankSum", "InbreedingCoeff")
 
     this.mG = Some(4)
     this.std = Some(10)
