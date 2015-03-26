@@ -3,8 +3,8 @@
     <programs>
         <program>
             <name>bwa</name>
-	    <path>/sw/apps/bioinfo/bwa/0.7.5a/milou/bin/bwa</path>
-	    <version>0.7.5a</version>
+            <path>/sw/apps/bioinfo/bwa/0.7.12/milou/bin/bwa</path>
+	    <version>0.7.12</version>
         </program>
         <program>
             <name>samtools</name>
@@ -48,8 +48,8 @@
         </program>
         <program>
             <name>snpEff</name>
-            <path>/sw/apps/bioinfo/snpEff/4.0/nestor/scripts/snpEff</path>
-	    <version>4.0</version>
+            <path>/sw/apps/bioinfo/snpEff/4.1/nestor/scripts/snpEff</path>
+	    <version>4.1</version>
         </program>
     </programs>
     <resources>
