@@ -332,7 +332,8 @@ class DNABestPracticeVariantCalling extends QScript
             val secondFileName = toMergeBams(1).getName()
             val longestCommonName =
               firstFileName.zip(secondFileName).takeWhile(Function.tupled(_ == _)).map(_._1).mkString
-            longestCommonName
+            // The splitting will add a _, removing it here.  
+            longestCommonName.stripSuffix("_")
           } else
             toMergeBams(0).getName().stripSuffix(".bam")
 
