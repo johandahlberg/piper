@@ -338,8 +338,9 @@ class DNABestPracticeVariantCalling extends QScript
             toMergeBams(0).getName().stripSuffix(".bam")
 
         val outBam = new File(processedAligmentsOutputDir + "/" + nameOfOutputBam + ".bam")
-        SplitFilesAndMergeByChromosome.merge(qscript, toMergeBams, outBam, asIntermediate = false, generalUtils)
+        SplitFilesAndMergeByChromosome.merge(qscript, toMergeBams, outBam, asIntermediate = false, generalUtils)       
       }
+      splitAndProcessedBams.flatten
     }
 
     // The function body starts here!
