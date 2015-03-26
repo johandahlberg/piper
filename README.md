@@ -181,25 +181,25 @@ Unless the `run` flag is added to the workflow commandline the pipeline will onl
 
 **Haloplex**
 
-    ./workflows/Haloplex.sh --xml_input <setup.xml> --intervals <regions file> --amplicons <amplicon file> [--alignments_only] [--run]
+    Haloplex.sh --xml_input <setup.xml> --intervals <regions file> --amplicons <amplicon file> [--alignments_only] [--run]
 
 The files associated with the Haloplex design can be downloaded from Agilent's homepage. Please note that the design files will be converted to interval files to work with Picard. In this process the names in the files are converted to work with the "b37" genome reference, rather than "hg19", which is the reference used by agilent. This means that if you want to use "hg19" then you must specify the `--do_not_convert` flag in the qscript.
 
 **RNACounts**
 
-    ./workflows/RNACounts.sh --xml_input <setup.xml> --library_type <fr-secondstrand/fr-firststrand/fr-unstranded> [--alignments_only] [--run]
+    RNACounts.sh --xml_input <setup.xml> --library_type <fr-secondstrand/fr-firststrand/fr-unstranded> [--alignments_only] [--run]
 
 Library types depends on the protcol used. For example, for ScriptSeq libraries (EpiCentre) the library type should be set to `fr-secondstrand`.
 
 **Exome**
     
-    ./workflows/Exome.sh --xml_input <setup.xml> <--sureselect> || <--truseq> [--alignments_only] [--run]
+    Exome.sh --xml_input <setup.xml> <--sureselect> || <--truseq> [--alignments_only] [--run]
 
 Pick one of either `--sureselect` or `--truseq` to set which exome intervals should be used. If you wish to use another interval file - open up the workflow file and set the `INTERVALS` to the path of your interval file.
 
 **WholeGenome**
 
-    ./workflows/WholeGenome.sh --xml_input <setup.xml> [--alignments_only] [--run]
+    WholeGenome.sh --xml_input <setup.xml> [--alignments_only] [--run]
 
 
 Monitoring progress
