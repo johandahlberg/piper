@@ -24,6 +24,7 @@ import molmed.config.FileAndProgramResourceConfig
 import org.broadinstitute.gatk.utils.commandline.Hidden
 import molmed.report.ReportGenerator
 import molmed.config.FileVersionUtilities.ResourceMap
+import molmed.utils.SplitFilesAndMergeByChromosome
 
 /**
  *
@@ -129,6 +130,12 @@ class DNABestPracticeVariantCalling extends QScript
 
   @Argument(doc = "Create the final delivery output structure (and report).", fullName = "create_delivery", shortName = "cdlvry", required = false)
   var doGenerateDelivery: Boolean = false
+
+  @Argument(doc = "Super charge single node analysis explicitly splitting on chromosome, this is mostly useful when using the ParallelShell job runner", fullName = "super_charge", shortName = "sc", required = false)
+  var useExplicitChromosomeSplit: Boolean = false
+
+  @Argument(doc = "When using the --super_charge option, use this to specify number of groups (default: 3)", fullName = "ways_to_split", shortName = "wts", required = false)
+  var groupsToSplitTo: Int = 3
 
   /**
    * **************************************************************************
@@ -255,6 +262,36 @@ class DNABestPracticeVariantCalling extends QScript
   }
 
   /**
+   * Split into chromosome chunks (used to speed up single node analysis)
+   */
+  def runChromosomeSplitting(
+    bams: Seq[File],
+    waysToSplit: Int,
+    generalUtils: GeneralUtils,
+    reference: File): Seq[Seq[File]] = {
+
+    val nameOfDictFile = reference.getName().stripSuffix(".fasta") + ".dict"
+
+    val inputFastaDict =
+      reference.getParentFile().listFiles().
+        find(file => file.getName() == nameOfDictFile).
+        getOrElse(throw new Exception(s"Couldn't find $nameOfDictFile, please make " +
+          s"sure to place such a file in the same directory as ${reference.getName()}."))
+
+    for (bam <- bams) yield {
+      val splitBams =
+        SplitFilesAndMergeByChromosome.splitByChromosome(
+          this,
+          bam,
+          inputFastaDict,
+          waysToSplit,
+          generalUtils,
+          asIntermediate = false)
+      splitBams
+    }
+  }
+
+  /**
    * Data processing
    */
   def runDataProcessing(
@@ -262,15 +299,61 @@ class DNABestPracticeVariantCalling extends QScript
     processedAligmentsOutputDir: File,
     gatkOptions: GATKConfig,
     generalUtils: GeneralUtils,
-    uppmaxConfig: UppmaxConfig): Seq[File] = {
+    uppmaxConfig: UppmaxConfig,
+    reference: File): Seq[File] = {
 
-    val gatkDataProcessingUtils = new GATKDataProcessingUtils(
-      this, gatkOptions, generalUtils, projectName, uppmaxConfig)
-    val processedBamFiles = gatkDataProcessingUtils.dataProcessing(
-      bams, processedAligmentsOutputDir, cleaningModel,
-      skipDeduplication = false, testMode)
-    processedBamFiles
+    /**
+     * Used internally to handle splitting, processing and merging.
+     */
+    def runDataProcessingOnSplitByChromosomeAndMerge = {
 
+      val updateGATKOptions = gatkOptions.copy(nbrOfThreads = 16 / groupsToSplitTo)
+      
+      val gatkDataProcessingUtils = new GATKDataProcessingUtils(
+        this, gatkOptions, generalUtils, projectName, uppmaxConfig)
+
+      val splitsBams = runChromosomeSplitting(bams, groupsToSplitTo, generalUtils, reference)
+
+      val splitAndProcessedBams =
+        for (splitGroup <- splitsBams) yield {
+          val processedBamFiles = gatkDataProcessingUtils.dataProcessing(
+            splitGroup, processedAligmentsOutputDir, cleaningModel,
+            skipDeduplication = false, testMode)
+          processedBamFiles
+        }
+
+      for (toMergeBams <- splitAndProcessedBams) yield {
+
+        // Assumes that the start of the file name is the same, and is what is to
+        // be used name these files.
+        val nameOfOutputBam =
+          if (toMergeBams.size > 1) {
+            val firstFileName = toMergeBams(0).getName()
+            val secondFileName = toMergeBams(1).getName()
+            val longestCommonName =
+              firstFileName.zip(secondFileName).takeWhile(Function.tupled(_ == _)).map(_._1).mkString
+            // The splitting will add a _, removing it here.  
+            longestCommonName.stripSuffix("_")
+          } else
+            toMergeBams(0).getName().stripSuffix(".bam")
+
+        val outBam = new File(processedAligmentsOutputDir + "/" + nameOfOutputBam + ".bam")
+        SplitFilesAndMergeByChromosome.merge(qscript, toMergeBams, outBam, asIntermediate = false, generalUtils)
+      }
+    }
+
+    // The function body starts here!
+
+    if (useExplicitChromosomeSplit) {
+      runDataProcessingOnSplitByChromosomeAndMerge
+    } else {
+      val gatkDataProcessingUtils = new GATKDataProcessingUtils(
+        this, gatkOptions, generalUtils, projectName, uppmaxConfig)
+
+      gatkDataProcessingUtils.dataProcessing(
+        bams, processedAligmentsOutputDir, cleaningModel,
+        skipDeduplication = false, testMode)
+    }
   }
 
   /**
@@ -284,7 +367,13 @@ class DNABestPracticeVariantCalling extends QScript
 
     val variantCallerToUse: Option[VariantCallerOption] = decideVariantCallerType(variantCaller)
 
-    val variantCallingUtils = new VariantCallingUtils(gatkOptions, projectName, uppmaxConfig)
+    val updatedGatkOptions =
+      if (useExplicitChromosomeSplit)
+        gatkOptions.copy(scatterGatherCount = 4, nbrOfThreads = 4)
+      else
+        gatkOptions
+
+    val variantCallingUtils = new VariantCallingUtils(updatedGatkOptions, projectName, uppmaxConfig)
     val variantCallingConfig = new VariantCallingConfig(
       qscript = this,
       variantCaller = variantCallerToUse,
@@ -436,9 +525,10 @@ class DNABestPracticeVariantCalling extends QScript
       gatkOptions,
       uppmaxConfig)
 
-    val dataProcessing = runDataProcessing(
-      _: Seq[File], processedAligmentsOutputDir,
-      gatkOptions, generalUtils, uppmaxConfig)
+    val dataProcessing =
+      runDataProcessing(
+        _: Seq[File], processedAligmentsOutputDir,
+        gatkOptions, generalUtils, uppmaxConfig, reference)
 
     val variantCalling = runVariantCalling(
       _: Seq[File], variantCallsOutputDir,

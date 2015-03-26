@@ -244,7 +244,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     testMode: Boolean,
     downsampleFraction: Option[Double],
     pcrFree: Option[Boolean])
-      extends HaplotypeCaller with CommandLineGATKArgs with SixteenCoreJob {
+      extends HaplotypeCaller with CommandLineGATKArgs with FourCoreJob {
 
     if (testMode)
       this.no_cmdline_in_header = true

@@ -3,7 +3,7 @@ package molmed.utils
 import org.broadinstitute.gatk.queue.function.CommandLineFunction
 
 /**
- * Utility class holding uppmax resource configurations and settings. 
+ * Utility class holding uppmax resource configurations and settings.
  * Extend this to be able to extend your commandline wrappers with the
  * the resource management traits, e.g. TwoCores.
  */
@@ -33,6 +33,12 @@ class UppmaxJob(uppmaxConfig: UppmaxConfig) {
   trait ThreeCoreJob extends CommandLineFunction {
     this.jobNativeArgs = Seq("-p core -n 3") ++ projectBaseString
     this.memoryLimit = memLimit(Some(24))
+    this.isIntermediate = false
+  }
+
+  trait FourCoreJob extends CommandLineFunction {
+    this.jobNativeArgs = Seq("-p core -n 4") ++ projectBaseString
+    this.memoryLimit = memLimit(Some(32))
     this.isIntermediate = false
   }
 
