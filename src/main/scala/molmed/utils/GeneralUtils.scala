@@ -32,8 +32,8 @@ import molmed.queue.setup.SampleAPI
  * Assorted commandline wappers, mostly for file doing small things link indexing files. See case classes to figure out
  * what's what.
  */
-class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) extends UppmaxJob(uppmaxConfig) with StringFileConversions {
-
+class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) extends UppmaxJob(uppmaxConfig) with StringFileConversions { 
+  
   /**
    * Creates a bam index for a bam file.
    */
@@ -42,11 +42,13 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     this.output = index
   }
 
+  abstract class SamtoolsBase(@Argument samtoolsPath: String)
+  
   /**
    * Creates a bam index for a bam file.
    */
-  case class samtoolCreateIndex(@Input bam: File, @Output index: File) extends OneCoreJob {
-    def commandLine = "samtools index " + bam + " " + index + "; echo \"ExitCode: \"$?";
+  case class samtoolCreateIndex(@Input bam: File, @Output index: File, @Argument samtoolsPath: String) extends SamtoolsBase(samtoolsPath) with OneCoreJob {
+    def commandLine = samtoolsPath + " index " + bam + " " + index + "; echo \"ExitCode: \"$?";
 
     override def jobRunnerJobName = projectName.get + "_samtools_bam_index"
   }
@@ -63,10 +65,11 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
       @Input bam: File, 
       @Output outputBam: File, 
       @Argument region: String, 
-      @Argument asIntermediate: Boolean) extends OneCoreJob {
+      @Argument asIntermediate: Boolean,
+      @Argument samtoolsPath: String) extends SamtoolsBase(samtoolsPath) with OneCoreJob {
     def commandLine = 
-      "samtools view -b " + bam + " " + region + " > " + outputBam + "; " +
-      "samtools index " + outputBam
+      samtoolsPath + " view -b " + bam + " " + region + " > " + outputBam + "; " +
+      samtoolsPath + " index " + outputBam
     override def jobRunnerJobName = projectName.get + "_samtools_get_region"
     this.isIntermediate = asIntermediate
   }

@@ -64,6 +64,7 @@ object SplitFilesAndMergeByChromosome {
    * @param sequenceDictionary
    * @param generalUtils
    * @param asIntermediate
+   * @param samtoolsPath
    * @return One file for each chromosome.
    */
   def splitByChromosome(
@@ -72,7 +73,8 @@ object SplitFilesAndMergeByChromosome {
     sequenceDictionaryFile: File,
     waysToSplit: Int,
     generalUtils: GeneralUtils,
-    asIntermediate: Boolean): Seq[File] = {
+    asIntermediate: Boolean,
+    samtoolsPath: String): Seq[File] = {
 
     val sequenceDicReader = Source.fromFile(sequenceDictionaryFile)
 
@@ -112,7 +114,8 @@ object SplitFilesAndMergeByChromosome {
             bamFile,
             outputBamFile,
             samtoolsRegionString,
-            asIntermediate))
+            asIntermediate,
+            samtoolsPath))
         outputBamFile
       }
 

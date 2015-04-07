@@ -286,7 +286,8 @@ class DNABestPracticeVariantCalling extends QScript
           inputFastaDict,
           waysToSplit,
           generalUtils,
-          asIntermediate = false)
+          asIntermediate = false,
+          samtoolsPath)
       splitBams
     }
   }
