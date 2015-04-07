@@ -2,7 +2,7 @@
 <project xmlns="setup.xml.molmed">
     <metadata>
         <name>TestProject</name>
-        <sequenceingcenter>SNP_SEQ_PLATFORM</sequenceingcenter>
+        <sequencingcenter>SNP_SEQ_PLATFORM</sequencingcenter>
         <platform>Illumina</platform>
         <uppmaxprojectid>a2009002</uppmaxprojectid>
         <uppmaxqos>seqver</uppmaxqos>
