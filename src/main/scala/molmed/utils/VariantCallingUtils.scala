@@ -100,11 +100,11 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     config.qscript.add(new IndelEvaluation(target, config.noRecal))
 
     Seq(
-        target.rawCombinedVariants,
-        target.recalibratedIndelVCF, 
-        target.recalibratedSnpVCF, 
-        target.evalFile, 
-        target.evalIndelFile)
+      target.rawCombinedVariants,
+      target.recalibratedIndelVCF,
+      target.recalibratedSnpVCF,
+      target.evalFile,
+      target.evalIndelFile)
 
   }
 
@@ -227,7 +227,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
       })
 
     val unannotatedVariantFiles = variantAndEvalFiles.filter(_.getName().endsWith(".vcf"))
-      
+
     if (config.skipAnnotation)
       variantAndEvalFiles
     else
@@ -266,7 +266,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
     if (minimumBaseQuality.isDefined && minimumBaseQuality.get >= 0)
       this.min_base_quality_score = Some(min_base_quality_score.get.toByte)
-    
+
     this.input_file = t.bamList
     this.out = t.gVCFFile
 
@@ -434,8 +434,14 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
     this.input :+= t.rawSnpVCF
 
-    //  From best practice: -an QD -an MQ -an MQRankSum -an ReadPosRankSum -an FS -an SOR -an DP -an InbreedingCoeff
-    this.use_annotation ++= List("QD", "MQ", "MQRankSum", "ReadPosRankSum", "FS", "SOR", "DP", "InbreedingCoeff")
+    //  From best practice: -an QD -an MQ -an MQRankSum -an ReadPosRankSum -an FS -an SOR -an DP (-an InbreedingCoeff)
+    this.use_annotation ++= {
+      val standardAnnotations =
+        List("QD", "MQ", "MQRankSum", "ReadPosRankSum", "FS", "SOR", "DP")
+      val extraAnnotations =
+        if (t.nSamples >= 10) List("InbreedingCoeff") else List()
+      standardAnnotations ++ extraAnnotations
+    }
 
     // Whole genome case
     if (!t.isExome) {
@@ -471,7 +477,11 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     this.resource :+= new TaggedFile(gatkOptions.mills.get, "known=true,training=true,truth=true,prior=12.0")
 
     // From best practice: -an QD -an DP -an FS -an SOR -an ReadPosRankSum -an MQRankSum -an InbreedingCoeff
-    this.use_annotation ++= List("QD", "DP", "FS", "SOR", "ReadPosRankSum", "MQRankSum", "InbreedingCoeff")
+    this.use_annotation ++= {
+      val standardAnnotations = List("QD", "DP", "FS", "SOR", "ReadPosRankSum", "MQRankSum")
+      val extraAnnotations = if (t.nSamples >= 10) List("InbreedingCoeff") else List()
+      standardAnnotations ++ extraAnnotations
+    }
 
     this.mG = Some(4)
     this.std = Some(10)
@@ -561,13 +571,13 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
         config.snpEffConfigPath.get.getAbsolutePath()
       else
         config.snpEffPath.get.getAbsolutePath().stripSuffix("snpEff") +
-        "/../snpEff.config"
-    
+          "/../snpEff.config"
+
     override def commandLine =
       config.snpEffPath.get.getAbsolutePath() + " " +
-        " -c " + snpEffConfig + " " +        
+        " -c " + snpEffConfig + " " +
         " -csvStats " +
-        " -stats " +  output.getAbsolutePath() + ".snpEff.summary.csv " +
+        " -stats " + output.getAbsolutePath() + ".snpEff.summary.csv " +
         config.snpEffReference.get + " " +
         input.getAbsolutePath() + " > " +
         output.getAbsolutePath()
