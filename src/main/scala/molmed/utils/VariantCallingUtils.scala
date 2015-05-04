@@ -434,10 +434,12 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
     this.input :+= t.rawSnpVCF
 
-    //  From best practice: -an QD -an MQ -an MQRankSum -an ReadPosRankSum -an FS -an SOR -an DP (-an InbreedingCoeff)
+    //  From best practice: -an QD -an MQ -an MQRankSum -an ReadPosRankSum
+    // -an FS -an SOR -an DP (note that this added below - only for WG)
+    // (-an InbreedingCoeff)
     this.use_annotation ++= {
       val standardAnnotations =
-        List("QD", "MQ", "MQRankSum", "ReadPosRankSum", "FS", "SOR", "DP")
+        List("QD", "MQ", "MQRankSum", "ReadPosRankSum", "FS", "SOR")
       val extraAnnotations =
         if (t.nSamples >= 10) List("InbreedingCoeff") else List()
       standardAnnotations ++ extraAnnotations
