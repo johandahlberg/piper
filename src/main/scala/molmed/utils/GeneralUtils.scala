@@ -287,7 +287,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
 
     override def commandLine =
       pathToQualimap + " " +
-        " --java-mem-size=20G " +
+        " --java-mem-size=10G " +
         " bamqc " +
         " -bam " + bam.getAbsolutePath() +
         gffString +
