@@ -1,10 +1,8 @@
-<pre>
-  ___ _               
- | _ (_)_ __  ___ _ _ 
- |  _/ | '_ \/ -_) '_|
- |_| |_| .__/\___|_|  
-       |_|  
-</pre>
+<p align="center">
+  <a href="https://github.com/NationalGenomicsInfrastructure/piper">
+    <img width="512" height="206" src="artwork/logo.png"/>
+  </a>
+</p>
 -----------------------------
 
 [![Build Status](https://travis-ci.org/johandahlberg/piper.png?branch=master)](https://travis-ci.org/johandahlberg/piper)
