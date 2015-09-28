@@ -16,7 +16,7 @@ case object GATKHaplotypeCaller extends VariantCallerOption
  * @param	qscript				the qscript to run the commandline wrappers in
  * @param variantCaller		The type of variant caller to use. Options are UnifiedGenotyper and HaplotypeCaller.
  * 							(default: HaplotypeCaller)
- * @param bams				the bam files to run on
+ * @param bamTargets				the bam file targets to run on
  * @param outputDir			output dir
  * @param runSeparatly		Create one vcf per bam sample instead of running on full cohort
  * @param isLowPass			true if low pass
@@ -37,7 +37,7 @@ case object GATKHaplotypeCaller extends VariantCallerOption
  */
 case class VariantCallingConfig(qscript: QScript,
 								variantCaller: Option[VariantCallerOption] = Some(GATKHaplotypeCaller),
-                                bams: Seq[File],
+                                bamTargets: Seq[GATKProcessingTarget],
                                 outputDir: File,
                                 runSeparatly: Boolean,
                                 isLowPass: Boolean,

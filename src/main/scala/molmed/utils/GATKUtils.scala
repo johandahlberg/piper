@@ -101,7 +101,6 @@ class GATKUtils(gatkOptions: GATKConfig, projectName: Option[String], uppmaxConf
     this.out = outBam
     this.scatterCount = gatkOptions.scatterGatherCount.get
     this.num_cpu_threads_per_data_thread = gatkOptions.nbrOfThreads
-    this.isIntermediate = false
     override def jobRunnerJobName = projectName.get + "_recal"
 
   }

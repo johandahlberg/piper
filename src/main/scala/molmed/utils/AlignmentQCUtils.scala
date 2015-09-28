@@ -57,7 +57,7 @@ class AlignmentQCUtils(
    *
    */
   def checkGenotypeConcordance(
-    bams: Seq[File],
+    bamTargets: Seq[GATKProcessingTarget],
     outputBase: File,
     comparisonVcf: File,
     qscript: QScript,
@@ -76,7 +76,7 @@ class AlignmentQCUtils(
     val variantCallingConfig = new VariantCallingConfig(
       qscript = qscript,
       variantCaller = Some(GATKUnifiedGenotyper),
-      bams = bams,
+      bams = bamTargets,
       outputDir = outputBase,
       runSeparatly = true,
       isLowPass = isLowPass,

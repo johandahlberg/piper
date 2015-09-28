@@ -24,10 +24,10 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
   def checkGenotypeConcordance(config: VariantCallingConfig): Seq[File] = {
 
     val targets =
-      config.bams.map(bam => new VariantCallingTarget(config.outputDir,
-        bam.getName(),
+      config.bamTargets.map(bamTarget => new VariantCallingTarget(config.outputDir,
+        bamTarget.processedBam.getName(),
         gatkOptions.reference,
-        Seq(bam),
+        Seq(bamTarget),
         gatkOptions.intervalFile,
         config.isLowPass, config.isExome, 1,
         snpGenotypingVcf = gatkOptions.snpGenotypingVcf,
@@ -64,13 +64,13 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     // if the pipeline is set to run a combined analysis.
     if (target.nSamples > 1) {
       val gVcfFiles =
-        target.bamList.map(bam => {
+        target.bamTargetList.map(bamTarget => {
 
           val modifiedTarget =
             new VariantCallingTarget(config.outputDir,
-              bam.getName(),
+              bamTarget.processedBam.getName(),
               gatkOptions.reference,
-              Seq(bam),
+              Seq(bamTarget),
               gatkOptions.intervalFile,
               config.isLowPass, config.isExome, 1,
               skipVcfCompression = target.skipVcfCompression)
@@ -175,20 +175,20 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     // run together.
     val targets: Seq[VariantCallingTarget] = (config.runSeparatly, gatkOptions.notHuman) match {
       case (true, false) =>
-        config.bams.map(bam => new VariantCallingTarget(config.outputDir,
-          bam.getName(),
+        config.bamTargets.map(bamTarget => new VariantCallingTarget(config.outputDir,
+          bamTarget.processedBam.getName(),
           gatkOptions.reference,
-          Seq(bam),
+          Seq(bamTarget),
           gatkOptions.intervalFile,
           config.isLowPass, config.isExome, 1,
           snpGenotypingVcf = gatkOptions.snpGenotypingVcf,
           skipVcfCompression = config.skipVcfCompression))
 
       case (true, true) =>
-        config.bams.map(bam => new VariantCallingTarget(config.outputDir,
-          bam.getName(),
+        config.bamTargets.map(bamTarget => new VariantCallingTarget(config.outputDir,
+          bamTarget.processedBam.getName(),
           gatkOptions.reference,
-          Seq(bam),
+          Seq(bamTarget),
           gatkOptions.intervalFile,
           config.isLowPass, false, 1,
           snpGenotypingVcf = gatkOptions.snpGenotypingVcf,
@@ -198,9 +198,9 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
         Seq(new VariantCallingTarget(config.outputDir,
           projectName.get,
           gatkOptions.reference,
-          config.bams,
+          config.bamTargets,
           gatkOptions.intervalFile,
-          config.isLowPass, false, config.bams.size,
+          config.isLowPass, false, config.bamTargets.size,
           snpGenotypingVcf = gatkOptions.snpGenotypingVcf,
           skipVcfCompression = config.skipVcfCompression))
 
@@ -208,9 +208,9 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
         Seq(new VariantCallingTarget(config.outputDir,
           projectName.get,
           gatkOptions.reference,
-          config.bams,
+          config.bamTargets,
           gatkOptions.intervalFile,
-          config.isLowPass, config.isExome, config.bams.size,
+          config.isLowPass, config.isExome, config.bamTargets.size,
           snpGenotypingVcf = gatkOptions.snpGenotypingVcf,
           skipVcfCompression = config.skipVcfCompression))
     }
@@ -259,7 +259,8 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     testMode: Boolean,
     downsampleFraction: Option[Double],
     pcrFree: Option[Boolean],
-    minimumBaseQuality: Option[Int])
+    minimumBaseQuality: Option[Int],
+    bqsrOnTheFly: Option[Boolean])
       extends HaplotypeCaller with CommandLineGATKArgs with FourCoreJob {
 
     if (testMode)
@@ -282,7 +283,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     if (minimumBaseQuality.isDefined && minimumBaseQuality.get >= 0)
       this.min_base_quality_score = Some(min_base_quality_score.get.toByte)
 
-    this.input_file = t.bamList
+    this.input_file = t.bamTargetList.map( _.processedBam )
     this.out = t.gVCFFile
 
     if (!gatkOptions.dbSNP.isEmpty)
@@ -381,7 +382,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     this.nt = gatkOptions.nbrOfThreads
     this.stand_call_conf = if (t.isLowpass) { Some(4.0) } else { Some(30.0) }
     this.stand_emit_conf = if (t.isLowpass) { Some(4.0) } else { Some(30.0) }
-    this.input_file = t.bamList
+    this.input_file = t.bamTargetList.map( _.processedBam )
     if (!gatkOptions.dbSNP.isEmpty)
       this.D = gatkOptions.dbSNP.get
   }

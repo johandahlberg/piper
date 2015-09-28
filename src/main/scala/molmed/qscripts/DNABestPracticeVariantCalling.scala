@@ -140,6 +140,10 @@ class DNABestPracticeVariantCalling extends QScript
   @Argument(doc = "When using the --super_charge option, use this to specify number of groups (default: 3)", fullName = "ways_to_split", shortName = "wts", required = false)
   var groupsToSplitTo: Int = 3
 
+  // TODO: the description below is not entirely true, under the hood, the recalibrated files are still created, but regarded as intermediate. Proper on-the-fly behavior should be implemented
+  @Argument(doc = "Do Base Quality Score Recalibration (BQSR) on-the-fly during variant calling (default), rather than creating base-recalibrated bam files", fullName = "bqsr_otf", shortName = "botf", required = false)
+  var bqsrOnTheFly: Boolean = true
+
   /**
    * **************************************************************************
    * Hidden Parameters - for dev.
@@ -305,7 +309,7 @@ class DNABestPracticeVariantCalling extends QScript
     gatkOptions: GATKConfig,
     generalUtils: GeneralUtils,
     uppmaxConfig: UppmaxConfig,
-    reference: File): Seq[File] = {
+    reference: File): Seq[GATKProcessingTarget] = {
 
     /**
      * Used internally to handle splitting, processing and merging.
@@ -319,18 +323,19 @@ class DNABestPracticeVariantCalling extends QScript
 
       val splitsBams = runChromosomeSplitting(bams, groupsToSplitTo, generalUtils, reference)
 
-      val splitAndProcessedBams =
+      val splitAndProcessedBamTargets =
         for (splitGroup <- splitsBams) yield {
-          val processedBamFiles = gatkDataProcessingUtils.dataProcessing(
+          val processedBamTargets = gatkDataProcessingUtils.dataProcessing(
             splitGroup, processedAligmentsOutputDir, cleaningModel,
             skipDeduplication = false, testMode)
-          processedBamFiles
+          processedBamTargets
         }
 
-      for (toMergeBams <- splitAndProcessedBams) yield {
+      for (toMergeBamTarget <- splitAndProcessedBamTargets) yield {
 
         // Assumes that the start of the file name is the same, and is what is to
         // be used name these files.
+        val toMergeBams = toMergeBamTarget.map( _.processedBam )
         val nameOfOutputBam =
           if (toMergeBams.size > 1) {
             val firstFileName = toMergeBams(0).getName()
@@ -365,7 +370,7 @@ class DNABestPracticeVariantCalling extends QScript
    * Variant calling
    */
   def runVariantCalling(
-    bamFiles: Seq[File],
+    bamTargets: Seq[GATKProcessingTarget],
     outputDirectory: File,
     gatkOptions: GATKConfig,
     uppmaxConfig: UppmaxConfig): Seq[File] = {
@@ -382,7 +387,7 @@ class DNABestPracticeVariantCalling extends QScript
     val variantCallingConfig = new VariantCallingConfig(
       qscript = this,
       variantCaller = variantCallerToUse,
-      bamFiles,
+      bamTargets,
       outputDirectory,
       runSeparatly,
       isLowPass,
@@ -498,7 +503,7 @@ class DNABestPracticeVariantCalling extends QScript
       new GATKConfig(reference, nbrOfThreads, scatterGatherCount,
         intervals,
         dbSNP, Some(indels), hapmap, omni, mills, thousandGenomes,
-        notHuman)
+        notHuman, bqsrOnTheFly = bqsrOnTheFly)
 
     // Drop the version report (this will be overwritten each time the 
     // qscript is run.
@@ -537,7 +542,7 @@ class DNABestPracticeVariantCalling extends QScript
         gatkOptions, generalUtils, uppmaxConfig, reference)
 
     val variantCalling = runVariantCalling(
-      _: Seq[File], variantCallsOutputDir,
+      _: Seq[GATKProcessingTarget], variantCallsOutputDir,
       gatkOptions, uppmaxConfig)
 
     /**
@@ -573,16 +578,16 @@ class DNABestPracticeVariantCalling extends QScript
         val aligments = alignments(samples)
         val qc = qualityControl(aligments.values.flatten.toSeq, preliminaryAlignmentQCOutputDir)
         val mergedBams = mergedAlignments(aligments)
-        val processedBams = dataProcessing(mergedBams)
-        qualityControl(processedBams, finalAlignmentQCOutputDir)
+        val processedBamTargets = dataProcessing(mergedBams)
+        qualityControl(processedBamTargets.map( _.processedBam ), finalAlignmentQCOutputDir)
       }
       case e if e.contains(AnalysisSteps.VariantCalling) => {
         val aligments = alignments(samples)
         val qc = qualityControl(aligments.values.flatten.toSeq, preliminaryAlignmentQCOutputDir)
         val mergedBams = mergedAlignments(aligments)
-        val processedBams = dataProcessing(mergedBams)
-        qualityControl(processedBams, finalAlignmentQCOutputDir)
-        variantCalling(processedBams)
+        val processedBamTargets = dataProcessing(mergedBams)
+        qualityControl(processedBamTargets.map( _.processedBam ), finalAlignmentQCOutputDir)
+        variantCalling(processedBamTargets)
       }
       case e if e.contains(AnalysisSteps.GenerateDelivery) => {
 
@@ -594,13 +599,13 @@ class DNABestPracticeVariantCalling extends QScript
         val aligments = alignments(samples)
         val preliminaryQC = qualityControl(aligments.values.flatten.toSeq, preliminaryAlignmentQCOutputDir)
         val mergedBams = mergedAlignments(aligments)
-        val processedBams = dataProcessing(mergedBams)
-        val finalQC = qualityControl(processedBams, finalAlignmentQCOutputDir)
-        val variantCallFiles = variantCalling(processedBams)
+        val processedBamTargets = dataProcessing(mergedBams)
+        val finalQC = qualityControl(processedBamTargets.map( _.processedBam ), finalAlignmentQCOutputDir)
+        val variantCallFiles = variantCalling(processedBamTargets)
 
         runCreateDelivery(
           fastqs,
-          processedBams,
+          processedBamTargets.map( _.processedBam ),
           finalQC,
           variantCallFiles,
           reportFile,
