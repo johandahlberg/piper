@@ -70,7 +70,7 @@ class GATKUtils(gatkOptions: GATKConfig, projectName: Option[String], uppmaxConf
 
   }
 
-  case class cov(inBam: File, outRecalFile: File, @Argument defaultPlatform: String) extends BaseRecalibrator with CommandLineGATKArgs with EightCoreJob {
+  case class cov(inBam: File, outRecalFile: File, @Argument defaultPlatform: String, inRecalFile: Option[File] = None) extends BaseRecalibrator with CommandLineGATKArgs with EightCoreJob {
 
     this.num_cpu_threads_per_data_thread = gatkOptions.nbrOfThreads
 
@@ -84,6 +84,8 @@ class GATKUtils(gatkOptions: GATKConfig, projectName: Option[String], uppmaxConf
     if (!gatkOptions.intervalFile.isEmpty) this.intervals :+= gatkOptions.intervalFile.get
 
     this.scatterCount = gatkOptions.scatterGatherCount.get
+    if (!inRecalFile.isEmpty)
+      this.BQSR = inRecalFile.get
     override def jobRunnerJobName = projectName.get + "_cov"
 
   }

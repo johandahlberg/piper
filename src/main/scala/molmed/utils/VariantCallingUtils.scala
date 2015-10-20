@@ -25,7 +25,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
     val targets =
       config.bamTargets.map(bamTarget => new VariantCallingTarget(config.outputDir,
-        bamTarget.processedBam.getName(),
+        bamTarget.bam.getName(),
         gatkOptions.reference,
         Seq(bamTarget),
         gatkOptions.intervalFile,
@@ -42,7 +42,8 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
           config.downsampleFraction,
           config.minimumBaseQuality,
           config.deletions,
-          config.noBAQ))
+          config.noBAQ,
+          bqsrOnTheFly = Some(false)))
 
       config.qscript.add(
         new SNPGenotypeConcordance(target))
@@ -75,14 +76,14 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
               config.isLowPass, config.isExome, 1,
               skipVcfCompression = target.skipVcfCompression)
 
-          config.qscript.add(new HaplotypeCallerBase(modifiedTarget, config.testMode, config.downsampleFraction, config.pcrFree, config.minimumBaseQuality))
+          config.qscript.add(new HaplotypeCallerBase(modifiedTarget, config.testMode, config.downsampleFraction, config.pcrFree, config.minimumBaseQuality, Some(gatkOptions.bqsrOnTheFly)))
           modifiedTarget.gVCFFile
         })
       config.qscript.add(new GenotypeGVCF(gVcfFiles, target, config.testMode))
     } else {
       // If the pipeline is setup to run each sample individually, 
       // output one final vcf file per sample.
-      config.qscript.add(new HaplotypeCallerBase(target, config.testMode, config.downsampleFraction, config.pcrFree, config.minimumBaseQuality))
+      config.qscript.add(new HaplotypeCallerBase(target, config.testMode, config.downsampleFraction, config.pcrFree, config.minimumBaseQuality, Some(gatkOptions.bqsrOnTheFly)))
       config.qscript.add(new GenotypeGVCF(Seq(target.gVCFFile), target, config.testMode))
     }
 
@@ -126,7 +127,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     config: VariantCallingConfig): Seq[File] = {
     if (!config.noIndels) {
       // Indel calling, recalibration and evaulation
-      config.qscript.add(new UnifiedGenotyperIndelCall(target, config.testMode, config.downsampleFraction))
+      config.qscript.add(new UnifiedGenotyperIndelCall(target, config.testMode, config.downsampleFraction, Some(gatkOptions.bqsrOnTheFly)))
       if (!config.noRecal) {
         config.qscript.add(new IndelRecalibration(target))
         config.qscript.add(new IndelCut(target))
@@ -137,7 +138,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     config.qscript.add(new UnifiedGenotyperSnpCall(
       target, config.testMode,
       config.downsampleFraction, config.minimumBaseQuality,
-      config.deletions, config.noBAQ))
+      config.deletions, config.noBAQ, Some(gatkOptions.bqsrOnTheFly)))
 
     if (!config.noRecal) {
       config.qscript.add(new SnpRecalibration(target))
@@ -283,6 +284,9 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     if (minimumBaseQuality.isDefined && minimumBaseQuality.get >= 0)
       this.min_base_quality_score = Some(min_base_quality_score.get.toByte)
 
+    if (bqsrOnTheFly.getOrElse(false)) 
+      this.BQSR = t.bamTargetList(0).preRecalFile
+      
     this.input_file = t.bamTargetList.map( _.processedBam )
     this.out = t.gVCFFile
 
@@ -365,7 +369,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
   }
 
   // 1.) Unified Genotyper Base
-  class UnifiedGenotyperBase(t: VariantCallingTarget, testMode: Boolean, downsampleFraction: Option[Double])
+  class UnifiedGenotyperBase(t: VariantCallingTarget, testMode: Boolean, downsampleFraction: Option[Double], bqsrOnTheFly: Option[Boolean])
       extends UnifiedGenotyper with CommandLineGATKArgs with EightCoreJob {
 
     if (testMode)
@@ -385,6 +389,8 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     this.input_file = t.bamTargetList.map( _.processedBam )
     if (!gatkOptions.dbSNP.isEmpty)
       this.D = gatkOptions.dbSNP.get
+    if (bqsrOnTheFly.getOrElse(false))
+      this.BQSR = t.bamTargetList(0).preRecalFile
   }
 
   // 1a.) Call SNPs with UG
@@ -394,8 +400,9 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     downsampleFraction: Option[Double],
     minimumBaseQuality: Option[Int],
     deletions: Option[Double],
-    noBAQ: Boolean)
-      extends UnifiedGenotyperBase(t, testMode, downsampleFraction) {
+    noBAQ: Boolean,
+    bqsrOnTheFly: Option[Boolean])
+      extends UnifiedGenotyperBase(t, testMode, downsampleFraction, bqsrOnTheFly) {
 
     if (minimumBaseQuality.isDefined && minimumBaseQuality.get >= 0)
       UnifiedGenotyperSnpCall.this.min_base_quality_score = minimumBaseQuality
@@ -412,8 +419,9 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
   class UnifiedGenotyperIndelCall(
     t: VariantCallingTarget,
     testMode: Boolean,
-    downsampleFraction: Option[Double])
-      extends UnifiedGenotyperBase(t, testMode, downsampleFraction) {
+    downsampleFraction: Option[Double],
+    bqsrOnTheFly: Option[Boolean])
+      extends UnifiedGenotyperBase(t, testMode, downsampleFraction, bqsrOnTheFly) {
     UnifiedGenotyperIndelCall.this.out = t.rawIndelVCF
     UnifiedGenotyperIndelCall.this.baq = org.broadinstitute.gatk.utils.baq.BAQ.CalculationMode.OFF
     UnifiedGenotyperIndelCall.this.glm = org.broadinstitute.gatk.tools.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.INDEL

@@ -10,6 +10,7 @@ import molmed.utils.BwaMem
 import molmed.utils.GATKConfig
 import molmed.utils.GATKDataProcessingUtils
 import molmed.utils.GATKHaplotypeCaller
+import molmed.utils.GATKProcessingTarget
 import molmed.utils.GATKUnifiedGenotyper
 import molmed.utils.GeneralUtils
 import molmed.utils.MergeFilesUtils
@@ -240,7 +241,7 @@ class DNABestPracticeVariantCalling extends QScript
 
     if (snpGenotypes.isDefined) {
       qualityControlUtils.checkGenotypeConcordance(
-        bams = bamFiles,
+        bamFiles = bamFiles,
         outputBase = genotypeConcordanceOutputDir,
         comparisonVcf = snpGenotypes.get,
         qscript = this,
@@ -314,7 +315,7 @@ class DNABestPracticeVariantCalling extends QScript
     /**
      * Used internally to handle splitting, processing and merging.
      */
-    def runDataProcessingOnSplitByChromosomeAndMerge = {
+    def runDataProcessingOnSplitByChromosomeAndMerge: Seq[GATKProcessingTarget] = {
 
       val updateGATKOptions = gatkOptions.copy(nbrOfThreads = 16 / groupsToSplitTo)
       
@@ -335,20 +336,22 @@ class DNABestPracticeVariantCalling extends QScript
 
         // Assumes that the start of the file name is the same, and is what is to
         // be used name these files.
-        val toMergeBams = toMergeBamTarget.map( _.processedBam )
-        val nameOfOutputBam =
-          if (toMergeBams.size > 1) {
-            val firstFileName = toMergeBams(0).getName()
-            val secondFileName = toMergeBams(1).getName()
-            val longestCommonName =
-              firstFileName.zip(secondFileName).takeWhile(Function.tupled(_ == _)).map(_._1).mkString
-            // The splitting will add a _, removing it here.  
-            longestCommonName.stripSuffix("_")
-          } else
-            toMergeBams(0).getName().stripSuffix(".bam")
-
-        val outBam = new File(processedAligmentsOutputDir + "/" + nameOfOutputBam + ".bam")
-        SplitFilesAndMergeByChromosome.merge(qscript, toMergeBams, outBam, asIntermediate = false, generalUtils)
+        
+        def _longestCommonPrefix(fileNames: Seq[String]): String = {
+          if (fileNames.size > 1)
+              fileNames(0).zip(fileNames(1)).takeWhile(Function.tupled(_ == _)).map(_._1).mkString.stripSuffix("_")
+          else
+              fileNames(0).stripSuffix(".bam")
+        }
+        val nameOfOriginalBam = _longestCommonPrefix( toMergeBamTarget.map( _.bam.getName() ))
+        val mergedBamTarget = new GATKProcessingTarget(
+            processedAligmentsOutputDir, 
+            new File(processedAligmentsOutputDir + "/" + nameOfOriginalBam + ".bam"),
+            toMergeBamTarget(0).skipDeduplication,
+            toMergeBamTarget(0).bqsrOnTheFly,
+            toMergeBamTarget(0).globalIntervals)
+        SplitFilesAndMergeByChromosome.merge(qscript, toMergeBamTarget.map( _.processedBam ), mergedBamTarget.processedBam, asIntermediate = false, generalUtils)
+        mergedBamTarget
       }
     }
 

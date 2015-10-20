@@ -10,7 +10,6 @@ class GATKProcessingTarget(outputDir: File,
                            val bam: File,
                            val skipDeduplication: Boolean,
                            val bqsrOnTheFly: Boolean,
-                           val cleaningModel: String,
                            val globalIntervals: Option[File]) {
 
     // Processed bam files

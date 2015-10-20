@@ -18,4 +18,4 @@ case class GATKConfig(
   thousandGenomes: Option[File] = None,
   notHuman: Boolean = false,
   snpGenotypingVcf: Option[File] = None,
-  bqsrOnTheFly: Boolean = False)
+  bqsrOnTheFly: Boolean = false)

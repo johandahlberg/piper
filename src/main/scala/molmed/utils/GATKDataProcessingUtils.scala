@@ -54,28 +54,35 @@ class GATKDataProcessingUtils(
     val processedTargets: Seq[GATKProcessingTarget] =
       for (bam <- bams) yield {
 
-        processedTarget = new GATKProcessingTarget(outputDir, bam, skipDeduplication, bqsrOnTheFly, cleaningModel, if (cleaningModel == ConsensusDeterminationModel.KNOWNS_ONLY) Some(globalIntervals) else None)
+        val processedTarget = new GATKProcessingTarget(
+            outputDir,
+            bam,
+            skipDeduplication,
+            this.gatkOptions.bqsrOnTheFly,
+            if (cleaningModel == ConsensusDeterminationModel.KNOWNS_ONLY) Some(globalIntervals) else None)
 
         if (cleaningModel != ConsensusDeterminationModel.KNOWNS_ONLY)
           qscript.add(target(Seq(bam), processedTarget.targetIntervals, cleanModelEnum))
 
         (skipDeduplication, this.gatkOptions.bqsrOnTheFly) match {
-          case (True, True) => {
-            qscript.add(cov(processedTarget.cleanedBam, processedTarget.preRecalFile, defaultPlatform = ""))
-          }
-          case (True, False) => {
+          case (true, true) => {
             qscript.add(cov(processedTarget.cleanedBam, processedTarget.preRecalFile, defaultPlatform = ""),
-              recal(processedTarget.cleanedBam, processedTarget.preRecalFile, processedTarget.recalBam, asIntermediate = False),
+                    cov(processedTarget.cleanedBam, processedTarget.postRecalFile, defaultPlatform = "", Some(processedTarget.preRecalFile)))
+          }
+          case (true, false) => {
+            qscript.add(cov(processedTarget.cleanedBam, processedTarget.preRecalFile, defaultPlatform = ""),
+              recal(processedTarget.cleanedBam, processedTarget.preRecalFile, processedTarget.recalBam, asIntermediate = false),
               cov(processedTarget.recalBam, processedTarget.postRecalFile, defaultPlatform = ""))
           }
-          case (False, True) => {
-            qscript.add(generalUtils.dedup(processedTarget.cleanedBam, processedTarget.dedupedBam, processedTarget.metricsFile, asIntermediate = False),
-              cov(processedTarget.dedupedBam, processedTarget.preRecalFile, defaultPlatform = ""))
-          }
-          case (False, False) => {
-            qscript.add(generalUtils.dedup(processedTarget.cleanedBam, processedTarget.dedupedBam, processedTarget.metricsFile, asIntermediate = True),
+          case (false, true) => {
+            qscript.add(generalUtils.dedup(processedTarget.cleanedBam, processedTarget.dedupedBam, processedTarget.metricsFile, asIntermediate = false),
               cov(processedTarget.dedupedBam, processedTarget.preRecalFile, defaultPlatform = ""),
-              recal(processedTarget.dedupedBam, processedTarget.preRecalFile, processedTarget.recalBam, asIntermediate = False),
+              cov(processedTarget.cleanedBam, processedTarget.postRecalFile, defaultPlatform = "", Some(processedTarget.preRecalFile)))
+          }
+          case (false, false) => {
+            qscript.add(generalUtils.dedup(processedTarget.cleanedBam, processedTarget.dedupedBam, processedTarget.metricsFile, asIntermediate = true),
+              cov(processedTarget.dedupedBam, processedTarget.preRecalFile, defaultPlatform = ""),
+              recal(processedTarget.dedupedBam, processedTarget.preRecalFile, processedTarget.recalBam, asIntermediate = false),
               cov(processedTarget.recalBam, processedTarget.postRecalFile, defaultPlatform = ""))
           }
         }
