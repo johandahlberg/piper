@@ -15,8 +15,8 @@ class GATKProcessingTarget(outputDir: File,
     // Processed bam files
     val cleanedBam = GeneralUtils.swapExt(outputDir, bam, ".bam", ".clean.bam")
     val dedupedBam = if (!skipDeduplication) GeneralUtils.swapExt(outputDir, cleanedBam, ".bam", ".dedup.bam") else cleanedBam
-    val recalBam = if (!bqsrOnTheFly) GeneralUtils.swapExt(outputDir, dedupedBam, ".bam", ".recal.bam") else dedupedBam
-    val processedBam = recalBam
+    val recalBam = GeneralUtils.swapExt(outputDir, dedupedBam, ".bam", ".recal.bam")
+    val processedBam = if (!bqsrOnTheFly) recalBam else dedupedBam
 
     // Accessory files
     val targetIntervals = globalIntervals.getOrElse(GeneralUtils.swapExt(outputDir, bam, ".bam", ".intervals"))

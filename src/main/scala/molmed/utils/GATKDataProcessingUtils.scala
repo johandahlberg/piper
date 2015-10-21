@@ -62,30 +62,21 @@ class GATKDataProcessingUtils(
             if (cleaningModel == ConsensusDeterminationModel.KNOWNS_ONLY) Some(globalIntervals) else None)
 
         if (cleaningModel != ConsensusDeterminationModel.KNOWNS_ONLY)
-          qscript.add(target(Seq(bam), processedTarget.targetIntervals, cleanModelEnum))
+          qscript.add(target(Seq(processedTarget.bam), processedTarget.targetIntervals, cleanModelEnum))
 
-        (skipDeduplication, this.gatkOptions.bqsrOnTheFly) match {
-          case (true, true) => {
-            qscript.add(cov(processedTarget.cleanedBam, processedTarget.preRecalFile, defaultPlatform = ""),
-                    cov(processedTarget.cleanedBam, processedTarget.postRecalFile, defaultPlatform = "", Some(processedTarget.preRecalFile)))
-          }
-          case (true, false) => {
-            qscript.add(cov(processedTarget.cleanedBam, processedTarget.preRecalFile, defaultPlatform = ""),
-              recal(processedTarget.cleanedBam, processedTarget.preRecalFile, processedTarget.recalBam, asIntermediate = false),
-              cov(processedTarget.recalBam, processedTarget.postRecalFile, defaultPlatform = ""))
-          }
-          case (false, true) => {
-            qscript.add(generalUtils.dedup(processedTarget.cleanedBam, processedTarget.dedupedBam, processedTarget.metricsFile, asIntermediate = false),
-              cov(processedTarget.dedupedBam, processedTarget.preRecalFile, defaultPlatform = ""),
-              cov(processedTarget.cleanedBam, processedTarget.postRecalFile, defaultPlatform = "", Some(processedTarget.preRecalFile)))
-          }
-          case (false, false) => {
-            qscript.add(generalUtils.dedup(processedTarget.cleanedBam, processedTarget.dedupedBam, processedTarget.metricsFile, asIntermediate = true),
-              cov(processedTarget.dedupedBam, processedTarget.preRecalFile, defaultPlatform = ""),
-              recal(processedTarget.dedupedBam, processedTarget.preRecalFile, processedTarget.recalBam, asIntermediate = false),
-              cov(processedTarget.recalBam, processedTarget.postRecalFile, defaultPlatform = ""))
-          }
-        }
+        // realign
+        qscript.add(clean(Seq(processedTarget.bam), processedTarget.targetIntervals, processedTarget.cleanedBam, cleanModelEnum, testMode))
+        // mark duplicates unless we're told not to
+        if (!skipDeduplication)
+            qscript.add(generalUtils.dedup(processedTarget.cleanedBam, processedTarget.dedupedBam, processedTarget.metricsFile, asIntermediate = !this.gatkOptions.bqsrOnTheFly))
+        // calculate recalibration covariates
+        qscript.add(cov(processedTarget.dedupedBam, processedTarget.preRecalFile, defaultPlatform = ""))
+        // calculate recalibration covariates after recalibration
+        qscript.add(cov(processedTarget.dedupedBam, processedTarget.postRecalFile, defaultPlatform = "", Some(processedTarget.preRecalFile)))
+        // apply recalibration unless we should do it on-the-fly
+        if (!this.gatkOptions.bqsrOnTheFly)
+            qscript.add(recal(processedTarget.dedupedBam, processedTarget.preRecalFile, processedTarget.recalBam, asIntermediate = false))
+
         processedTarget
       }
 
