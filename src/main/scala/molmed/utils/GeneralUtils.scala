@@ -17,6 +17,8 @@ import org.broadinstitute.gatk.queue.extensions.picard.ValidateSamFile
 import org.broadinstitute.gatk.queue.function.InProcessFunction
 import org.broadinstitute.gatk.queue.function.ListWriterFunction
 import org.broadinstitute.gatk.queue.util.StringFileConversions
+import org.broadinstitute.gatk.tools.walkers.bqsr.BQSRGatherer
+
 
 import htsjdk.samtools.SAMFileHeader.SortOrder
 import molmed.queue.extensions.RNAQC.RNASeQC
@@ -365,6 +367,24 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     override def jobRunnerJobName = projectName.get + "_collectHSMetrics"
 
   }
+
+  /**
+   * Merge BQSR recalibration tables
+   *
+   * @param inRecalFiles Seq of recalibration table files to merge
+   * @param outRecalFile the merged output recalibration table file
+   */
+  case class mergeRecalibrationTables(@Input inRecalFiles: Seq[File], @Output outRecalFile: File, asIntermediate: Boolean = false) extends InProcessFunction {
+    import scala.collection.JavaConverters._
+
+    this.isIntermediate = asIntermediate
+
+    def run() {
+      new BQSRGatherer().gather(inRecalFiles.toList.asJava, outRecalFile)
+    }
+
+  }
+
 }
 
 /**

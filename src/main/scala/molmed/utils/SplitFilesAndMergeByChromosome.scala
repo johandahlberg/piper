@@ -145,4 +145,27 @@ object SplitFilesAndMergeByChromosome {
     outBam
   }
 
+  /**
+   * Merge a set of recalibration table files
+   *
+   * @param qscript
+   * @param inRecalTables
+   * @param outRecalTable
+   * @param asIntermediate
+   * @param generalUtils
+   * @return The merged file
+   */
+  def mergeRecalibrationTables(
+    qscript: QScript,
+    inRecalTables: Seq[File],
+    outRecalTable: File,
+    asIntermediate: Boolean,
+    generalUtils: GeneralUtils): File = {
+
+    qscript.add(
+      generalUtils.mergeRecalibrationTables(inRecalTables, outRecalTable, asIntermediate = asIntermediate))
+
+    outRecalTable
+  }
+
 }

@@ -141,9 +141,8 @@ class DNABestPracticeVariantCalling extends QScript
   @Argument(doc = "When using the --super_charge option, use this to specify number of groups (default: 3)", fullName = "ways_to_split", shortName = "wts", required = false)
   var groupsToSplitTo: Int = 3
 
-  // TODO: the description below is not entirely true, under the hood, the recalibrated files are still created, but regarded as intermediate. Proper on-the-fly behavior should be implemented
-  @Argument(doc = "Do Base Quality Score Recalibration (BQSR) on-the-fly during variant calling (default), rather than creating base-recalibrated bam files", fullName = "bqsr_otf", shortName = "botf", required = false)
-  var bqsrOnTheFly: Boolean = true
+  @Argument(doc = "Do Base Quality Score Recalibration (BQSR) on-the-fly during variant calling, rather than creating base-recalibrated bam files (default)", fullName = "bqsr_otf", shortName = "botf", required = false)
+  var bqsrOnTheFly: Boolean = false
 
   /**
    * **************************************************************************
@@ -351,6 +350,9 @@ class DNABestPracticeVariantCalling extends QScript
             toMergeBamTarget(0).bqsrOnTheFly,
             toMergeBamTarget(0).globalIntervals)
         SplitFilesAndMergeByChromosome.merge(qscript, toMergeBamTarget.map( _.processedBam ), mergedBamTarget.processedBam, asIntermediate = false, generalUtils)
+        SplitFilesAndMergeByChromosome.mergeRecalibrationTables(qscript, toMergeBamTarget.map( _.preRecalFile ), mergedBamTarget.preRecalFile, asIntermediate = false, generalUtils)
+        SplitFilesAndMergeByChromosome.mergeRecalibrationTables(qscript, toMergeBamTarget.map( _.postRecalFile ), mergedBamTarget.postRecalFile, asIntermediate = false, generalUtils)
+
         mergedBamTarget
       }
     }
