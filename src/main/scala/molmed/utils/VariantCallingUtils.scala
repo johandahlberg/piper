@@ -285,7 +285,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
       this.min_base_quality_score = Some(min_base_quality_score.get.toByte)
 
     if (bqsrOnTheFly.getOrElse(false)) 
-      this.BQSR = t.bamTargetList(0).preRecalFile
+      this.BQSR = t.bamTargetList.map( _.preRecalFile )
       
     this.input_file = t.bamTargetList.map( _.processedBam )
     this.out = t.gVCFFile
@@ -390,7 +390,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     if (!gatkOptions.dbSNP.isEmpty)
       this.D = gatkOptions.dbSNP.get
     if (bqsrOnTheFly.getOrElse(false))
-      this.BQSR = t.bamTargetList(0).preRecalFile
+      this.BQSR = t.bamTargetList.map( _.preRecalFile )
   }
 
   // 1a.) Call SNPs with UG
