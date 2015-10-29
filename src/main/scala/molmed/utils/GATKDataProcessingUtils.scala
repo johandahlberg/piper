@@ -31,7 +31,7 @@ class GATKDataProcessingUtils(
                      outputDir: File,
                      cleaningModel: String,
                      skipDeduplication: Boolean = false,
-                     testMode: Boolean): Seq[File] = {
+                     testMode: Boolean): Seq[GATKProcessingTarget] = {
 
     def getIndelCleaningModel: ConsensusDeterminationModel = {
       if (cleaningModel == "KNOWNS_ONLY")
@@ -51,42 +51,36 @@ class GATKDataProcessingUtils(
       qscript.add(target(null, globalIntervals, cleanModelEnum))
 
     // put each sample through the pipeline
-    val processedBams =
+    val processedTargets: Seq[GATKProcessingTarget] =
       for (bam <- bams) yield {
 
-        val cleanedBam = GeneralUtils.swapExt(outputDir, bam, ".bam", ".clean.bam")
-        val dedupedBam = GeneralUtils.swapExt(outputDir, bam, ".bam", ".clean.dedup.bam")
-        val recalBam = if (!skipDeduplication) GeneralUtils.swapExt(outputDir, bam, ".bam", ".clean.dedup.recal.bam") else GeneralUtils.swapExt(outputDir, bam, ".bam", ".clean.recal.bam")
-
-        // Accessory files
-        val targetIntervals = if (cleaningModel == ConsensusDeterminationModel.KNOWNS_ONLY) { globalIntervals } else { GeneralUtils.swapExt(outputDir, bam, ".bam", ".intervals") }
-        val metricsFile = GeneralUtils.swapExt(outputDir, bam, ".bam", ".metrics")
-        val preRecalFile = GeneralUtils.swapExt(outputDir, bam, ".bam", ".pre_recal.table")
-        val postRecalFile = GeneralUtils.swapExt(outputDir, bam, ".bam", ".post_recal.table")
-        val preOutPath = GeneralUtils.swapExt(outputDir, bam, ".bam", ".pre")
-        val postOutPath = GeneralUtils.swapExt(outputDir, bam, ".bam", ".post")
-        val preValidateLog = GeneralUtils.swapExt(outputDir, bam, ".bam", ".pre.validation")
-        val postValidateLog = GeneralUtils.swapExt(outputDir, bam, ".bam", ".post.validation")
+        val processedTarget = new GATKProcessingTarget(
+            outputDir,
+            bam,
+            skipDeduplication,
+            this.gatkOptions.bqsrOnTheFly,
+            if (cleaningModel == ConsensusDeterminationModel.KNOWNS_ONLY) Some(globalIntervals) else None)
 
         if (cleaningModel != ConsensusDeterminationModel.KNOWNS_ONLY)
-          qscript.add(target(Seq(bam), targetIntervals, cleanModelEnum))
+          qscript.add(target(Seq(processedTarget.bam), processedTarget.targetIntervals, cleanModelEnum))
 
-        qscript.add(clean(Seq(bam), targetIntervals, cleanedBam, cleanModelEnum, testMode))
-
+        // realign
+        qscript.add(clean(Seq(processedTarget.bam), processedTarget.targetIntervals, processedTarget.cleanedBam, cleanModelEnum, testMode))
+        // mark duplicates unless we're told not to
         if (!skipDeduplication)
-          qscript.add(generalUtils.dedup(cleanedBam, dedupedBam, metricsFile),
-            cov(dedupedBam, preRecalFile, defaultPlatform = ""),
-            recal(dedupedBam, preRecalFile, recalBam),
-            cov(recalBam, postRecalFile, defaultPlatform = ""))
-        else
-          qscript.add(cov(cleanedBam, preRecalFile, defaultPlatform = ""),
-            recal(cleanedBam, preRecalFile, recalBam),
-            cov(recalBam, postRecalFile, defaultPlatform = ""))
+            qscript.add(generalUtils.dedup(processedTarget.cleanedBam, processedTarget.dedupedBam, processedTarget.metricsFile, asIntermediate = !this.gatkOptions.bqsrOnTheFly))
+        // calculate recalibration covariates
+        qscript.add(cov(processedTarget.dedupedBam, processedTarget.preRecalFile, defaultPlatform = ""))
+        // calculate recalibration covariates after recalibration
+        qscript.add(cov(processedTarget.dedupedBam, processedTarget.postRecalFile, defaultPlatform = "", Some(processedTarget.preRecalFile)))
+        // apply recalibration unless we should do it on-the-fly
+        if (!this.gatkOptions.bqsrOnTheFly)
+            qscript.add(recal(processedTarget.dedupedBam, processedTarget.preRecalFile, processedTarget.recalBam, asIntermediate = false))
 
-        recalBam
+        processedTarget
       }
 
-    processedBams
+    processedTargets
   }
 
 }

@@ -8,7 +8,7 @@ import java.io.File
 class VariantCallingTarget(outputDir: File,
                            val baseName: String,
                            val reference: File,
-                           val bamList: Seq[File],
+                           val bamTargetList: Seq[GATKProcessingTarget],
                            val intervals: Option[File],
                            val isLowpass: Boolean,
                            val isExome: Boolean,
