@@ -157,8 +157,13 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
    * @return The annotated versions of the files.
    */
   def annotateUsingSnpEff(config: VariantCallingConfig, variantFiles: Seq[File], vcfExtension: String): Seq[File] = {
+    val outputVcfExtension =
+      if (config.bcftoolsPath.isDefined)
+        vcfExtension
+      else
+        vcfExtension.stripSuffix(".gz")
     for (file <- variantFiles) yield {
-      val annotatedFile = GeneralUtils.swapExt(file.getParentFile(), file, vcfExtension, "annotated." + vcfExtension)
+      val annotatedFile = GeneralUtils.swapExt(file.getParentFile(), file, vcfExtension, "annotated." + outputVcfExtension)
       config.qscript.add(
         new SnpEff(file, annotatedFile, config))
       annotatedFile
@@ -599,14 +604,20 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
         config.snpEffPath.get.getAbsolutePath().stripSuffix("snpEff") +
           "/../snpEff.config"
 
+    // If the path to bcftools has not been defined, skip compression of the output vcf file
+    val outputRedirect =
+      if (config.bcftoolsPath.isDefined && !config.skipVcfCompression)
+        "| " + config.bcftoolsPath.get.getAbsolutePath() + " view -Oz - > " + output.getAbsolutePath()
+      else
+        "> " + output.getAbsolutePath()
+
     override def commandLine =
       config.snpEffPath.get.getAbsolutePath() + " " +
         " -c " + snpEffConfig + " " +
         " -csvStats " +
         " -stats " + output.getAbsolutePath() + ".snpEff.summary.csv " +
         config.snpEffReference.get + " " +
-        input.getAbsolutePath() + " > " +
-        output.getAbsolutePath()
+        input.getAbsolutePath() + " " + outputRedirect
   }
 
 }

@@ -54,4 +54,5 @@ case class VariantCallingConfig(qscript: QScript,
                                 snpEffConfigPath: Option[File] = None,
                                 snpEffReference: Option[String] = None,
                                 skipAnnotation: Boolean,
-                                skipVcfCompression: Boolean)
+                                skipVcfCompression: Boolean,
+                                bcftoolsPath: Option[File] = None)

@@ -409,7 +409,8 @@ class DNABestPracticeVariantCalling extends QScript
       snpEffConfigPath,
       Some(snpEffReference),
       skipAnnotation,
-      skipVcfCompression)
+      skipVcfCompression,
+      bcftoolsPath)
 
     variantCallingUtils.performVariantCalling(variantCallingConfig)
   }
