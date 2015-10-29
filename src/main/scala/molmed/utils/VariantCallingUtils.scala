@@ -99,13 +99,20 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     config.qscript.add(new SnpEvaluation(target, config.noRecal))
     config.qscript.add(new IndelEvaluation(target, config.noRecal))
 
-    Seq(
-      target.rawCombinedVariants,
-      target.recalibratedIndelVCF,
-      target.recalibratedSnpVCF,
-      target.evalFile,
-      target.evalIndelFile)
-
+    if (!config.noRecal) {
+      Seq(
+        target.rawCombinedVariants,
+        target.recalibratedIndelVCF,
+        target.recalibratedSnpVCF,
+        target.evalFile,
+        target.evalIndelFile)
+    }
+    else {
+      Seq(
+        target.rawCombinedVariants,
+        target.evalFile,
+        target.evalIndelFile)
+    }
   }
 
   /**
