@@ -57,7 +57,7 @@ class AlignmentQCUtils(
    *
    */
   def checkGenotypeConcordance(
-    bams: Seq[File],
+    bamFiles: Seq[File],
     outputBase: File,
     comparisonVcf: File,
     qscript: QScript,
@@ -67,15 +67,21 @@ class AlignmentQCUtils(
     isLowPass: Boolean,
     isExome: Boolean,
     testMode: Boolean,
-    minimumBaseQuality: Option[Int]): Seq[File] = {
+    minimumBaseQuality: Option[Int],
+    skipVcfCompression: Boolean): Seq[File] = {
 
     val gatkOptionsWithGenotypingSnp = gatkOptions.copy(snpGenotypingVcf = Some(comparisonVcf))
-    
+    val bamTargets = bamFiles.map( bamFile => new GATKProcessingTarget(
+          bamFile.getParentFile(),
+          bamFile,
+          skipDeduplication = false,
+          gatkOptions.bqsrOnTheFly,
+          gatkOptions.intervalFile) )
     val variantCallingUtils = new VariantCallingUtils(gatkOptionsWithGenotypingSnp, projectName, uppmaxConfig)
     val variantCallingConfig = new VariantCallingConfig(
       qscript = qscript,
       variantCaller = Some(GATKUnifiedGenotyper),
-      bams = bams,
+      bamTargets = bamTargets,
       outputDir = outputBase,
       runSeparatly = true,
       isLowPass = isLowPass,
@@ -85,7 +91,8 @@ class AlignmentQCUtils(
       testMode = testMode,
       minimumBaseQuality = minimumBaseQuality,
       noBAQ = true,
-      skipAnnotation = true)
+      skipAnnotation = true,
+      skipVcfCompression = skipVcfCompression)
 
     val concordanceFiles = variantCallingUtils.checkGenotypeConcordance(variantCallingConfig)
     concordanceFiles

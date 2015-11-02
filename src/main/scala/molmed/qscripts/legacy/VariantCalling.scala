@@ -5,7 +5,7 @@ import org.broadinstitute.gatk.queue.QScript
 import org.broadinstitute.gatk.queue.util.QScriptUtils
 import molmed.utils.VariantCallingUtils
 import molmed.utils.GATKConfig
-import molmed.utils.VariantCallingUtils
+import molmed.utils.GATKProcessingTarget
 import molmed.config.UppmaxXMLConfiguration
 import molmed.utils.VariantCallingTarget
 import org.broadinstitute.gatk.utils.commandline.Hidden
@@ -122,18 +122,20 @@ class VariantCalling extends QScript with UppmaxXMLConfiguration {
 
     val intervalOption = if(intervals == null) None else Some(intervals) 
     
+    val bamTargets = bams.map( bam => new GATKProcessingTarget(outputDir, bam, skipDeduplication = false, bqsrOnTheFly = false, intervalOption) )
+    
     val targets = (runSeparatly, notHuman) match {
-      case (true, false) => bams.map(bam => new VariantCallingTarget(outputDir, bam.getName(), reference, Seq(bam), intervalOption, isLowpass, isExome, 1))
-      case (true, true) => bams.map(bam => new VariantCallingTarget(outputDir, bam.getName(), reference, Seq(bam), intervalOption, isLowpass, false, 1))
-      case (false, true) => Seq(new VariantCallingTarget(outputDir, projectName.get, reference, bams, intervalOption, isLowpass, false, bams.size))
-      case (false, false) => Seq(new VariantCallingTarget(outputDir, projectName.get, reference, bams, intervalOption, isLowpass, isExome, bams.size))
+      case (true, false) => bamTargets.map(bamTarget => new VariantCallingTarget(outputDir, bamTarget.bam.getName(), reference, Seq(bamTarget), intervalOption, isLowpass, isExome, 1))
+      case (true, true) => bamTargets.map(bamTarget => new VariantCallingTarget(outputDir, bamTarget.bam.getName(), reference, Seq(bamTarget), intervalOption, isLowpass, false, 1))
+      case (false, true) => Seq(new VariantCallingTarget(outputDir, projectName.get, reference, bamTargets, intervalOption, isLowpass, false, bams.size))
+      case (false, false) => Seq(new VariantCallingTarget(outputDir, projectName.get, reference, bamTargets, intervalOption, isLowpass, isExome, bams.size))
     }
 
     for (target <- targets) {
       if (!skipCalling) {
         if (!noIndels) {
           // Indel calling, recalibration and evaulation
-          add(new variantCallingUtils.UnifiedGenotyperIndelCall(target, testMode, downsampleFraction))
+          add(new variantCallingUtils.UnifiedGenotyperIndelCall(target, testMode, downsampleFraction, Some(false)))
           if (!noRecal) {
             add(new variantCallingUtils.IndelRecalibration(target))
             add(new variantCallingUtils.IndelCut(target))
@@ -141,7 +143,7 @@ class VariantCalling extends QScript with UppmaxXMLConfiguration {
           }
         }
         // SNP calling, recalibration and evaluation
-        add(new variantCallingUtils.UnifiedGenotyperSnpCall(target, testMode, downsampleFraction, minimumBaseQuality, deletions, noBAQ))
+        add(new variantCallingUtils.UnifiedGenotyperSnpCall(target, testMode, downsampleFraction, minimumBaseQuality, deletions, noBAQ, Some(false)))
         if (!noRecal) {
           add(new variantCallingUtils.SnpRecalibration(target))
           add(new variantCallingUtils.SnpCut(target))
