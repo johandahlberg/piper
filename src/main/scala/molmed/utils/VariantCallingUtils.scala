@@ -247,7 +247,10 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
     val vcfExtension = targets(0).vcfExtension
     val unannotatedVariantFiles =
-      variantAndEvalFiles.filter(_.getName().endsWith(vcfExtension))
+      variantAndEvalFiles.filter(f =>
+        f.getName().endsWith(vcfExtension) &&
+          !f.getName().contains(".genomic.") &&
+          (config.noRecal || !f.getName().contains(".raw.")))
 
     if (config.skipAnnotation)
       variantAndEvalFiles
