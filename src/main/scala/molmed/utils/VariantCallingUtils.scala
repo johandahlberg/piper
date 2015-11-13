@@ -613,6 +613,8 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
     override def commandLine =
       config.snpEffPath.get.getAbsolutePath() + " " +
+        // Explicitly pass the JVM parameters to snpEff since it wraps the java command
+        " -Xmx" + this.memoryLimit.getOrElse(4.0).toInt.toString + "g " +
         " -c " + snpEffConfig + " " +
         " -csvStats " +
         " -stats " + output.getAbsolutePath() + ".snpEff.summary.csv " +
