@@ -99,6 +99,10 @@ class GATKUtils(gatkOptions: GATKConfig, projectName: Option[String], uppmaxConf
     this.bam_compression = Some(5)
 
     this.BQSR = inRecalFile
+    // Disable the insertion and deletion qualities (BI and BD tags)
+    this.disable_indel_quals = true
+    // Emit the original qualities (OQ tag)
+    this.emit_original_quals = true
     this.baq = CalculationMode.CALCULATE_AS_NECESSARY
     this.out = outBam
     this.scatterCount = gatkOptions.scatterGatherCount.get
