@@ -124,7 +124,7 @@ object ReportGenerator {
 README
 ******
       
-Data has been mapped to the reference using Tophat. Transcripts were quantified using cufflinks, and quality control data was collected using Cufflinks. The pipeline system used was Piper (see below for more information).      
+Data has been mapped to the reference using Tophat. Transcripts were quantified using cufflinks, and quality control data was collected using RNA-SeQC. The pipeline system used was Piper (see below for more information).      
 
 The versions of programs and references used:
 piper: $piperVersion
