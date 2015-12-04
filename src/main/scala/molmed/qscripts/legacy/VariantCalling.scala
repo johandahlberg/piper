@@ -122,7 +122,7 @@ class VariantCalling extends QScript with UppmaxXMLConfiguration {
 
     val intervalOption = if(intervals == null) None else Some(intervals) 
     
-    val bamTargets = bams.map( bam => new GATKProcessingTarget(outputDir, bam, skipDeduplication = false, bqsrOnTheFly = false, intervalOption) )
+    val bamTargets = bams.map( bam => new GATKProcessingTarget(outputDir, bam, skipDeduplication = false, intervalOption) )
     
     val targets = (runSeparatly, notHuman) match {
       case (true, false) => bamTargets.map(bamTarget => new VariantCallingTarget(outputDir, bamTarget.bam.getName(), reference, Seq(bamTarget), intervalOption, isLowpass, isExome, 1))
@@ -135,7 +135,7 @@ class VariantCalling extends QScript with UppmaxXMLConfiguration {
       if (!skipCalling) {
         if (!noIndels) {
           // Indel calling, recalibration and evaulation
-          add(new variantCallingUtils.UnifiedGenotyperIndelCall(target, testMode, downsampleFraction, Some(false)))
+          add(new variantCallingUtils.UnifiedGenotyperIndelCall(target, testMode, downsampleFraction))
           if (!noRecal) {
             add(new variantCallingUtils.IndelRecalibration(target))
             add(new variantCallingUtils.IndelCut(target))
@@ -143,7 +143,7 @@ class VariantCalling extends QScript with UppmaxXMLConfiguration {
           }
         }
         // SNP calling, recalibration and evaluation
-        add(new variantCallingUtils.UnifiedGenotyperSnpCall(target, testMode, downsampleFraction, minimumBaseQuality, deletions, noBAQ, Some(false)))
+        add(new variantCallingUtils.UnifiedGenotyperSnpCall(target, testMode, downsampleFraction, minimumBaseQuality, deletions, noBAQ))
         if (!noRecal) {
           add(new variantCallingUtils.SnpRecalibration(target))
           add(new variantCallingUtils.SnpCut(target))

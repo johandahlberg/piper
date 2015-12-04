@@ -58,28 +58,22 @@ class GATKDataProcessingUtils(
             outputDir,
             bam,
             skipDeduplication,
-            this.gatkOptions.bqsrOnTheFly,
             if (cleaningModel == ConsensusDeterminationModel.KNOWNS_ONLY) Some(globalIntervals) else None)
 
         if (cleaningModel != ConsensusDeterminationModel.KNOWNS_ONLY)
           qscript.add(target(Seq(processedTarget.bam), processedTarget.targetIntervals, cleanModelEnum))
 
         // realign
-        qscript.add(clean(Seq(processedTarget.bam), processedTarget.targetIntervals, processedTarget.cleanedBam, cleanModelEnum, testMode))
+        qscript.add(clean(Seq(processedTarget.bam), processedTarget.targetIntervals, processedTarget.cleanedBam, cleanModelEnum, testMode, asIntermediate = !(this.gatkOptions.keepPreBQSRBam && skipDeduplication)))
         // mark duplicates unless we're told not to
         if (!skipDeduplication)
-            qscript.add(generalUtils.dedup(processedTarget.cleanedBam, processedTarget.dedupedBam, processedTarget.metricsFile, asIntermediate = !this.gatkOptions.bqsrOnTheFly))
+            qscript.add(generalUtils.dedup(processedTarget.cleanedBam, processedTarget.dedupedBam, processedTarget.metricsFile, asIntermediate = !this.gatkOptions.keepPreBQSRBam))
         // calculate recalibration covariates
         qscript.add(cov(processedTarget.dedupedBam, processedTarget.preRecalFile, defaultPlatform = ""))
-        // apply recalibration unless we should do it on-the-fly
-        if (!this.gatkOptions.bqsrOnTheFly) {
-          qscript.add(recal(processedTarget.dedupedBam, processedTarget.preRecalFile, processedTarget.recalBam, asIntermediate = false))
-          // calculate recalibration covariates after recalibration
-          qscript.add(cov(processedTarget.recalBam, processedTarget.postRecalFile, defaultPlatform = ""))
-        }
-        else
-          // calculate recalibration covariates after recalibration on-the-fly
-          qscript.add(cov(processedTarget.dedupedBam, processedTarget.postRecalFile, defaultPlatform = "", Some(processedTarget.preRecalFile)))
+        // apply recalibration
+        qscript.add(recal(processedTarget.dedupedBam, processedTarget.preRecalFile, processedTarget.recalBam, asIntermediate = false))
+        // calculate recalibration covariates after recalibration
+        qscript.add(cov(processedTarget.recalBam, processedTarget.postRecalFile, defaultPlatform = ""))
 
         processedTarget
       }

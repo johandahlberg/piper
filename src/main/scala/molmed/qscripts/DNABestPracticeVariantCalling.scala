@@ -141,8 +141,14 @@ class DNABestPracticeVariantCalling extends QScript
   @Argument(doc = "When using the --super_charge option, use this to specify number of groups (default: 3)", fullName = "ways_to_split", shortName = "wts", required = false)
   var groupsToSplitTo: Int = 3
 
-  @Argument(doc = "Do Base Quality Score Recalibration (BQSR) on-the-fly during variant calling, rather than creating base-recalibrated bam files (default)", fullName = "bqsr_otf", shortName = "botf", required = false)
-  var bqsrOnTheFly: Boolean = false
+  @Argument(doc = "Keep the BAM files from before the BQSR step", fullName = "keep_pre_bqsr_bam", shortName = "keepBam", required = false)
+  var keepPreBQSRBam: Boolean = false
+
+  @Argument(doc = "Disable emitting the insertion and deletion qualities in the BQSR step", fullName = "disable_indel_quals", shortName = "noIndelQuals", required = false)
+  var disableIndelQuals: Boolean = false
+
+  @Argument(doc = "Emit the original qualities in the BQSR step", fullName = "emit_original_quals", shortName = "orgQuals", required = false)
+  var emitOriginalQuals: Boolean = false
 
   /**
    * **************************************************************************
@@ -347,7 +353,6 @@ class DNABestPracticeVariantCalling extends QScript
             processedAligmentsOutputDir, 
             new File(processedAligmentsOutputDir + "/" + nameOfOriginalBam + ".bam"),
             toMergeBamTarget(0).skipDeduplication,
-            toMergeBamTarget(0).bqsrOnTheFly,
             toMergeBamTarget(0).globalIntervals)
         SplitFilesAndMergeByChromosome.merge(qscript, toMergeBamTarget.map( _.processedBam ), mergedBamTarget.processedBam, asIntermediate = false, generalUtils)
         SplitFilesAndMergeByChromosome.mergeRecalibrationTables(qscript, toMergeBamTarget.map( _.preRecalFile ), mergedBamTarget.preRecalFile, asIntermediate = false, generalUtils)
@@ -509,7 +514,8 @@ class DNABestPracticeVariantCalling extends QScript
       new GATKConfig(reference, nbrOfThreads, scatterGatherCount,
         intervals,
         dbSNP, Some(indels), hapmap, omni, mills, thousandGenomes,
-        notHuman, bqsrOnTheFly = bqsrOnTheFly)
+        notHuman, keepPreBQSRBam = keepPreBQSRBam,
+        disableIndelQuals = disableIndelQuals, emitOriginalQuals = emitOriginalQuals)
 
     // Drop the version report (this will be overwritten each time the 
     // qscript is run.

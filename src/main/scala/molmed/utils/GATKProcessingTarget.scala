@@ -9,14 +9,13 @@ import org.broadinstitute.gatk.tools.walkers.indels.IndelRealigner.ConsensusDete
 class GATKProcessingTarget(outputDir: File,
                            val bam: File,
                            val skipDeduplication: Boolean,
-                           val bqsrOnTheFly: Boolean,
                            val globalIntervals: Option[File]) {
 
     // Processed bam files
     val cleanedBam = GeneralUtils.swapExt(outputDir, bam, ".bam", ".clean.bam")
     val dedupedBam = if (!skipDeduplication) GeneralUtils.swapExt(outputDir, cleanedBam, ".bam", ".dedup.bam") else cleanedBam
     val recalBam = GeneralUtils.swapExt(outputDir, dedupedBam, ".bam", ".recal.bam")
-    val processedBam = if (!bqsrOnTheFly) recalBam else dedupedBam
+    val processedBam = recalBam
 
     // Accessory files
     val targetIntervals = globalIntervals.getOrElse(GeneralUtils.swapExt(outputDir, bam, ".bam", ".intervals"))

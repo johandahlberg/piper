@@ -72,6 +72,7 @@ class GATKUtils(gatkOptions: GATKConfig, projectName: Option[String], uppmaxConf
 
   case class cov(inBam: File, outRecalFile: File, @Argument defaultPlatform: String, inRecalFile: Option[File] = None) extends BaseRecalibrator with CommandLineGATKArgs with EightCoreJob {
 
+    this.isIntermediate = false
     this.num_cpu_threads_per_data_thread = gatkOptions.nbrOfThreads
 
     if (!gatkOptions.dbSNP.isEmpty)
@@ -100,9 +101,9 @@ class GATKUtils(gatkOptions: GATKConfig, projectName: Option[String], uppmaxConf
 
     this.BQSR = inRecalFile
     // Disable the insertion and deletion qualities (BI and BD tags)
-    this.disable_indel_quals = true
+    this.disable_indel_quals = gatkOptions.disableIndelQuals
     // Emit the original qualities (OQ tag)
-    this.emit_original_quals = true
+    this.emit_original_quals = gatkOptions.emitOriginalQuals
     this.baq = CalculationMode.CALCULATE_AS_NECESSARY
     this.out = outBam
     this.scatterCount = gatkOptions.scatterGatherCount.get

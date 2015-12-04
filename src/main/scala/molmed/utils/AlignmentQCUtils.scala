@@ -75,7 +75,6 @@ class AlignmentQCUtils(
           bamFile.getParentFile(),
           bamFile,
           skipDeduplication = false,
-          gatkOptions.bqsrOnTheFly,
           gatkOptions.intervalFile) )
     val variantCallingUtils = new VariantCallingUtils(gatkOptionsWithGenotypingSnp, projectName, uppmaxConfig)
     val variantCallingConfig = new VariantCallingConfig(
