@@ -71,7 +71,7 @@ class GATKDataProcessingUtils(
         // calculate recalibration covariates
         qscript.add(cov(processedTarget.dedupedBam, processedTarget.preRecalFile, defaultPlatform = ""))
         // apply recalibration
-        qscript.add(recal(processedTarget.dedupedBam, processedTarget.preRecalFile, processedTarget.recalBam, asIntermediate = false))
+        qscript.add(recal(processedTarget.dedupedBam, processedTarget.preRecalFile, processedTarget.recalBam, asIntermediate = this.gatkOptions.keepPreBQSRBam))
         // calculate recalibration covariates after recalibration
         qscript.add(cov(processedTarget.recalBam, processedTarget.postRecalFile, defaultPlatform = ""))
 

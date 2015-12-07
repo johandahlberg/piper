@@ -30,6 +30,8 @@ import java.io.File
 import org.broadinstitute.gatk.queue.extensions.picard.PicardBamFunction
 import org.broadinstitute.gatk.queue.function.JavaCommandLineFunction
 
+import molmed.utils.GeneralUtils
+
 /**
  * This MarkDuplicates extention is identical to the one provided with GATK
  * Queue with the exception that the metrics file is not annotated as a output,
@@ -64,7 +66,7 @@ class MarkDuplicates extends JavaCommandLineFunction with PicardBamFunction {
   override def freezeFieldValues() {
     super.freezeFieldValues()
     if (outputIndex == null && output != null)
-      outputIndex = new File(output.getName.stripSuffix(".bam") + ".bai")
+      outputIndex = GeneralUtils.swapExt(output.getParentFile, output, ".bam", ".bam.bai")
   }
 
 

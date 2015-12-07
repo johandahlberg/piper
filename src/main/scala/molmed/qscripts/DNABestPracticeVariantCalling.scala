@@ -141,7 +141,7 @@ class DNABestPracticeVariantCalling extends QScript
   @Argument(doc = "When using the --super_charge option, use this to specify number of groups (default: 3)", fullName = "ways_to_split", shortName = "wts", required = false)
   var groupsToSplitTo: Int = 3
 
-  @Argument(doc = "Keep the BAM files from before the BQSR step", fullName = "keep_pre_bqsr_bam", shortName = "keepBam", required = false)
+  @Argument(doc = "Keep the BAM files from before the BQSR step instead of the BAM file from after the BQSR step", fullName = "keep_pre_bqsr_bam", shortName = "keepBam", required = false)
   var keepPreBQSRBam: Boolean = false
 
   @Argument(doc = "Disable emitting the insertion and deletion qualities in the BQSR step", fullName = "disable_indel_quals", shortName = "noIndelQuals", required = false)
