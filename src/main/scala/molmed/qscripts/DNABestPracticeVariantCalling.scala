@@ -300,7 +300,7 @@ class DNABestPracticeVariantCalling extends QScript
           inputFastaDict,
           waysToSplit,
           generalUtils,
-          asIntermediate = false,
+          asIntermediate = true,
           samtoolsPath)
       splitBams
     }
@@ -333,7 +333,7 @@ class DNABestPracticeVariantCalling extends QScript
         for (splitGroup <- splitsBams) yield {
           val processedBamTargets = gatkDataProcessingUtils.dataProcessing(
             splitGroup, processedAligmentsOutputDir, cleaningModel,
-            skipDeduplication = false, testMode)
+            skipDeduplication = false, testMode, intermediateStep = true)
           processedBamTargets
         }
 
@@ -353,10 +353,19 @@ class DNABestPracticeVariantCalling extends QScript
             processedAligmentsOutputDir, 
             new File(processedAligmentsOutputDir + "/" + nameOfOriginalBam + ".bam"),
             toMergeBamTarget(0).skipDeduplication,
+            toMergeBamTarget(0).keepPreBQSRBam,
             toMergeBamTarget(0).globalIntervals)
-        SplitFilesAndMergeByChromosome.merge(qscript, toMergeBamTarget.map( _.processedBam ), mergedBamTarget.processedBam, asIntermediate = false, generalUtils)
+        // Merge the processed BAM
+        SplitFilesAndMergeByChromosome.merge(qscript, toMergeBamTarget.map( _.processedBam.file ), mergedBamTarget.processedBam.file, asIntermediate = mergedBamTarget.processedBam.isIntermediate, generalUtils)
+        // If the processed BAM is different from the recalibrated BAM which will be used downstream, merge the recalibrated BAM files
+        if (gatkOptions.keepPreBQSRBam)
+          SplitFilesAndMergeByChromosome.merge(qscript, toMergeBamTarget.map( _.recalBam.file ), mergedBamTarget.recalBam.file, asIntermediate = mergedBamTarget.recalBam.isIntermediate, generalUtils)
+        // Merge the covariate tables
         SplitFilesAndMergeByChromosome.mergeRecalibrationTables(qscript, toMergeBamTarget.map( _.preRecalFile ), mergedBamTarget.preRecalFile, asIntermediate = false, generalUtils)
         SplitFilesAndMergeByChromosome.mergeRecalibrationTables(qscript, toMergeBamTarget.map( _.postRecalFile ), mergedBamTarget.postRecalFile, asIntermediate = false, generalUtils)
+        // Unfortunately, we need to re-run MarkDuplicates in order to produce metrics representing the merged files
+        if (!mergedBamTarget.skipDeduplication)
+          this.add(generalUtils.dedupMetrics(mergedBamTarget.processedBam.file, mergedBamTarget.metricsFile))
 
         mergedBamTarget
       }
@@ -372,7 +381,7 @@ class DNABestPracticeVariantCalling extends QScript
 
       gatkDataProcessingUtils.dataProcessing(
         bams, processedAligmentsOutputDir, cleaningModel,
-        skipDeduplication = false, testMode)
+        skipDeduplication = false, testMode, intermediateStep = false)
     }
   }
 
@@ -591,14 +600,14 @@ class DNABestPracticeVariantCalling extends QScript
         val qc = qualityControl(aligments.values.flatten.toSeq, preliminaryAlignmentQCOutputDir)
         val mergedBams = mergedAlignments(aligments)
         val processedBamTargets = dataProcessing(mergedBams)
-        qualityControl(processedBamTargets.map( _.processedBam ), finalAlignmentQCOutputDir)
+        qualityControl(processedBamTargets.map( _.processedBam.file ), finalAlignmentQCOutputDir)
       }
       case e if e.contains(AnalysisSteps.VariantCalling) => {
         val aligments = alignments(samples)
         val qc = qualityControl(aligments.values.flatten.toSeq, preliminaryAlignmentQCOutputDir)
         val mergedBams = mergedAlignments(aligments)
         val processedBamTargets = dataProcessing(mergedBams)
-        qualityControl(processedBamTargets.map( _.processedBam ), finalAlignmentQCOutputDir)
+        qualityControl(processedBamTargets.map( _.processedBam.file ), finalAlignmentQCOutputDir)
         variantCalling(processedBamTargets)
       }
       case e if e.contains(AnalysisSteps.GenerateDelivery) => {
@@ -612,12 +621,12 @@ class DNABestPracticeVariantCalling extends QScript
         val preliminaryQC = qualityControl(aligments.values.flatten.toSeq, preliminaryAlignmentQCOutputDir)
         val mergedBams = mergedAlignments(aligments)
         val processedBamTargets = dataProcessing(mergedBams)
-        val finalQC = qualityControl(processedBamTargets.map( _.processedBam ), finalAlignmentQCOutputDir)
+        val finalQC = qualityControl(processedBamTargets.map( _.processedBam.file ), finalAlignmentQCOutputDir)
         val variantCallFiles = variantCalling(processedBamTargets)
 
         runCreateDelivery(
           fastqs,
-          processedBamTargets.map( _.processedBam ),
+          processedBamTargets.map( _.processedBam.file ),
           finalQC,
           variantCallFiles,
           reportFile,

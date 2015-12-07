@@ -68,7 +68,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
           val modifiedTarget =
             new VariantCallingTarget(config.outputDir,
-              bamTarget.processedBam.getName(),
+              bamTarget.recalBam.file.getName(),
               gatkOptions.reference,
               Seq(bamTarget),
               gatkOptions.intervalFile,
@@ -181,7 +181,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     val targets: Seq[VariantCallingTarget] = (config.runSeparatly, gatkOptions.notHuman) match {
       case (true, false) =>
         config.bamTargets.map(bamTarget => new VariantCallingTarget(config.outputDir,
-          bamTarget.processedBam.getName(),
+          bamTarget.recalBam.file.getName(),
           gatkOptions.reference,
           Seq(bamTarget),
           gatkOptions.intervalFile,
@@ -191,7 +191,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
       case (true, true) =>
         config.bamTargets.map(bamTarget => new VariantCallingTarget(config.outputDir,
-          bamTarget.processedBam.getName(),
+          bamTarget.recalBam.file.getName(),
           gatkOptions.reference,
           Seq(bamTarget),
           gatkOptions.intervalFile,
@@ -290,7 +290,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     if (minimumBaseQuality.isDefined && minimumBaseQuality.get >= 0)
       this.min_base_quality_score = Some(min_base_quality_score.get.toByte)
 
-    this.input_file = t.bamTargetList.map( _.processedBam )
+    this.input_file = t.bamTargetList.map( _.recalBam.file )
     this.out = t.gVCFFile
 
     if (!gatkOptions.dbSNP.isEmpty)
@@ -389,7 +389,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     this.nt = gatkOptions.nbrOfThreads
     this.stand_call_conf = if (t.isLowpass) { Some(4.0) } else { Some(30.0) }
     this.stand_emit_conf = if (t.isLowpass) { Some(4.0) } else { Some(30.0) }
-    this.input_file = t.bamTargetList.map( _.processedBam )
+    this.input_file = t.bamTargetList.map( _.recalBam.file )
     if (!gatkOptions.dbSNP.isEmpty)
       this.D = gatkOptions.dbSNP.get
   }
@@ -587,7 +587,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     this.out = t.genotypeConcordance
   }
 
-  case class SnpEff(@Input input: File, @Output output: File, config: VariantCallingConfig) extends CommandLineFunction with OneCoreJob {
+  case class SnpEff(@Input input: File, @Output output: File, config: VariantCallingConfig) extends CommandLineFunction with TwoCoreJob {
 
     // If the path to the snpEffConfig has not been defined then assume that it
     // lays one level down from the snpEff bash-wrapper script.
@@ -600,15 +600,17 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
     // If the path to bcftools has not been defined, skip compression of the output vcf file
     val outputRedirect =
-      if (config.bcftoolsPath.isDefined && !config.skipVcfCompression)
-        "| " + config.bcftoolsPath.get.getAbsolutePath() + " view -Oz - > " + output.getAbsolutePath()
+      if (config.bcftoolsPath.isDefined && !config.skipVcfCompression) {
+        "| " + config.bcftoolsPath.get.getAbsolutePath() + " view -Oz - > " + output.getAbsolutePath() +
+          "; " + config.bcftoolsPath.get.getAbsolutePath() + " index -t " + output.getAbsolutePath()
+      }
       else
         "> " + output.getAbsolutePath()
 
     override def commandLine =
       config.snpEffPath.get.getAbsolutePath() + " " +
         // Explicitly pass the JVM parameters to snpEff since it wraps the java command
-        " -Xmx" + this.memoryLimit.getOrElse(4.0).toInt.toString + "g " +
+        " -Xmx" + this.memoryLimit.get.toInt.toString + "G " +
         " -c " + snpEffConfig + " " +
         " -csvStats " +
         " -stats " + output.getAbsolutePath() + ".snpEff.summary.csv " +

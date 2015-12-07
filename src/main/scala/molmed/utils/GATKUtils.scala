@@ -70,9 +70,9 @@ class GATKUtils(gatkOptions: GATKConfig, projectName: Option[String], uppmaxConf
 
   }
 
-  case class cov(inBam: File, outRecalFile: File, @Argument defaultPlatform: String, inRecalFile: Option[File] = None) extends BaseRecalibrator with CommandLineGATKArgs with EightCoreJob {
+  case class cov(inBam: File, outRecalFile: File, @Argument defaultPlatform: String, inRecalFile: Option[File] = None, asIntermediate: Boolean = false) extends BaseRecalibrator with CommandLineGATKArgs with EightCoreJob {
 
-    this.isIntermediate = false
+    this.isIntermediate = asIntermediate
     this.num_cpu_threads_per_data_thread = gatkOptions.nbrOfThreads
 
     if (!gatkOptions.dbSNP.isEmpty)

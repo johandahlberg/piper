@@ -276,6 +276,8 @@ class BwaAlignmentUtils(qscript: QScript, bwaPath: String, bwaThreads: Int, samt
     @Input(doc = "fastq file with mate 2 file to be aligned") var mate2 = fastq2
     @Input(doc = "reference") var ref = reference
     @Output(doc = "output aligned bam file") var alignedBam = outBam
+    @Output(doc = "output aligned bam index file") var bamIndex = GeneralUtils.swapExt(
+      outBam.getParentFile, outBam, ".bam", ".bam.bai")
 
     // The output from this is a samfile, which can be removed later
     this.isIntermediate = intermediate

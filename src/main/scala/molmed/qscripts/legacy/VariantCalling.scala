@@ -122,7 +122,7 @@ class VariantCalling extends QScript with UppmaxXMLConfiguration {
 
     val intervalOption = if(intervals == null) None else Some(intervals) 
     
-    val bamTargets = bams.map( bam => new GATKProcessingTarget(outputDir, bam, skipDeduplication = false, intervalOption) )
+    val bamTargets = bams.map( bam => new GATKProcessingTarget(outputDir, bam, skipDeduplication = false, gatkOptions.keepPreBQSRBam, intervalOption) )
     
     val targets = (runSeparatly, notHuman) match {
       case (true, false) => bamTargets.map(bamTarget => new VariantCallingTarget(outputDir, bamTarget.bam.getName(), reference, Seq(bamTarget), intervalOption, isLowpass, isExome, 1))
