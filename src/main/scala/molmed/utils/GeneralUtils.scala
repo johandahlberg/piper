@@ -270,7 +270,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     @Argument pathToQualimap: File,
     @Argument isHuman: Boolean,
     @Argument(required = false) intervalFile: Option[File] = None)
-      extends EightCoreJob {
+      extends SixteenCoreJob {
 
     this.isIntermediate = false
     override def jobRunnerJobName = projectName.get + "_qualimap"
@@ -289,14 +289,14 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
 
     override def commandLine =
       pathToQualimap + " " +
-        " --java-mem-size=20G " +
+        " --java-mem-size=" + this.memoryLimit.getOrElse(64.0).toInt.toString + "G " +
         " bamqc " +
         " -bam " + bam.getAbsolutePath() +
         gffString +
         " --paint-chromosome-limits " +
         " " + compareGCString + " " +
         " -outdir " + outputBase.getAbsolutePath() + "/" +
-        " -nt 8" +
+        " -nt " + this.coreLimit.toInt.toString +
         " &> " + logFile.getAbsolutePath()
 
   }

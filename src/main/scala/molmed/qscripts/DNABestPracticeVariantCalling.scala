@@ -325,7 +325,7 @@ class DNABestPracticeVariantCalling extends QScript
       val updateGATKOptions = gatkOptions.copy(nbrOfThreads = 16 / groupsToSplitTo)
       
       val gatkDataProcessingUtils = new GATKDataProcessingUtils(
-        this, gatkOptions, generalUtils, projectName, uppmaxConfig)
+        this, updateGATKOptions, generalUtils, projectName, uppmaxConfig)
 
       val splitsBams = runChromosomeSplitting(bams, groupsToSplitTo, generalUtils, reference)
 
