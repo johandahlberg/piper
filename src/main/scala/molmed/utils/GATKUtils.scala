@@ -3,6 +3,7 @@ package molmed.utils
 import java.io.File
 
 import org.broadinstitute.gatk.tools.walkers.indels.IndelRealigner.ConsensusDeterminationModel
+import org.broadinstitute.gatk.queue.extensions.gatk.AnalyzeCovariates
 import org.broadinstitute.gatk.queue.extensions.gatk.BaseRecalibrator
 import org.broadinstitute.gatk.queue.extensions.gatk.CommandLineGATK
 import org.broadinstitute.gatk.queue.extensions.gatk.IndelRealigner
@@ -88,6 +89,17 @@ class GATKUtils(gatkOptions: GATKConfig, projectName: Option[String], uppmaxConf
     if (!inRecalFile.isEmpty)
       this.BQSR = inRecalFile.get
     override def jobRunnerJobName = projectName.get + "_cov"
+
+  }
+
+  case class analyze(preRecalFile: File, postRecalFile: File, covariatesPlotFile: File, asIntermediate: Boolean = false) extends AnalyzeCovariates with CommandLineGATKArgs with TwoCoreJob {
+
+    this.beforeReportFile = preRecalFile
+    this.afterReportFile = postRecalFile
+    this.plotsReportFile = covariatesPlotFile
+    this.isIntermediate = asIntermediate
+    this.scatterCount = gatkOptions.scatterGatherCount.get
+    override def jobRunnerJobName = projectName.get + "_analyze_covariates"
 
   }
 

@@ -36,6 +36,7 @@ class GATKProcessingTarget(outputDir: File,
     val metricsFile = GeneralUtils.swapExt(outputDir, bam, ".bam", ".metrics")
     val preRecalFile = GeneralUtils.swapExt(outputDir, bam, ".bam", ".pre_recal.table")
     val postRecalFile = GeneralUtils.swapExt(outputDir, bam, ".bam", ".post_recal.table")
+    val covariatesPlotFile = GeneralUtils.swapExt(outputDir, bam, ".bam", ".bqsr.covariates.pdf")
     val preOutPath = GeneralUtils.swapExt(outputDir, bam, ".bam", ".pre")
     val postOutPath = GeneralUtils.swapExt(outputDir, bam, ".bam", ".post")
     val preValidateLog = GeneralUtils.swapExt(outputDir, bam, ".bam", ".pre.validation")

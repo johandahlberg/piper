@@ -76,6 +76,11 @@ class GATKDataProcessingUtils(
         qscript.add(recal(processedTarget.dedupedBam.file, processedTarget.preRecalFile, processedTarget.recalBam.file, asIntermediate = intermediateStep || processedTarget.recalBam.isIntermediate))
         // calculate recalibration covariates after recalibration
         qscript.add(cov(processedTarget.recalBam.file, processedTarget.postRecalFile, defaultPlatform = "", asIntermediate = intermediateStep))
+        // unless this is an intermediate step, produce the covariates plot
+        // TODO: there are some R dependencies (ggplot2) which are not satisfied, so lets' disable this for now
+        //if (!intermediateStep) {
+        //  qscript.add(analyze(processedTarget.preRecalFile, processedTarget.postRecalFile, processedTarget.covariatesPlotFile, asIntermediate = false))
+        //}
 
         processedTarget
       }

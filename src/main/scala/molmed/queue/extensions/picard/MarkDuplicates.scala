@@ -99,9 +99,10 @@ class MarkDuplicates extends MarkDuplicatesWrapper {
 class MarkDuplicatesMetrics extends MarkDuplicatesWrapper {
 
   var output: File = new File("/dev/null")
-  var outputIndex: File = new File("/dev/null")
 
   @Output(doc="File to write duplication metrics to", shortName = "out_metrics", fullName = "output_metrics_file", required = true)
   var metrics: File = _
+
+  this.createIndex = Some(false)
 
 }

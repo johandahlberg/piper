@@ -363,6 +363,9 @@ class DNABestPracticeVariantCalling extends QScript
         // Merge the covariate tables
         SplitFilesAndMergeByChromosome.mergeRecalibrationTables(qscript, toMergeBamTarget.map( _.preRecalFile ), mergedBamTarget.preRecalFile, asIntermediate = false, generalUtils)
         SplitFilesAndMergeByChromosome.mergeRecalibrationTables(qscript, toMergeBamTarget.map( _.postRecalFile ), mergedBamTarget.postRecalFile, asIntermediate = false, generalUtils)
+        // Analyze the covariates and plot
+        // TODO: disable this for now because of R dependencies missing (ggplot2)
+        // this.add(gatkDataProcessingUtils.analyze(mergedBamTarget.preRecalFile, mergedBamTarget.postRecalFile, mergedBamTarget.covariatesPlotFile, asIntermediate = false))
         // Unfortunately, we need to re-run MarkDuplicates in order to produce metrics representing the merged files
         if (!mergedBamTarget.skipDeduplication)
           this.add(generalUtils.dedupMetrics(mergedBamTarget.processedBam.file, mergedBamTarget.metricsFile))
