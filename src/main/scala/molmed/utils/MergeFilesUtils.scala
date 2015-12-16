@@ -31,7 +31,12 @@ class MergeFilesUtils(qscript: QScript, projectName: Option[String], uppmaxConfi
           qscript.add(joinBams(files, mergedFile, asIntermediate))
           mergedFile
         } else {
-          qscript.add(createLink(files(0), mergedFile, new File(files(0) + ".bai"), new File(mergedFile + ".bai"), asIntermediate))
+          qscript.add(
+            createLink(files(0),
+              mergedFile,
+              new File(files(0) + ".bai"),
+              GeneralUtils.swapExt(outputDir, mergedFile, ".bam", ".bam.bai"),
+              asIntermediate))
           mergedFile
         }
       }

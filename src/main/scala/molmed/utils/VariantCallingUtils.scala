@@ -42,8 +42,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
           config.downsampleFraction,
           config.minimumBaseQuality,
           config.deletions,
-          config.noBAQ,
-          bqsrOnTheFly = Some(false)))
+          config.noBAQ))
 
       config.qscript.add(
         new SNPGenotypeConcordance(target))
@@ -69,21 +68,21 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
           val modifiedTarget =
             new VariantCallingTarget(config.outputDir,
-              bamTarget.processedBam.getName(),
+              bamTarget.recalBam.file.getName(),
               gatkOptions.reference,
               Seq(bamTarget),
               gatkOptions.intervalFile,
               config.isLowPass, config.isExome, 1,
               skipVcfCompression = target.skipVcfCompression)
 
-          config.qscript.add(new HaplotypeCallerBase(modifiedTarget, config.testMode, config.downsampleFraction, config.pcrFree, config.minimumBaseQuality, Some(gatkOptions.bqsrOnTheFly)))
+          config.qscript.add(new HaplotypeCallerBase(modifiedTarget, config.testMode, config.downsampleFraction, config.pcrFree, config.minimumBaseQuality))
           modifiedTarget.gVCFFile
         })
       config.qscript.add(new GenotypeGVCF(gVcfFiles, target, config.testMode))
     } else {
       // If the pipeline is setup to run each sample individually, 
       // output one final vcf file per sample.
-      config.qscript.add(new HaplotypeCallerBase(target, config.testMode, config.downsampleFraction, config.pcrFree, config.minimumBaseQuality, Some(gatkOptions.bqsrOnTheFly)))
+      config.qscript.add(new HaplotypeCallerBase(target, config.testMode, config.downsampleFraction, config.pcrFree, config.minimumBaseQuality))
       config.qscript.add(new GenotypeGVCF(Seq(target.gVCFFile), target, config.testMode))
     }
 
@@ -127,7 +126,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     config: VariantCallingConfig): Seq[File] = {
     if (!config.noIndels) {
       // Indel calling, recalibration and evaulation
-      config.qscript.add(new UnifiedGenotyperIndelCall(target, config.testMode, config.downsampleFraction, Some(gatkOptions.bqsrOnTheFly)))
+      config.qscript.add(new UnifiedGenotyperIndelCall(target, config.testMode, config.downsampleFraction))
       if (!config.noRecal) {
         config.qscript.add(new IndelRecalibration(target))
         config.qscript.add(new IndelCut(target))
@@ -138,7 +137,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     config.qscript.add(new UnifiedGenotyperSnpCall(
       target, config.testMode,
       config.downsampleFraction, config.minimumBaseQuality,
-      config.deletions, config.noBAQ, Some(gatkOptions.bqsrOnTheFly)))
+      config.deletions, config.noBAQ))
 
     if (!config.noRecal) {
       config.qscript.add(new SnpRecalibration(target))
@@ -157,8 +156,13 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
    * @return The annotated versions of the files.
    */
   def annotateUsingSnpEff(config: VariantCallingConfig, variantFiles: Seq[File], vcfExtension: String): Seq[File] = {
+    val outputVcfExtension =
+      if (config.bcftoolsPath.isDefined)
+        vcfExtension
+      else
+        vcfExtension.stripSuffix(".gz")
     for (file <- variantFiles) yield {
-      val annotatedFile = GeneralUtils.swapExt(file.getParentFile(), file, vcfExtension, "annotated." + vcfExtension)
+      val annotatedFile = GeneralUtils.swapExt(file.getParentFile(), file, vcfExtension, "annotated." + outputVcfExtension)
       config.qscript.add(
         new SnpEff(file, annotatedFile, config))
       annotatedFile
@@ -177,7 +181,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     val targets: Seq[VariantCallingTarget] = (config.runSeparatly, gatkOptions.notHuman) match {
       case (true, false) =>
         config.bamTargets.map(bamTarget => new VariantCallingTarget(config.outputDir,
-          bamTarget.processedBam.getName(),
+          bamTarget.recalBam.file.getName(),
           gatkOptions.reference,
           Seq(bamTarget),
           gatkOptions.intervalFile,
@@ -187,7 +191,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
       case (true, true) =>
         config.bamTargets.map(bamTarget => new VariantCallingTarget(config.outputDir,
-          bamTarget.processedBam.getName(),
+          bamTarget.recalBam.file.getName(),
           gatkOptions.reference,
           Seq(bamTarget),
           gatkOptions.intervalFile,
@@ -242,7 +246,10 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
 
     val vcfExtension = targets(0).vcfExtension
     val unannotatedVariantFiles =
-      variantAndEvalFiles.filter(_.getName().endsWith(vcfExtension))
+      variantAndEvalFiles.filter(f =>
+        f.getName().endsWith(vcfExtension) &&
+          !f.getName().contains(".genomic.") &&
+          (config.noRecal || !f.getName().contains(".raw.")))
 
     if (config.skipAnnotation)
       variantAndEvalFiles
@@ -260,8 +267,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     testMode: Boolean,
     downsampleFraction: Option[Double],
     pcrFree: Option[Boolean],
-    minimumBaseQuality: Option[Int],
-    bqsrOnTheFly: Option[Boolean])
+    minimumBaseQuality: Option[Int])
       extends HaplotypeCaller with CommandLineGATKArgs with FourCoreJob {
 
     if (testMode)
@@ -284,10 +290,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     if (minimumBaseQuality.isDefined && minimumBaseQuality.get >= 0)
       this.min_base_quality_score = Some(min_base_quality_score.get.toByte)
 
-    if (bqsrOnTheFly.getOrElse(false)) 
-      this.BQSR = t.bamTargetList(0).preRecalFile
-      
-    this.input_file = t.bamTargetList.map( _.processedBam )
+    this.input_file = t.bamTargetList.map( _.recalBam.file )
     this.out = t.gVCFFile
 
     if (!gatkOptions.dbSNP.isEmpty)
@@ -369,7 +372,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
   }
 
   // 1.) Unified Genotyper Base
-  class UnifiedGenotyperBase(t: VariantCallingTarget, testMode: Boolean, downsampleFraction: Option[Double], bqsrOnTheFly: Option[Boolean])
+  class UnifiedGenotyperBase(t: VariantCallingTarget, testMode: Boolean, downsampleFraction: Option[Double])
       extends UnifiedGenotyper with CommandLineGATKArgs with EightCoreJob {
 
     if (testMode)
@@ -386,11 +389,9 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     this.nt = gatkOptions.nbrOfThreads
     this.stand_call_conf = if (t.isLowpass) { Some(4.0) } else { Some(30.0) }
     this.stand_emit_conf = if (t.isLowpass) { Some(4.0) } else { Some(30.0) }
-    this.input_file = t.bamTargetList.map( _.processedBam )
+    this.input_file = t.bamTargetList.map( _.recalBam.file )
     if (!gatkOptions.dbSNP.isEmpty)
       this.D = gatkOptions.dbSNP.get
-    if (bqsrOnTheFly.getOrElse(false))
-      this.BQSR = t.bamTargetList(0).preRecalFile
   }
 
   // 1a.) Call SNPs with UG
@@ -400,9 +401,8 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     downsampleFraction: Option[Double],
     minimumBaseQuality: Option[Int],
     deletions: Option[Double],
-    noBAQ: Boolean,
-    bqsrOnTheFly: Option[Boolean])
-      extends UnifiedGenotyperBase(t, testMode, downsampleFraction, bqsrOnTheFly) {
+    noBAQ: Boolean)
+      extends UnifiedGenotyperBase(t, testMode, downsampleFraction) {
 
     if (minimumBaseQuality.isDefined && minimumBaseQuality.get >= 0)
       UnifiedGenotyperSnpCall.this.min_base_quality_score = minimumBaseQuality
@@ -419,9 +419,8 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
   class UnifiedGenotyperIndelCall(
     t: VariantCallingTarget,
     testMode: Boolean,
-    downsampleFraction: Option[Double],
-    bqsrOnTheFly: Option[Boolean])
-      extends UnifiedGenotyperBase(t, testMode, downsampleFraction, bqsrOnTheFly) {
+    downsampleFraction: Option[Double])
+      extends UnifiedGenotyperBase(t, testMode, downsampleFraction) {
     UnifiedGenotyperIndelCall.this.out = t.rawIndelVCF
     UnifiedGenotyperIndelCall.this.baq = org.broadinstitute.gatk.utils.baq.BAQ.CalculationMode.OFF
     UnifiedGenotyperIndelCall.this.glm = org.broadinstitute.gatk.tools.walkers.genotyper.GenotypeLikelihoodsCalculationModel.Model.INDEL
@@ -588,7 +587,7 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     this.out = t.genotypeConcordance
   }
 
-  case class SnpEff(@Input input: File, @Output output: File, config: VariantCallingConfig) extends CommandLineFunction with OneCoreJob {
+  case class SnpEff(@Input input: File, @Output output: File, config: VariantCallingConfig) extends CommandLineFunction with TwoCoreJob {
 
     // If the path to the snpEffConfig has not been defined then assume that it
     // lays one level down from the snpEff bash-wrapper script.
@@ -599,14 +598,24 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
         config.snpEffPath.get.getAbsolutePath().stripSuffix("snpEff") +
           "/../snpEff.config"
 
+    // If the path to bcftools has not been defined, skip compression of the output vcf file
+    val outputRedirect =
+      if (config.bcftoolsPath.isDefined && !config.skipVcfCompression) {
+        "| " + config.bcftoolsPath.get.getAbsolutePath() + " view -Oz - > " + output.getAbsolutePath() +
+          "; " + config.bcftoolsPath.get.getAbsolutePath() + " index -t " + output.getAbsolutePath()
+      }
+      else
+        "> " + output.getAbsolutePath()
+
     override def commandLine =
       config.snpEffPath.get.getAbsolutePath() + " " +
+        // Explicitly pass the JVM parameters to snpEff since it wraps the java command
+        " -Xmx" + this.memoryLimit.get.toInt.toString + "G " +
         " -c " + snpEffConfig + " " +
         " -csvStats " +
         " -stats " + output.getAbsolutePath() + ".snpEff.summary.csv " +
         config.snpEffReference.get + " " +
-        input.getAbsolutePath() + " > " +
-        output.getAbsolutePath()
+        input.getAbsolutePath() + " " + outputRedirect
   }
 
 }

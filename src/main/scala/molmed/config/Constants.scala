@@ -19,6 +19,7 @@ object Constants {
   val CUTADAPT = "cutadapt"
   val TOPHAP = "tophat"
   val SNP_EFF = "snpEff"
+  val BCFTOOLS = "bcftools"
 
   val DB_SNP = "dbsnp"
   val INDELS = "indels"

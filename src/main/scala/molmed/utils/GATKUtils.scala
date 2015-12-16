@@ -3,6 +3,7 @@ package molmed.utils
 import java.io.File
 
 import org.broadinstitute.gatk.tools.walkers.indels.IndelRealigner.ConsensusDeterminationModel
+import org.broadinstitute.gatk.queue.extensions.gatk.AnalyzeCovariates
 import org.broadinstitute.gatk.queue.extensions.gatk.BaseRecalibrator
 import org.broadinstitute.gatk.queue.extensions.gatk.CommandLineGATK
 import org.broadinstitute.gatk.queue.extensions.gatk.IndelRealigner
@@ -70,8 +71,9 @@ class GATKUtils(gatkOptions: GATKConfig, projectName: Option[String], uppmaxConf
 
   }
 
-  case class cov(inBam: File, outRecalFile: File, @Argument defaultPlatform: String, inRecalFile: Option[File] = None) extends BaseRecalibrator with CommandLineGATKArgs with EightCoreJob {
+  case class cov(inBam: File, outRecalFile: File, @Argument defaultPlatform: String, inRecalFile: Option[File] = None, asIntermediate: Boolean = false) extends BaseRecalibrator with CommandLineGATKArgs with EightCoreJob {
 
+    this.isIntermediate = asIntermediate
     this.num_cpu_threads_per_data_thread = gatkOptions.nbrOfThreads
 
     if (!gatkOptions.dbSNP.isEmpty)
@@ -90,6 +92,17 @@ class GATKUtils(gatkOptions: GATKConfig, projectName: Option[String], uppmaxConf
 
   }
 
+  case class analyze(preRecalFile: File, postRecalFile: File, covariatesPlotFile: File, asIntermediate: Boolean = false) extends AnalyzeCovariates with CommandLineGATKArgs with TwoCoreJob {
+
+    this.beforeReportFile = preRecalFile
+    this.afterReportFile = postRecalFile
+    this.plotsReportFile = covariatesPlotFile
+    this.isIntermediate = asIntermediate
+    this.scatterCount = gatkOptions.scatterGatherCount.get
+    override def jobRunnerJobName = projectName.get + "_analyze_covariates"
+
+  }
+
   case class recal(inBam: File, inRecalFile: File, outBam: File, asIntermediate: Boolean = false) extends PrintReads with CommandLineGATKArgs with FourCoreJob {
 
     this.isIntermediate = asIntermediate
@@ -99,6 +112,10 @@ class GATKUtils(gatkOptions: GATKConfig, projectName: Option[String], uppmaxConf
     this.bam_compression = Some(5)
 
     this.BQSR = inRecalFile
+    // Disable the insertion and deletion qualities (BI and BD tags)
+    this.disable_indel_quals = gatkOptions.disableIndelQuals
+    // Emit the original qualities (OQ tag)
+    this.emit_original_quals = gatkOptions.emitOriginalQuals
     this.baq = CalculationMode.CALCULATE_AS_NECESSARY
     this.out = outBam
     this.scatterCount = gatkOptions.scatterGatherCount.get

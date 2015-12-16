@@ -49,7 +49,12 @@
         <program>
             <name>snpEff</name>
             <path>/data/programs/snpEff/snpEff</path>
-	    <version>4.0</version>
+            <version>4.0</version>
+        </program>
+        <program>
+            <name>bcftools</name>
+            <path>/data/programs/bcftools/bcftools</path>
+            <version>1.2</version>
         </program>
     </programs>
     <resources>

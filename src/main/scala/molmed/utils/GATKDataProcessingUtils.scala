@@ -31,7 +31,8 @@ class GATKDataProcessingUtils(
                      outputDir: File,
                      cleaningModel: String,
                      skipDeduplication: Boolean = false,
-                     testMode: Boolean): Seq[GATKProcessingTarget] = {
+                     testMode: Boolean,
+                     intermediateStep: Boolean): Seq[GATKProcessingTarget] = {
 
     def getIndelCleaningModel: ConsensusDeterminationModel = {
       if (cleaningModel == "KNOWNS_ONLY")
@@ -58,24 +59,28 @@ class GATKDataProcessingUtils(
             outputDir,
             bam,
             skipDeduplication,
-            this.gatkOptions.bqsrOnTheFly,
+            this.gatkOptions.keepPreBQSRBam,
             if (cleaningModel == ConsensusDeterminationModel.KNOWNS_ONLY) Some(globalIntervals) else None)
 
         if (cleaningModel != ConsensusDeterminationModel.KNOWNS_ONLY)
           qscript.add(target(Seq(processedTarget.bam), processedTarget.targetIntervals, cleanModelEnum))
 
         // realign
-        qscript.add(clean(Seq(processedTarget.bam), processedTarget.targetIntervals, processedTarget.cleanedBam, cleanModelEnum, testMode))
+        qscript.add(clean(Seq(processedTarget.bam), processedTarget.targetIntervals, processedTarget.cleanedBam.file, cleanModelEnum, testMode, asIntermediate = intermediateStep || processedTarget.cleanedBam.isIntermediate))
         // mark duplicates unless we're told not to
         if (!skipDeduplication)
-            qscript.add(generalUtils.dedup(processedTarget.cleanedBam, processedTarget.dedupedBam, processedTarget.metricsFile, asIntermediate = !this.gatkOptions.bqsrOnTheFly))
+            qscript.add(generalUtils.dedup(processedTarget.cleanedBam.file, processedTarget.dedupedBam.file, processedTarget.metricsFile, asIntermediate = intermediateStep || processedTarget.dedupedBam.isIntermediate))
         // calculate recalibration covariates
-        qscript.add(cov(processedTarget.dedupedBam, processedTarget.preRecalFile, defaultPlatform = ""))
+        qscript.add(cov(processedTarget.dedupedBam.file, processedTarget.preRecalFile, defaultPlatform = "", asIntermediate = intermediateStep))
+        // apply recalibration
+        qscript.add(recal(processedTarget.dedupedBam.file, processedTarget.preRecalFile, processedTarget.recalBam.file, asIntermediate = intermediateStep || processedTarget.recalBam.isIntermediate))
         // calculate recalibration covariates after recalibration
-        qscript.add(cov(processedTarget.dedupedBam, processedTarget.postRecalFile, defaultPlatform = "", Some(processedTarget.preRecalFile)))
-        // apply recalibration unless we should do it on-the-fly
-        if (!this.gatkOptions.bqsrOnTheFly)
-            qscript.add(recal(processedTarget.dedupedBam, processedTarget.preRecalFile, processedTarget.recalBam, asIntermediate = false))
+        qscript.add(cov(processedTarget.recalBam.file, processedTarget.postRecalFile, defaultPlatform = "", asIntermediate = intermediateStep))
+        // unless this is an intermediate step, produce the covariates plot
+        // TODO: there are some R dependencies (ggplot2) which are not satisfied, so lets' disable this for now
+        //if (!intermediateStep) {
+        //  qscript.add(analyze(processedTarget.preRecalFile, processedTarget.postRecalFile, processedTarget.covariatesPlotFile, asIntermediate = false))
+        //}
 
         processedTarget
       }

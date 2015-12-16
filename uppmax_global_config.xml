@@ -51,6 +51,11 @@
             <path>/sw/apps/bioinfo/snpEff/4.1/nestor/scripts/snpEff</path>
 	    <version>4.1</version>
         </program>
+        <program>
+            <name>bcftools</name>
+            <path>/sw/apps/bioinfo/bcftools/1.2/nestor/bin/bcftools</path>
+            <version>1.2</version>
+        </program>
     </programs>
     <resources>
         <resource>
