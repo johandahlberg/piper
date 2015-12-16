@@ -286,7 +286,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     @Argument pathToQualimap: File,
     @Argument isHuman: Boolean,
     @Argument(required = false) intervalFile: Option[File] = None)
-      extends FourCoreJob {
+      extends SixteenCoreJob {
 
     this.isIntermediate = false
     override def jobRunnerJobName = projectName.get + "_qualimap"

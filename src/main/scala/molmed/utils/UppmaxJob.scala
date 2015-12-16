@@ -60,10 +60,17 @@ class UppmaxJob(uppmaxConfig: UppmaxConfig) {
     this.isIntermediate = false
   }
 
+  trait TwelveCoreJob extends CommandLineFunction {
+    val coreLimit = 12
+    this.jobNativeArgs = Seq("-p core -n 12") ++ projectBaseString
+    this.memoryLimit = memLimit(Some(96))
+    this.isIntermediate = false
+  }
+
   trait SixteenCoreJob extends CommandLineFunction {
     val coreLimit = 16
     this.jobNativeArgs = Seq("-p node") ++ projectBaseString
-    this.memoryLimit = memLimit(Some(128))
+    this.memoryLimit = memLimit(Some(112))
     this.isIntermediate = false
   }
 
