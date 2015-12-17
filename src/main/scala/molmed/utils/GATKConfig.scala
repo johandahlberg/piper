@@ -17,4 +17,7 @@ case class GATKConfig(
   mills: Option[File] = None,
   thousandGenomes: Option[File] = None,
   notHuman: Boolean = false,
-  snpGenotypingVcf: Option[File] = None)
+  snpGenotypingVcf: Option[File] = None,
+  keepPreBQSRBam: Boolean = false,
+  disableIndelQuals: Boolean = false,
+  emitOriginalQuals: Boolean = false)

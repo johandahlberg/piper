@@ -16,7 +16,7 @@ case object GATKHaplotypeCaller extends VariantCallerOption
  * @param	qscript				the qscript to run the commandline wrappers in
  * @param variantCaller		The type of variant caller to use. Options are UnifiedGenotyper and HaplotypeCaller.
  * 							(default: HaplotypeCaller)
- * @param bams				the bam files to run on
+ * @param bamTargets				the bam file targets to run on
  * @param outputDir			output dir
  * @param runSeparatly		Create one vcf per bam sample instead of running on full cohort
  * @param isLowPass			true if low pass
@@ -33,10 +33,11 @@ case object GATKHaplotypeCaller extends VariantCallerOption
  * @param snpEffConfigPath  Path to snpEff config file
  * @param snpEffReference   The snpEff reference to use. E.g. "GRCh37.75"
  * @param skipAnnotation   Skip the annotation process
+ * @param skipVcfCompression    Skip compression of generated vcf files
  */
 case class VariantCallingConfig(qscript: QScript,
 								variantCaller: Option[VariantCallerOption] = Some(GATKHaplotypeCaller),
-                                bams: Seq[File],
+                                bamTargets: Seq[GATKProcessingTarget],
                                 outputDir: File,
                                 runSeparatly: Boolean,
                                 isLowPass: Boolean,
@@ -52,4 +53,6 @@ case class VariantCallingConfig(qscript: QScript,
                                 snpEffPath: Option[File] = None,
                                 snpEffConfigPath: Option[File] = None,
                                 snpEffReference: Option[String] = None,
-                                skipAnnotation: Boolean)
+                                skipAnnotation: Boolean,
+                                skipVcfCompression: Boolean,
+                                bcftoolsPath: Option[File] = None)

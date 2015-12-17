@@ -3,7 +3,6 @@ scala:
    - "2.9.2"
 jdk:
    - oraclejdk7
-   - openjdk7
 before_install: export SBT_OPTS="-Xms1536m -Xmx1536m -XX:MaxPermSize=384m -XX:ReservedCodeCacheSize=192m"
 install: ./setup.sh
 script: sbt/bin/sbt test 

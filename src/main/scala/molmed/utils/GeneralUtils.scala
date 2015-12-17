@@ -17,6 +17,8 @@ import org.broadinstitute.gatk.queue.extensions.picard.ValidateSamFile
 import org.broadinstitute.gatk.queue.function.InProcessFunction
 import org.broadinstitute.gatk.queue.function.ListWriterFunction
 import org.broadinstitute.gatk.queue.util.StringFileConversions
+import org.broadinstitute.gatk.tools.walkers.bqsr.BQSRGatherer
+
 
 import htsjdk.samtools.SAMFileHeader.SortOrder
 import molmed.queue.extensions.RNAQC.RNASeQC
@@ -24,6 +26,7 @@ import molmed.queue.extensions.picard.BuildBamIndex
 import molmed.queue.extensions.picard.CollectTargetedPcrMetrics
 import molmed.queue.extensions.picard.FixMateInformation
 import molmed.queue.extensions.picard.MarkDuplicates
+import molmed.queue.extensions.picard.MarkDuplicatesMetrics
 import molmed.queue.setup.ReadPairContainer
 import molmed.queue.setup.Sample
 import molmed.queue.setup.SampleAPI
@@ -67,7 +70,11 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
       @Argument region: String, 
       @Argument asIntermediate: Boolean,
       @Argument samtoolsPath: String) extends SamtoolsBase(samtoolsPath) with OneCoreJob {
-    def commandLine = 
+
+    @Output
+    var outputBamIndex: File = GeneralUtils.swapExt(outputBam.getParentFile(), outputBam, ".bam", ".bam.bai")
+
+    def commandLine =
       samtoolsPath + " view -b " + bam + " " + region + " > " + outputBam + "; " +
       samtoolsPath + " index " + outputBam
     override def jobRunnerJobName = projectName.get + "_samtools_get_region"
@@ -77,7 +84,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
   /**
    * Joins the bam file specified to a single bam file.
    */
-  case class joinBams(@Input inBams: Seq[File], @Output outBam: File, asIntermediate: Boolean = false) extends MergeSamFiles with TwoCoreJob {
+  case class joinBams(inBams: Seq[File], outBam: File, asIntermediate: Boolean = false) extends MergeSamFiles with TwoCoreJob {
 
     this.isIntermediate = asIntermediate
 
@@ -90,7 +97,6 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
 
     override def jobRunnerJobName = projectName.get + "_joinBams"
 
-    this.isIntermediate = false
   }
 
   /**
@@ -173,6 +179,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
 
     this.input :+= inBam
     this.output = outBam
+    this.outputIndex = GeneralUtils.swapExt(outBam.getParentFile, outBam, ".bam", ".bai")
     this.metrics = metricsFile
 
     // 5 seems to be a good compromise between speed and file size
@@ -182,6 +189,17 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     // not die from overflowing the memory limit.
     this.memoryLimit = Some(14)
     override def jobRunnerJobName = projectName.get + "_dedup"
+  }
+
+  case class dedupMetrics(inBam: File, metricsFile: File) extends MarkDuplicatesMetrics with TwoCoreJob {
+
+    this.isIntermediate = false
+    this.input = Seq(inBam)
+    this.metrics = metricsFile
+    // Since we're discarding the ouptut, set the compression level to be low
+    this.compressionLevel = Some(1)
+    this.memoryLimit = Some(14)
+    override def jobRunnerJobName = projectName.get + "_dedup_metrics"
   }
 
   /**
@@ -268,7 +286,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     @Argument pathToQualimap: File,
     @Argument isHuman: Boolean,
     @Argument(required = false) intervalFile: Option[File] = None)
-      extends EightCoreJob {
+      extends SixteenCoreJob {
 
     this.isIntermediate = false
     override def jobRunnerJobName = projectName.get + "_qualimap"
@@ -287,14 +305,14 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
 
     override def commandLine =
       pathToQualimap + " " +
-        " --java-mem-size=20G " +
+        " --java-mem-size=" + this.memoryLimit.get.toInt.toString + "G " +
         " bamqc " +
         " -bam " + bam.getAbsolutePath() +
         gffString +
         " --paint-chromosome-limits " +
         " " + compareGCString + " " +
         " -outdir " + outputBase.getAbsolutePath() + "/" +
-        " -nt 8" +
+        " -nt " + this.coreLimit.toInt.toString +
         " &> " + logFile.getAbsolutePath()
 
   }
@@ -365,6 +383,24 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     override def jobRunnerJobName = projectName.get + "_collectHSMetrics"
 
   }
+
+  /**
+   * Merge BQSR recalibration tables
+   *
+   * @param inRecalFiles Seq of recalibration table files to merge
+   * @param outRecalFile the merged output recalibration table file
+   */
+  case class mergeRecalibrationTables(@Input inRecalFiles: Seq[File], @Output outRecalFile: File, asIntermediate: Boolean = false) extends InProcessFunction {
+    import scala.collection.JavaConverters._
+
+    this.isIntermediate = asIntermediate
+
+    def run() {
+      new BQSRGatherer().gather(inRecalFiles.toList.asJava, outRecalFile)
+    }
+
+  }
+
 }
 
 /**

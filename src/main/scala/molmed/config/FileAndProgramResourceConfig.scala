@@ -78,6 +78,9 @@ trait FileAndProgramResourceConfig {
   @Input(doc = "The path to the start-up script of snpEff", fullName = "path_to_snpeff", shortName = "snpEff", required = false)
   var snpEffPath: File = _
 
+  @Input(doc = "The path to the binary of bcftools", fullName = "path_to_bcftools", shortName = "bcftools", required = false)
+  var bcftoolsPath: File = _
+
   // Please not that this has no override in the xml file, but has to be overriden from the commandline if this is necessary.
   @Argument(doc = "The path to snpEff config", fullName = "path_to_snpeff_config", shortName = "snpEffConf", required = false)
   var snpEffConfigPath: File = _
@@ -262,6 +265,9 @@ trait FileAndProgramResourceConfig {
 
       if (this.snpEffPath == null)
         this.snpEffPath = getFileFromKey(programNameToPathsMap, Constants.SNP_EFF)
+
+      if (this.bcftoolsPath == null)
+        this.bcftoolsPath = getFileFromKey(programNameToPathsMap, Constants.BCFTOOLS)
 
       programNameToPathsMap
 
