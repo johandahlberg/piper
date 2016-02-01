@@ -276,6 +276,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
    * @param logFile 		the path to output the log file to
    * @param pathToQualimap  path to the qualimap program
    * @param isHuman			indicate if gc-content should be compared to human distribution or not.
+   * @param skipDup use flag --skip-duplicated, 0 : only flagged duplicates, 1 : only estimated by Qualimap, 2 : both flagged and estimated
    * @param intervalFile	Optional interval file in BED or GFF format to
    * 						output statistics for targeted regions.
    */
@@ -285,6 +286,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
     @Output logFile: File,
     @Argument pathToQualimap: File,
     @Argument isHuman: Boolean,
+    @Argument skipDup: Int,
     @Argument(required = false) intervalFile: Option[File] = None)
       extends SixteenCoreJob {
 
@@ -303,6 +305,12 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
       else
         ""
 
+    def skiplDuplicated =
+      if(skipDup != -1)
+        "--skip-duplicated --skip-dup-mode " + skipDup
+      else
+        ""
+
     override def commandLine =
       pathToQualimap + " " +
         " --java-mem-size=" + this.memoryLimit.get.toInt.toString + "G " +
@@ -313,6 +321,7 @@ class GeneralUtils(projectName: Option[String], uppmaxConfig: UppmaxConfig) exte
         " " + compareGCString + " " +
         " -outdir " + outputBase.getAbsolutePath() + "/" +
         " -nt " + this.coreLimit.toInt.toString +
+        " " + skiplDuplicated + " " +
         " &> " + logFile.getAbsolutePath()
 
   }

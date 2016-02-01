@@ -18,6 +18,8 @@ class AlignmentQCUtils(
    *                    	files with different names starting with that name will be created.
    * @param intervalFile    BED or GFF formatted interval file
    * @param isHuman    		Decide if gc content (and possibly other things) should be compared to expected distribution for human.
+   * @param skipDup use flag --skip-duplicated with qualimap, i.e skip alignments that
+   *            are marked as duplicated from the analysis
    * @return The base name for the qc files.
    *
    */
@@ -25,6 +27,7 @@ class AlignmentQCUtils(
     bams: Seq[File],
     outputBase: File,
     isHuman: Boolean,
+    skipDup: Int,
     intervalFile: Option[File] = None): Seq[File] = {
 
     // Run QC for each of them and output to a separate dir for each sample.
@@ -39,6 +42,7 @@ class AlignmentQCUtils(
             logFile,
             pathToQualimap,
             isHuman,
+            skipDup,
             intervalFile))
         logFile
       }
