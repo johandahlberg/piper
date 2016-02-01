@@ -13,8 +13,8 @@
         </program>
         <program>
             <name>qualimap</name>
-	    <path>/data/programs/qualimap_v2.0/qualimap</path>
-	    <version>v2.0</version>
+	    <path>/data/programs/qualimap_v2.2/qualimap</path>
+	    <version>v2.2</version>
         </program>
 	<program>
             <name>RNA-SeQC</name>
