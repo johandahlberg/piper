@@ -157,7 +157,7 @@ class DNABestPracticeVariantCalling extends QScript
                       "0) skip reads already marked as duplicate in the bam file. " +
                       "1) skip reads which qualimap believes are duplicates. " +
                       "2) combine option 1 and 2 ", fullName = "skip_duplicated", shortName = "skipDup", required = false)
-  var skipDuplicated: Int = -1
+  var skipDuplicated: Int = 0
 
   /**
    * **************************************************************************
