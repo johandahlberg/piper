@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="GenomeAnalysisTK">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/GenomeAnalysisTK.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/lib/GenomeAnalysisTK.jar!/" />
+    </SOURCES>
+  </library>
+</component>

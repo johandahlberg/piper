@@ -150,6 +150,9 @@ class DNABestPracticeVariantCalling extends QScript
   @Argument(doc = "Emit the original qualities in the BQSR step", fullName = "emit_original_quals", shortName = "orgQuals", required = false)
   var emitOriginalQuals: Boolean = false
 
+  @Argument(doc = "File containing license key for disabling GATK phone home feature", fullName = "gatk_key", shortName = "gatkKey", required = false)
+  var gatkKey: File = _
+
   /**
    * **************************************************************************
    * Hidden Parameters - for dev.
@@ -527,7 +530,8 @@ class DNABestPracticeVariantCalling extends QScript
         intervals,
         dbSNP, Some(indels), hapmap, omni, mills, thousandGenomes,
         notHuman, keepPreBQSRBam = keepPreBQSRBam,
-        disableIndelQuals = disableIndelQuals, emitOriginalQuals = emitOriginalQuals)
+        disableIndelQuals = disableIndelQuals, emitOriginalQuals = emitOriginalQuals,
+        gatkKey = gatkKey)
 
     // Drop the version report (this will be overwritten each time the 
     // qscript is run.

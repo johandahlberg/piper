@@ -20,4 +20,5 @@ case class GATKConfig(
   snpGenotypingVcf: Option[File] = None,
   keepPreBQSRBam: Boolean = false,
   disableIndelQuals: Boolean = false,
-  emitOriginalQuals: Boolean = false)
+  emitOriginalQuals: Boolean = false,
+  gatkKey: Option[File] = None)

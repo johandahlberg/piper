@@ -10,6 +10,7 @@ import org.broadinstitute.gatk.queue.extensions.gatk.IndelRealigner
 import org.broadinstitute.gatk.queue.extensions.gatk.PrintReads
 import org.broadinstitute.gatk.queue.extensions.gatk.RealignerTargetCreator
 import org.broadinstitute.gatk.utils.baq.BAQ.CalculationMode
+import org.broadinstitute.gatk.engine.phonehome.GATKRunReport
 
 /**
  * Commandline wappers for GATK programs.
@@ -19,6 +20,10 @@ class GATKUtils(gatkOptions: GATKConfig, projectName: Option[String], uppmaxConf
   // General arguments to GATK walkers
   trait CommandLineGATKArgs extends CommandLineGATK {
     this.reference_sequence = gatkOptions.reference
+    if (gatkOptions.gatkKey.nonEmpty) {
+      this.gatk_key = gatkOptions.gatkKey.get
+      this.phone_home = GATKRunReport.PhoneHomeOption.NO_ET
+    }
   }
 
   case class DepthOfCoverage(inBam: File, outputDir: File) extends org.broadinstitute.gatk.queue.extensions.gatk.DepthOfCoverage with CommandLineGATKArgs with OneCoreJob {
