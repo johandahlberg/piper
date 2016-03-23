@@ -53,19 +53,20 @@ lazy val piperSettings = Seq(
   mainClass in Compile := Some("org.broadinstitute.gatk.queue.QCommandLine"),
 
   // we do not want to include the qscripts in the jar-file
+  // but we still want to distribute them.
   mappings in (Compile, packageBin) ~=
     (_ filter { case (f, s) => !s.contains("molmed/qscripts") }),
 
-  mappings in Universal += {
-      file(resourceBasePath + "uppmax_global_config.xml") -> "conf/uppmax_global_config.xml"
-  },
-
-  mappings in Universal += {
-    file(resourceBasePath + "globalConfig.sh") -> "conf/globalConfig.sh"
+  mappings in Universal ++= {
+    directory("piper/src/main/scala/molmed/qscripts")
   },
 
   mappings in Universal ++= {
-    directory("workflows")
+    directory(resourceBasePath + "conf/")
+  },
+
+  mappings in Universal ++= {
+    directory(resourceBasePath + "workflows/")
   }
 
 )
