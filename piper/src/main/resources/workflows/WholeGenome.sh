@@ -11,12 +11,12 @@ function usage {
    echo "Usage: ./workflows/WholeGenome.sh --xml_input <setup.xml> [--alignments_only] [--run]"
 }
 
-# Loads the global settings. To change them open globalConfig.sh and rewrite them.
-source ${PIPER_GLOB_CONF}
-
-## Get location of globConfig script
+## Get location of this script
 _LOCATION="$(readlink -f ${BASH_SOURCE[0]})"
 _THIS_SCRIPT_LOCATION="$(dirname $_LOCATION)"
+
+# Loads the global settings. To change them open globalConfig.sh and rewrite them.
+source $_THIS_SCRIPT_LOCATION/../conf/globalConfig.sh
 
 #---------------------------------------------
 # Parse the arguments
@@ -73,9 +73,9 @@ fi
 #---------------------------------------------
 # Run the qscript
 #---------------------------------------------
-piper -S ${SCRIPTS_DIR}/DNABestPracticeVariantCalling.scala \
+piper -S ${_THIS_SCRIPT_LOCATION}/../qscripts/DNABestPracticeVariantCalling.scala \
 	      --xml_input ${PIPELINE_SETUP} \
-	      --global_config ${_THIS_SCRIPT_LOCATION}/uppmax_global_config.xml \
+	      --global_config ${_THIS_SCRIPT_LOCATION}/../conf/uppmax_global_config.xml \
 	      --number_of_threads 8 \
 	      --scatter_gather 23 \
 	      --disableJobReport \

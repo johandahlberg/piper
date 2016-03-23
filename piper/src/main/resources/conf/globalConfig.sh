@@ -89,13 +89,6 @@ JAVA_TMP="-Djava.io.tmpdir="${TMP}
 #This will execute the removal of the tmp directory
 trap clean_up SIGHUP SIGINT SIGTERM
 
-QUEUE="${PWD}/lib/Queue.jar"
-
-## Get location of globConfig script
-_GLOB_CONF_LOCATION="$(readlink -f ${BASH_SOURCE[0]})"
-_THIS_SCRIPT_LOCATION="$(dirname $_GLOB_CONF_LOCATION)"
-
-SCRIPTS_DIR="${_THIS_SCRIPT_LOCATION}/../qscripts"
 NBR_OF_THREADS=8
 
 # Setup directory structure
