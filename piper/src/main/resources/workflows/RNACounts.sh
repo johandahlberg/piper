@@ -25,6 +25,13 @@ function usage {
    echo "Usage: ./workflows/RNACounts.sh --xml_input <setup.xml> --library_type <fr-secondstrand/fr-firststrand/unstranded> [--alignments_only] [--run]"
 }
 
+## Get location of this script
+_LOCATION="$(readlink -f ${BASH_SOURCE[0]})"
+_THIS_SCRIPT_LOCATION="$(dirname $_LOCATION)"
+
+# Loads the global settings. To change them open globalConfig.sh and rewrite them.
+source $_THIS_SCRIPT_LOCATION/../conf/globalConfig.sh
+
 #---------------------------------------------
 # Parse the arguments
 #---------------------------------------------
@@ -79,14 +86,6 @@ fi
 #---------------------------------------------
 # Run template - setup which files to run etc
 #---------------------------------------------
-
-# Loads the global settings. To change them open globalConfig.sh and rewrite them.
-source ${PIPER_GLOB_CONF}
- 
-## Get location of globConfig script
-_LOCATION="$(readlink -f ${BASH_SOURCE[0]})"
-_THIS_SCRIPT_LOCATION="$(dirname $_LOCATION)"
-
 GENOME_REFERENCE=${GATK_BUNDLE_B37}"/human_g1k_v37.fasta"
 ANNOTATIONS="/proj/a2009002/piper_references/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf"
 #ANNOTATIONS="/data/test_data/piper_references/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf"
@@ -127,9 +126,9 @@ fi
 # in a different way.
 #---------------------------------------------
 
-piper -S ${SCRIPTS_DIR}/RNACounts.scala \
+piper -S ${_THIS_SCRIPT_LOCATION}/../qscripts/RNACounts.scala \
 	    --xml_input $PIPELINE_SETUP \
-	    --global_config ${_THIS_SCRIPT_LOCATION}/uppmax_global_config.xml \
+	    --global_config ${_THIS_SCRIPT_LOCATION}/../conf/uppmax_global_config.xml \
 	    --transcripts ${ANNOTATIONS} \
 	    --mask ${RRNA_TARGETS} \
 	    --library_type ${LIBRARY_TYPE} \

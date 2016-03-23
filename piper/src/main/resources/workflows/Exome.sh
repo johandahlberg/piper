@@ -11,8 +11,12 @@ function usage {
    echo "Usage: ./workflows/Exome.sh --xml_input <setup.xml> --intervals <intervals> --bed_intervals <intervals.bed>  [--alignments_only] [--run]"
 }
 
+## Get location of this script
+_LOCATION="$(readlink -f ${BASH_SOURCE[0]})"
+_THIS_SCRIPT_LOCATION="$(dirname $_LOCATION)"
+
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
-source $PIPER_GLOB_CONF
+source $_THIS_SCRIPT_LOCATION/../conf/globalConfig.sh
 
 #---------------------------------------------
 # Parse the arguments
@@ -83,7 +87,7 @@ fi
 #---------------------------------------------
 # Run the qscript
 #---------------------------------------------
-piper -S ${SCRIPTS_DIR}/DNABestPracticeVariantCalling.scala \
+piper -S ${_THIS_SCRIPT_LOCATION}/../qscripts/DNABestPracticeVariantCalling.scala \
 	      --xml_input ${PIPELINE_SETUP} \
 	      --isExome \
 	      --gatk_interval_file ${INTERVALS} \

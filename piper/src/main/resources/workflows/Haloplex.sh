@@ -13,8 +13,12 @@ function usage {
    echo "Usage: ./workflows/Haloplex.sh --xml_input <setup.xml> --intervals <regions file> --amplicons <amplicon file> [--alignments_only] [--run]"
 }
 
+## Get location of this script
+_LOCATION="$(readlink -f ${BASH_SOURCE[0]})"
+_THIS_SCRIPT_LOCATION="$(dirname $_LOCATION)"
+
 # Loads the global settings. To change them open globalConfig.sh and rewrite them.
-source $PIPER_GLOB_CONF
+source $_THIS_SCRIPT_LOCATION/../conf/globalConfig.sh
 
 #---------------------------------------------
 # Parse the arguments
@@ -76,9 +80,9 @@ module load R/2.15.0
 mkdir -p $OUTPUT_DIR
 mkdir -p ${LOGS}
 
-piper -S ${SCRIPTS_DIR}/Haloplex.scala \
+piper -S ${_THIS_SCRIPT_LOCATION}/../qscripts/Haloplex.scala \
 	     --xml_input ${PIPELINE_SETUP} \
-     	     --global_config ${_THIS_SCRIPT_LOCATION}/uppmax_global_config.xml \
+     	 --global_config ${_THIS_SCRIPT_LOCATION}/../conf/uppmax_global_config.xml \
 	     --resources ${GATK_BUNDLE_B37} \
 	     -intervals ${INTERVALS} \
 	     --amplicons ${AMPLICONS} \
@@ -89,7 +93,7 @@ piper -S ${SCRIPTS_DIR}/Haloplex.scala \
 	     --nbr_of_threads ${NBR_OF_THREADS} \
 	     --disableJobReport \
 	     -jobRunner ${JOB_RUNNER} \
-             -jobNative "${JOB_NATIVE_ARGS}" \
+         -jobNative "${JOB_NATIVE_ARGS}" \
 	     --job_walltime 36000 \
 	     -sg 1 \
 	     ${RUN} ${ONLY_ALIGNMENTS} ${DEBUG} 2>&1 | tee ${LOGS}/haloplex.log
