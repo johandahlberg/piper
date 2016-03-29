@@ -92,7 +92,7 @@ piper -S ${_THIS_SCRIPT_LOCATION}/../qscripts/DNABestPracticeVariantCalling.scal
 	      --isExome \
 	      --gatk_interval_file ${INTERVALS} \
 	      --bed_interval_file ${BED_INTERVALS} \
-	      --global_config ${_THIS_SCRIPT_LOCATION}/uppmax_global_config.xml \
+	      --global_config ${_THIS_SCRIPT_LOCATION}/../conf/uppmax_global_config.xml \
 	      --number_of_threads 8 \
 	      --scatter_gather 10 \
 	      --disableJobReport \
