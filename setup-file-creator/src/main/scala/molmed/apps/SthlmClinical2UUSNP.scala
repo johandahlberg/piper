@@ -12,7 +12,7 @@ import java.nio.file.Paths
  */
 object SthlmClinical2UUSNP extends App {
 
-  val usage = "Missing input file. Usage is: java -classpath <classpath> apps.SthlmClinical2UUSNP <meta file> <new root dir>"
+  val usage = "Missing input file. Usage is: java -classpath <classpath> molmed.apps.SthlmClinical2UUSNP <meta file> <new root dir>"
 
   val metaFile = try {
     new File(args(0))
