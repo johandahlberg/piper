@@ -153,10 +153,7 @@ class DNABestPracticeVariantCalling extends QScript
   @Argument(doc = "File containing license key for disabling GATK phone home feature", fullName = "gatk_key", shortName = "gatkKey", required = false)
   var gatkKey: File = _
 
-  @Argument(doc = "use flag --skip-duplicated with qualimap, i.e skip alignments from analysis. Three modes: " +
-                      "0) skip reads already marked as duplicate in the bam file. " +
-                      "1) skip reads which qualimap believes are duplicates. " +
-                      "2) combine option 1 and 2 ", fullName = "skip_duplicated", shortName = "skipDup", required = false)
+  @Argument(doc = "use flag --skip-duplicated with qualimap, i.e skip alignments from analysis. Three modes: 0) skip reads already marked as duplicate in the bam file. 1) skip reads which qualimap believes are duplicates. 2) combine option 1 and 2 ", fullName = "skip_duplicated", shortName = "skipDup", required = false)
   var skipDuplicated: Int = 0
 
   /**
