@@ -2,11 +2,13 @@ package molmed.apps.setupcreator
 
 import java.io.File
 import java.io.FileOutputStream
+
 import scala.collection.JavaConversions._
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.Marshaller
-import molmed.xml.setup._
+
 import molmed.apps.Sthlm2UUSNP
+import molmed.xml.setup._
 import molmed.queue.setup.IlluminaXMLReportReader
 import molmed.queue.setup.ReportReader
 

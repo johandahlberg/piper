@@ -3,7 +3,6 @@ package molmed.apps
 import org.testng.annotations._
 import org.testng.Assert
 import java.io.File
-import molmed.queue.SnpSeqBaseTest
 import scala.reflect.io.Directory
 import scala.io.Source
 
