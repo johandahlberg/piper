@@ -6,12 +6,14 @@ import java.nio.file.Files.copy
 import com.typesafe.sbt.SbtNativePackager.packageArchetype
 import NativePackagerHelper._
 
-
+enablePlugins(GitVersioning)
+enablePlugins(GitBranchPrompt)
+git.useGitDescribe := true
 
 name in Global := "Piper"
 organization := "molmed"
 
-version in Global := "v1.3.0"
+//version in Global := "v1.3.0"
 scalaVersion in Global := "2.10.3"
 
 val gatkVersionHash = "eee94ec81f721044557f590c62aeea6880afd927"
