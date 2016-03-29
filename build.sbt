@@ -6,20 +6,44 @@ import java.nio.file.Files.copy
 import com.typesafe.sbt.SbtNativePackager.packageArchetype
 import NativePackagerHelper._
 
-enablePlugins(GitVersioning)
-enablePlugins(GitBranchPrompt)
-git.useGitDescribe := true
+import com.typesafe.sbt.SbtGit.GitKeys._
 
+
+/**
+  * General options
+  */
 name in Global := "Piper"
 organization := "molmed"
 
-//version in Global := "v1.3.0"
 scalaVersion in Global := "2.10.3"
+scalacOptions in Compile ++= Seq("-deprecation","-unchecked")
 
 val gatkVersionHash = "eee94ec81f721044557f590c62aeea6880afd927"
 
-scalacOptions in Compile ++= Seq("-deprecation","-unchecked")
+/**
+  * We use git to handle versioning - the latest tag will be used as version.
+  */
+enablePlugins(GitVersioning)
+enablePlugins(GitBranchPrompt)
 
+git.uncommittedSignifier := Some("SNAPSHOT")
+git.useGitDescribe := true
+git.gitTagToVersionNumber := gitDescribeToVersion
+
+val versionRegex = "v([0-9]+.[0-9]+.[0-9]+)-?(.*)?".r
+
+def gitDescribeToVersion(s: String): Option[String] = {
+  s match {
+    case versionRegex(v,"SNAPSHOT") => printVersion("1", v); Some(s"$v")
+    case versionRegex(v,"") => printVersion("2", v); Some(v)
+    case versionRegex(v,s) => printVersion("3", v, s); Some(s"$v-$s")
+    case v => None
+  }
+}
+
+/**
+  * Handled dependencies
+  */
 lazy val dependencies =
   Seq(
     "commons-lang" % "commons-lang" % "2.5",
@@ -29,6 +53,11 @@ lazy val dependencies =
     "net.java.dev.jets3t" % "jets3t" % "0.8.1",
     "org.simpleframework" % "simple-xml" % "2.0.4",
     "com.github.scopt" %% "scopt" % "3.2.0")
+
+/**
+  * We need to download and build the GATK the first time
+  * that piper is to be built.
+  */
 
 lazy val downloadGATK = settingKey[List[File]]("Clone GATK from github.")
 
@@ -67,6 +96,10 @@ downloadGATK in Global := {
 
 unmanagedJars in Compile ++= downloadGATK.value
 
+/**
+  * Settings in common for both modules
+  */
+
 lazy val commonSettings =
   packageArchetype.java_application ++
     Seq(libraryDependencies ++= dependencies) ++
@@ -87,6 +120,10 @@ lazy val root = Project(
   aggregate = Seq(piper, setupCreator)
 ).dependsOn(piper, setupCreator)
 
+
+/**
+  * Settings specific to the Piper module
+  */
 
 lazy val piper = Project(
   id = "piper",
@@ -118,6 +155,10 @@ lazy val piperSettings = Seq(
   }
 
 )
+
+/**
+  * Settings specific to the setup-file-creator module.
+  */
 
 lazy val setupCreator = Project(
   id = "setupFileCreator",
