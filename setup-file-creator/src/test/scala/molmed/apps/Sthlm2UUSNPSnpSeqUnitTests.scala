@@ -241,8 +241,6 @@ class Sthlm2UUSNPSnpSeqUnitTests {
     assert(actual.sorted == expected.sorted, "acutal=" + actual + " expected=" + expected)
   }
 
-  // Just a random change...
-
   @Test
   def parseSampleInfoFromFileHierarchyTest {
 
