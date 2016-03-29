@@ -1,12 +1,20 @@
 
+import java.nio.file.Path
+import java.nio.file.StandardCopyOption.REPLACE_EXISTING
+import java.nio.file.Files.copy
+
 import com.typesafe.sbt.SbtNativePackager.packageArchetype
 import NativePackagerHelper._
+
+
 
 name in Global := "Piper"
 organization := "molmed"
 
 version in Global := "v1.3.0"
 scalaVersion in Global := "2.10.1"
+
+val gatkVersionHash = "eee94ec81f721044557f590c62aeea6880afd927"
 
 scalacOptions in Compile ++= Seq("-deprecation","-unchecked")
 
@@ -19,6 +27,43 @@ lazy val dependencies =
     "net.java.dev.jets3t" % "jets3t" % "0.8.1",
     "org.simpleframework" % "simple-xml" % "2.0.4",
     "com.github.scopt" %% "scopt" % "3.2.0")
+
+lazy val downloadGATK = settingKey[List[File]]("Clone GATK from github.")
+
+downloadGATK in Global := {
+
+  val gatkDir = file("gatk-protected")
+  val gatkJar = file(gatkDir + "/target/GenomeAnalysisTK.jar")
+  val queueJar = file(gatkDir + "/target/Queue.jar")
+  val lib = file("piper/lib")
+
+  val queueInLib = file(lib + "/" + queueJar.getName).exists()
+  val gatkInLib = file(lib + "/" + gatkJar.getName).exists()
+
+  if(queueInLib && gatkInLib){
+    println("GATK jar found - will skip download and build.")
+  }
+  else {
+    println("Didn't find GATK jar - will download and build it.")
+
+    Process("git clone https://github.com/broadgsa/gatk-protected.git") #&&
+      Process(s"git checkout $gatkVersionHash", gatkDir) #&&
+      Process("mvn package", gatkDir) !!
+
+    if(!lib.exists())
+      lib.mkdirs()
+  }
+
+  def copySourceWithName(source: File, targetDir: File): Path = {
+    copy(source.toPath, targetDir.toPath.resolve(source.getName), REPLACE_EXISTING)
+  }
+
+  val copiedGATKJar = copySourceWithName(gatkJar, lib)
+  val copiedQueueJar = copySourceWithName(queueJar, lib)
+  List(copiedGATKJar.toFile, copiedQueueJar.toFile)
+}
+
+unmanagedJars in Compile ++= downloadGATK.value
 
 lazy val commonSettings =
   packageArchetype.java_application ++
@@ -50,6 +95,7 @@ lazy val piper = Project(
 val resourceBasePath = "piper/src/main/resources/"
 
 lazy val piperSettings = Seq(
+
   mainClass in Compile := Some("org.broadinstitute.gatk.queue.QCommandLine"),
 
   // we do not want to include the qscripts in the jar-file
