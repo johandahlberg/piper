@@ -1,4 +1,4 @@
-package apps
+package molmed.apps
 
 import org.testng.annotations._
 import org.testng.Assert
