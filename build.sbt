@@ -34,9 +34,9 @@ val versionRegex = "v([0-9]+.[0-9]+.[0-9]+)-?(.*)?".r
 
 def gitDescribeToVersion(s: String): Option[String] = {
   s match {
-    case versionRegex(v,"SNAPSHOT") => printVersion("1", v); Some(s"$v")
-    case versionRegex(v,"") => printVersion("2", v); Some(v)
-    case versionRegex(v,s) => printVersion("3", v, s); Some(s"$v-$s")
+    case versionRegex(v,"SNAPSHOT") => Some(s"$v")
+    case versionRegex(v,"") => Some(v)
+    case versionRegex(v,s) => Some(s"$v-$s")
     case v => None
   }
 }
