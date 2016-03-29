@@ -12,7 +12,7 @@ name in Global := "Piper"
 organization := "molmed"
 
 version in Global := "v1.3.0"
-scalaVersion in Global := "2.10.1"
+scalaVersion in Global := "2.10.3"
 
 val gatkVersionHash = "eee94ec81f721044557f590c62aeea6880afd927"
 
