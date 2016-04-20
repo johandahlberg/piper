@@ -4,3 +4,9 @@ target/
 .project
 ~
 /bin
+.idea
+.cache
+.queue/
+.settings/
+gatk-protected/
+

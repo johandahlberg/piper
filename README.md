@@ -7,7 +7,7 @@
 
 [![Build Status](https://travis-ci.org/johandahlberg/piper.png?branch=master)](https://travis-ci.org/johandahlberg/piper)
 
-A pipeline project started at the [SNP&SEQ Technology platform](http://www.molmed.medsci.uu.se/SNP+SEQ+Technology+Platform/) built on top of [GATK Queue](http://www.broadinstitute.org/gatk/guide/topic?name=intro#intro1306). Since then Piper has been adopted by the Swedish [National Genomics Infrastructure (NGI)](http://www.scilifelab.se/platforms/ngi/) for use in the the Swedish Genomes Program as well as for samples submitted through the Illumina Genome Network to the NGI platform.
+A pipeline project started at the [SNP&SEQ Technology platform](http://www.molmed.medsci.uu.se/SNP+SEQ+Technology+Platform/) built on top of [GATK Queue](http://www.broadinstitute.org/gatk/guide/topic?name=intro#intro1306). Since then Piper has been adopted by the Swedish [National Genomics Infrastructure (NGI)](http://www.scilifelab.se/platforms/ngi/) for use on all human whole genome samples sequenced at NGI.
 
 Piper builds on the concept of standardized workflows for different next-generation sequencing applications. At the moment Piper supports the following workflows:
 
@@ -21,23 +21,30 @@ All supported workflows are available in the `workflows` directory in the projec
 Prerequisites and installation
 ==============================
 
-Piper has been tested on the Java(TM) SE Runtime Environment (build 1.7.0_25) on the [UPPMAX](http://www.uppmax.uu.se) cluster Milou. It might run in other environments, but this is untested. Besides the JVM, Piper depends on [Maven (version 3+)](http://maven.apache.org/) for building (the GATK), [Make](http://www.gnu.org/software/make/) to install, and [git](http://git-scm.com/) to checkout the source. To install piper, make sure that these programs are in you path and then clone this repository and run the setup script:
+Piper has been tested on the Java(TM) SE Runtime Environment (build 1.7.0_25) on the [UPPMAX](http://www.uppmax.uu.se) cluster Milou. It might run in other environments, but this is untested. Besides the JVM, Piper depends on [Maven (version 3+)](http://maven.apache.org/) for building (the GATK), [SBT](http://www.scala-sbt.org/) and [git](http://git-scm.com/) to checkout the source. To install piper, make sure that these programs are in you path and then clone this repository and run the setup script:
 
-    git clone https://github.com/Molmed/piper.git
+    git clone https://github.com/NationalGenomicsInfrastructure/piper.git
     cd piper
-    ./setup.sh <path to install Piper to. Default is: $HOME/Bin/Piper>
-    # Follow the instructions printed by the setup script.
+    sbt universal:packageBin
+    # This will create two zip files.
+    # Unzip these where you wish to install piper
+    ./piper/target/universal/piper-v[version].zip
+    ./setup-file-creator/target/universal/setupfilecreator-v[version].zip
+    # Then add the workflows and piper bin folders to your PATH, e.g.
+    export PATH=$PATH:/path/to/piper/bin:/path/to/piper/workflows
+    # You also need to add the setupcreator to the path
+    export PATH=$PATH:path/to/setupfilecreator/bin
     
 As Piper acts as a wrapper for several standard bioinformatics programs, it requires that these are installed. At this point it requires that the following programs are installed (depending somewhat on the application):
 
-* [bwa](http://bio-bwa.sourceforge.net/) 0.7.5a
-* [samtools](http://samtools.sourceforge.net/) 0.1.19
-* [tophat](http://tophat.cbcb.umd.edu/) 2.0.10
-* [cutadapt](https://code.google.com/p/cutadapt/) 1.2.1
-* [cufflinks](http://cufflinks.cbcb.umd.edu/) 2.1.1
-* [qualimap](http://qualimap.bioinfo.cipf.es/) v1.0 
+* [bwa](http://bio-bwa.sourceforge.net/)
+* [samtools](http://samtools.sourceforge.net/)
+* [tophat](http://tophat.cbcb.umd.edu/)
+* [cutadapt](https://code.google.com/p/cutadapt/)
+* [cufflinks](http://cufflinks.cbcb.umd.edu/)
+* [qualimap](http://qualimap.bioinfo.cipf.es/)
 
-The paths for these programs are setup in the `globalConfig.sh` file. If you are running on UPPMAX these should already be pointing to the correct locations. If not, you need to change them there.
+The paths for these programs are setup in the `uppmax_global_config.xml` file. If you are running on UPPMAX these should already be pointing to the correct locations. If not, you need to change them there.
 
 Resource files
 ==============
@@ -228,10 +235,6 @@ Although the Scala IDE will compile the code as you type, you will probably also
 
 Will compile your project.
 
-    pack
-
-Will produce the jars, start up scripts and a Make file (look under the `target/pack` to see the output)
-
     clean
 
 If something looks strange it is probably a good idea to run this. It deletes all of your class files so that you can be sure you have a totally clean build.
@@ -240,34 +243,6 @@ If something looks strange it is probably a good idea to run this. It deletes al
 
 Run the tests (for more on testing, see the testing chapter) - note that by default this only dry runs the qscript integration tests, which basically makes sure that they compile, but giving you no guarantees for runtime functionality.
 
-### Project organization
-
-This is an (incomplete) overview of Pipers project organization, describing the most important parts of the setup.
-
-<pre>
-|-.travis.yml       # Travis setup file
-|-.gitignore        # file which git should ignore
-|-build.sbt         # The primary build definition file for sbt (there is additional build info under project)
-|-globalConfig.sh   # Global setup with e.g. paths to programs etc.
-|-README.md         # This readme
-|----sbt            # The sbt compiler - included for the users convinience
-|----lib            # Unmanaged dependecencies
-|----project        # Build stuff for sbt
-|----resources      # Unmanaged additional dependecencies which are manually downloaded by setup script, and a perl hack which is currently used to sync reads
-|----src            # The source of piper
-    |----main
-        |----java
-        |----resources
-        |----scala
-    |----test
-        |----java
-        |----resources
-        |----scala
-|----target         # Generated build files
-|----workflows      # The workflow file which are used to actually run piper
-</pre>
-
-
 ### Making Piper generate graph files
 Queue includes functionallity to generate dot files to visualize the jobs graph. This is highly useful when debugging new qscripts as it lets you see how the jobs connect to one another. So, if you have made a mistake in the chaining of the dependencies it is easy to spot. ".dot" files can be opened with e.g. [xdot](https://github.com/jrfonseca/xdot.py).
 
@@ -275,7 +250,7 @@ Queue includes functionallity to generate dot files to visualize the jobs graph.
 ### Using the XML binding compiler (xjc):
 To generate the xml read classes I use xjc, which uses an xml schema in xsd format to generate a number of java classes, which can then be used to interact with the setup and report xml files. These classes are used by the SetupXMLReader and the SetupFileCreator. An example of how to generate the classes is seen below:
 
-	 xjc -d src/main/java/ src/main/resources/PipelineSetupSchema.xsd
+	 xjc -d piper/src/main/java/ piper/src/main/resources/xml_schemas/PipelineSetupSchema.xsd
 
 Testing
 -------
@@ -284,7 +259,7 @@ Testing
 Running the tests is done by `sbt test`. However, there are some things which need to be noted. As the pipeline tests take a long time and have dependencies on outside programs (such as bwa for alignment, etc.) these can only be run on machines that have all the required programs installed and that have all the correct resources. This means that by default the tests are setup to just compile the qscripts, but not run them. If you want to run the qscripts you need to go into `src/test/resources/testng.xml` and set the value of the runpipeline parameter to 'true'.
 
 ### Writing pipeline tests
-Pipeline tests are setup to run a certain QScript and check the md5sums of the outputs. If md5sums do not match, it will show you what the differences between the files are so that you can decide if the changes to the output are reasonable concidering the changes to the code you have made. At the moment, pipeline tests are just setup to run (with all the necessary resources, etc) on my workstation. In furture versions I hope to be able to make this more portable.
+Pipeline tests are setup to run a certain QScript and check the md5sums of the outputs. If md5sums do not match, it will show you what the differences between the files are so that you can decide if the changes to the output are reasonable considering the changes to the code you have made. At the moment, pipeline tests are just setup to run (with all the necessary resources, etc) on my workstation. In furture versions I hope to be able to make this more portable.
 
 ### Continuous integration using Travis:
 Piper uses [Travis](https://travis-ci.org/) for continious integration. For instruction on how to set this up with a github repository see: http://about.travis-ci.org/docs/user/getting-started/
