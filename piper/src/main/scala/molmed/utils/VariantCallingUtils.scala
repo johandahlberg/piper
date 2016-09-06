@@ -86,6 +86,9 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
       config.qscript.add(new GenotypeGVCF(Seq(target.gVCFFile), target, config.testMode))
     }
 
+    // Evaluate the raw variants (both SNVs and INDELS)
+    config.qscript.add(new CombinedEvaluation(target))
+
     config.qscript.add(new SelectVariantType(target, SNPs, config.testMode))
     config.qscript.add(new SelectVariantType(target, INDELs, config.testMode))
 
@@ -559,6 +562,16 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
     if (!t.intervals.isEmpty) this.intervals :+= t.intervals.get
   }
 
+  class CombinedEvaluation(t: VariantCallingTarget) extends EvalBase(t) {
+    this.eval :+= t.rawCombinedVariants
+    this.out = t.combinedEvalFile
+
+    if (t.snpGenotypingVcf.isDefined)
+      this.comp :+= t.snpGenotypingVcf.get
+
+    override def jobRunnerJobName = projectName.get + "_varianteval_raw_variants"
+  }
+
   // 5a.) SNP Evaluation (OPTIONAL) based on the cut vcf
   class SnpEvaluation(t: VariantCallingTarget, noRecal: Boolean) extends EvalBase(t) {
     if (!noRecal)
@@ -576,7 +589,6 @@ class VariantCallingUtils(gatkOptions: GATKConfig, projectName: Option[String], 
       this.eval :+= t.recalibratedIndelVCF
     this.eval :+= t.rawIndelVCF
 
-    this.noEV = true
     this.out = t.evalIndelFile
     override def jobRunnerJobName = projectName.get + "_VEi"
   }
